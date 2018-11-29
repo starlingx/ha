@@ -1,0 +1,295 @@
+#!/bin/sh
+#
+#
+# OpenStack Key Manager Worker Service (barbican-worker)
+#
+# Description: Manages an OpenStack Key Manager Worker Service
+# (barbican-worker) process as an HA resource
+#
+# Authors: Alex Kozyrev
+#
+# Support: openstack@lists.launchpad.net
+# License: Apache Software License (ASL) 2.0
+#
+# Copyright (c) 2018 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+#
+# See usage() function below for more details ...
+#
+# OCF instance parameters:
+# OCF_RESKEY_binary
+# OCF_RESKEY_user
+# OCF_RESKEY_pid
+#######################################################################
+# Initialization:
+
+: ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
+. ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+. /usr/bin/tsconfig
+
+#######################################################################
+
+# Fill in some defaults if no values are specified
+
+OCF_RESKEY_binary_default="barbican-worker"
+OCF_RESKEY_user_default="root"
+OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
+
+: ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
+: ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
+: ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
+
+#######################################################################
+
+usage() {
+    cat <<UEND
+        usage: $0 (start|stop|validate-all|meta-data|status|monitor)
+
+        $0 manages an OpenStack Key Manager Worker Service
+        (barbican-worker) process as an HA resource
+
+        The 'start' operation starts the scheduler service.
+        The 'stop' operation stops the scheduler service.
+        The 'validate-all' operation reports whether the parameters are valid
+        The 'meta-data' operation reports this RA's meta-data information
+        The 'status' operation reports whether the scheduler service is running
+        The 'monitor' operation reports whether the scheduler service seems to be working
+
+UEND
+}
+
+meta_data() {
+    cat <<END
+<?xml version="1.0"?>
+<!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
+<resource-agent name="barbican-worker">
+<version>1.0</version>
+
+<longdesc lang="en">
+Resource agent for the OpenStack Key Manager Worker Service (barbican-worker)
+May manage a barbican-worker instance or a clone set that
+creates a distributed barbican-worker cluster.
+</longdesc>
+<shortdesc lang="en">Manages the OpenStack Key Manager Worker Service (barbican-worker)</shortdesc>
+<parameters>
+
+<parameter name="binary" unique="0" required="0">
+<longdesc lang="en">
+Location of the OpenStack Key Manager Worker server binary (barbican-worker)
+</longdesc>
+<shortdesc lang="en">OpenStack Key Manager Worker server binary (barbican-worker)</shortdesc>
+<content type="string" default="${OCF_RESKEY_binary_default}" />
+</parameter>
+
+<parameter name="user" unique="0" required="0">
+<longdesc lang="en">
+User running OpenStack Key Manager Worker Service (barbican-worker)
+</longdesc>
+<shortdesc lang="en">OpenStack Key Manager Worker Service (barbican-worker) user</shortdesc>
+<content type="string" default="${OCF_RESKEY_user_default}" />
+</parameter>
+
+<parameter name="pid" unique="0" required="0">
+<longdesc lang="en">
+The pid file to use for this OpenStack Key Manager Worker Service (barbican-worker) instance
+</longdesc>
+<shortdesc lang="en">OpenStack Key Manager Worker Service (barbican-worker) pid file</shortdesc>
+<content type="string" default="${OCF_RESKEY_pid_default}" />
+</parameter>
+
+</parameters>
+
+<actions>
+<action name="start" timeout="20" />
+<action name="stop" timeout="20" />
+<action name="status" timeout="20" />
+<action name="monitor" timeout="30" interval="20" />
+<action name="validate-all" timeout="5" />
+<action name="meta-data" timeout="5" />
+</actions>
+</resource-agent>
+END
+}
+
+#######################################################################
+# Functions invoked by resource manager actions
+
+barbican_worker_validate() {
+    local rc
+
+    check_binary $OCF_RESKEY_binary
+
+    getent passwd $OCF_RESKEY_user >/dev/null 2>&1
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        ocf_log err "User $OCF_RESKEY_user doesn't exist"
+        return $OCF_ERR_INSTALLED
+    fi
+
+    true
+}
+
+barbican_worker_status() {
+    local pid
+    local rc
+
+    if [ ! -f $OCF_RESKEY_pid ]; then
+        ocf_log info "OpenStack Key Manager Worker (barbican-worker) is not running"
+        return $OCF_NOT_RUNNING
+    else
+        pid=`cat $OCF_RESKEY_pid`
+    fi
+
+    ocf_run -warn kill -s 0 $pid
+    rc=$?
+    if [ $rc -eq 0 ]; then
+        return $OCF_SUCCESS
+    else
+        ocf_log info "Old PID file found, but OpenStack Key Manager Worker (barbican-worker) is not running"
+        rm -f $OCF_RESKEY_pid
+        return $OCF_NOT_RUNNING
+    fi
+}
+
+barbican_worker_monitor() {
+    local rc
+    local pid
+
+    barbican_worker_status
+    rc=$?
+
+    # If status returned anything but success, return that immediately
+    if [ $rc -ne $OCF_SUCCESS ]; then
+        return $rc
+    fi
+
+    ocf_log debug "OpenStack Key Manager Worker (barbican-worker) monitor succeeded"
+    return $OCF_SUCCESS
+}
+
+barbican_worker_start() {
+    local rc
+
+    barbican_worker_status
+    rc=$?
+    if [ $rc -eq $OCF_SUCCESS ]; then
+        ocf_log info "OpenStack Key Manager Worker (barbican-worker) already running"
+        return $OCF_SUCCESS
+    fi
+
+    # run the actual barbican-worker daemon. Don't use ocf_run as we're sending the tool's output
+    # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
+    su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} \
+    --logfile /var/log/barbican/barbican-worker.log"' >> /dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
+
+    # Spin waiting for the server to come up.
+    while true; do
+    barbican_worker_monitor
+    rc=$?
+    [ $rc -eq $OCF_SUCCESS ] && break
+    if [ $rc -ne $OCF_NOT_RUNNING ]; then
+        ocf_log err "OpenStack Key Manager Worker (barbican-worker) start failed"
+        exit $OCF_ERR_GENERIC
+    fi
+    sleep 1
+    done
+
+    ocf_log info "OpenStack Key Manager Worker (barbican-worker) started"
+    return $OCF_SUCCESS
+}
+
+barbican_worker_confirm_stop() {
+    local my_bin
+    local my_processes
+
+    my_binary=`which ${OCF_RESKEY_binary}`
+    my_processes=`pgrep -l -f "^(python|/usr/bin/python|/usr/bin/python2) ${my_binary}([^\w-]|$)"`
+
+    if [ -n "${my_processes}" ]
+    then
+        ocf_log info "About to SIGKILL the following: ${my_processes}"
+        pkill -KILL -f "^(python|/usr/bin/python|/usr/bin/python2) ${my_binary}([^\w-]|$)"
+    fi
+}
+
+barbican_worker_stop() {
+    local rc
+    local pid
+
+    barbican_worker_status
+    rc=$?
+    if [ $rc -eq $OCF_NOT_RUNNING ]; then
+        ocf_log info "OpenStack Key Manager Worker (barbican-worker) already stopped"
+        barbican_worker_confirm_stop
+        return $OCF_SUCCESS
+    fi
+
+    # Try SIGTERM
+    pid=`cat $OCF_RESKEY_pid`
+    ocf_run kill -s TERM $pid
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        ocf_log err "OpenStack Key Manager Worker (barbican-worker) couldn't be stopped"
+        barbican_worker_confirm_stop
+        exit $OCF_ERR_GENERIC
+    fi
+
+    # stop waiting
+    shutdown_timeout=2
+    if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
+        shutdown_timeout=$((($OCF_RESKEY_CRM_meta_timeout/1000)-5))
+    fi
+    count=0
+    while [ $count -lt $shutdown_timeout ]; do
+        barbican_worker_status
+        rc=$?
+        if [ $rc -eq $OCF_NOT_RUNNING ]; then
+            break
+        fi
+        count=`expr $count + 1`
+        sleep 1
+        ocf_log debug "OpenStack Key Manager Worker (barbican-worker) still hasn't stopped yet. \
+          Waiting ..."
+    done
+
+    barbican_worker_status
+    rc=$?
+    if [ $rc -ne $OCF_NOT_RUNNING ]; then
+        # SIGTERM didn't help either, try SIGKILL
+        ocf_log info "OpenStack Key Manager Worker (barbican-worker) failed to stop after \
+          ${shutdown_timeout}s using SIGTERM. Trying SIGKILL ..."
+        ocf_run kill -s KILL $pid
+    fi
+    barbican_worker_confirm_stop
+
+    ocf_log info "OpenStack Key Manager Worker (barbican-worker) stopped"
+
+    rm -f $OCF_RESKEY_pid
+
+    return $OCF_SUCCESS
+}
+
+#######################################################################
+
+case "$1" in
+  meta-data) meta_data
+                exit $OCF_SUCCESS;;
+  usage|help) usage
+                exit $OCF_SUCCESS;;
+esac
+
+# Anything except meta-data and help must pass validation
+barbican_worker_validate || exit $?
+
+# What kind of method was invoked?
+case "$1" in
+  start) barbican_worker_start;;
+  stop) barbican_worker_stop;;
+  status) barbican_worker_status;;
+  monitor) barbican_worker_monitor;;
+  validate-all) ;;
+  *) usage
+                exit $OCF_ERR_UNIMPLEMENTED;;
+esac
