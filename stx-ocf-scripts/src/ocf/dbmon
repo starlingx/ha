@@ -1,0 +1,339 @@
+#!/bin/sh
+#
+#
+# OpenStack mariadb monitor (dbmon)
+#
+# Description:  Monitors local OpenStack mariadb pod as an HA resource
+#
+# Authors:      Chris Friesen
+#
+# Support:      starlingx-discuss@lists.starlingx.io
+# License:      Apache Software License (ASL) 2.0
+#
+# Copyright (c) 2019 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+#
+# See usage() function below for more details ...
+#
+#######################################################################
+# Initialization:
+
+: ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
+. ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+
+#######################################################################
+
+
+export KUBECONFIG=/etc/kubernetes/admin.conf
+
+#######################################################################
+
+usage() {
+    cat <<UEND
+        usage: $0 (start|stop|validate-all|meta-data|active|standby|monitor)
+
+        $0 monitors local OpenStack mariadb pod as an HA resource
+
+        The 'start' operation doesn't really do anything.
+        The 'stop' operation doesn't really do anything.
+        The 'validate-all' operation reports whether the parameters are valid
+        The 'meta-data' operation reports this RA's meta-data information
+        The 'monitor' operation reports whether the local mariadb pod is 'Primary'
+        The 'active' operation will try to ensure that the local mariadb pod is 'Primary'
+        The 'standby' operation will report whether the local mariadb pod is 'Primary'
+
+UEND
+}
+
+# this apostrophe is to work around an editor highlighting bug: '
+
+meta_data() {
+    cat <<END
+<?xml version="1.0"?>
+<!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
+<resource-agent name="dbmon">
+<version>1.0</version>
+
+<longdesc lang="en">
+Resource agent for the OpenStack mariadb monitor (dbmon)
+This tries to ensure that the active controller node always has access
+to a functional OpenStack database.
+</longdesc>
+<shortdesc lang="en">Monitors the OpenStack mariadb pod</shortdesc>
+<parameters>
+
+</parameters>
+
+<actions>
+<action name="start" timeout="20" />
+<action name="stop" timeout="20" />
+<action name="monitor" timeout="10" interval="5" />
+<action name="validate-all" timeout="5" />
+<action name="meta-data" timeout="5" />
+<action name="audit" timeout="5" />
+</actions>
+</resource-agent>
+END
+}
+
+#######################################################################
+# Functions invoked by resource manager actions
+
+dbmon_validate() {
+    local rc
+
+    check_binary base64
+    check_binary grep
+    check_binary cut
+    check_binary head
+    check_binary kubectl
+
+    true
+}
+
+active_controller() {
+    # "facter" will return "true" or "false" 
+    eval $(FACTERLIB=/usr/share/puppet/modules/platform/lib/facter/ facter is_controller_active)
+}
+
+check_has_garbd_chart() {
+    helm list osh-openstack-garbd|grep -q osh-openstack-garbd
+}
+
+
+debuginfo() {
+    # Log some information on what's preventing us from getting the DB status
+
+    APP_STATUS='uninstalled'
+
+    # Check whether kubectl is working
+    kubectl get node ${HOSTNAME} &> /dev/null
+    if [ $? -ne 0 ]; then
+        ocf_log info "kubectl isn't working."
+        STATUS="Primary"
+        return
+    fi
+
+    # Check whether the openstack namespace exists.  This is a proxy
+    # for whether the application is installed.
+    kubectl get ns openstack &> /dev/null
+    if [ $? -ne 0 ]; then
+        ocf_log info "Openstack namespace doesn't exist."
+        # TODO: this is a hack until we can dynamically provision services in sm.
+        # Once that's available this should just return.
+        STATUS="Primary"
+        return
+    fi
+
+    # TODO: this is also a hack until we can dynamically provision services in sm.
+    # Check whether the helm chart is deployed.  If not, we don't want to
+    # cause an alarm to be raised.  The helm list command returns 0 even if the
+    # specified chart isn't found.
+    helm list osh-openstack-mariadb|grep -qe "osh-openstack-mariadb.*DEPLOYED"
+    if [ $? -ne 0 ]; then
+        ocf_log info "osh-openstack-mariadb helm chart not installed."
+        STATUS="Primary"
+        return
+    fi
+
+    APP_STATUS='initializing'
+
+    # Check that mariadb is running in the pod.  If it's not, we could be still
+    # initializing.
+    INFO=`kubectl exec -n openstack -it ${PODNAME} -- ps -C mysqld`
+    if [ $? -ne 0 ]; then
+        ocf_log info "Mysqld not running in mariadb container."
+        # Setting STATUS so the audit will return $OCF_NOT_RUNNING instead
+        # of $OCF_ERR_GENERIC
+        STATUS="non-Primary"
+    fi
+}
+
+get_status() {
+    STATUS=`kubectl exec -n openstack -it ${PODNAME} -- mysql -sN  -u root \
+           --password=${DBPASSWD} -e " select VARIABLE_VALUE from \
+           information_schema.GLOBAL_STATUS where VARIABLE_NAME='wsrep_cluster_status';"`
+
+    if [ $? -ne 0 ]; then
+        # something is wrong, can't query status
+        ocf_log info "Unknown error trying to query mariadb status"
+        return $OCF_ERR_GENERIC
+    fi
+
+    # In my testing there is a CR/LF at the end of STATUS, remove it.
+    STATUS=${STATUS%%[[:space:]]}
+}
+
+get_pod_and_status() {
+
+    # Get name of local mariadb pod
+    PODNAME=`kubectl -n openstack get pod --field-selector spec.nodeName=${HOSTNAME} \
+            -l application=mariadb,component=server  -o=jsonpath='{.items[0].metadata.name'}`
+    if [ $? -ne 0 ]; then
+        ocf_log info "Error getting mariadb server pod name on this node."
+        return $OCF_ERR_GENERIC
+    fi
+
+    # If this doesn't exist, the return code will still be zero
+    # but the variable will be blank.
+    DBPASSWD_ENCODED=`kubectl -n openstack get secret mariadb-db-root-password \
+                     -o=jsonpath='{.data.MYSQL_ROOT_PASSWORD'}`
+    if [ "${DBPASSWD_ENCODED}" = '' ]; then
+        ocf_log info "Unable to get mariadb password. Exiting."
+        return $OCF_ERR_GENERIC
+    fi
+
+    DBPASSWD=`echo ${DBPASSWD_ENCODED}|base64 -d`
+    if [ $? -ne 0 ]; then
+        ocf_log info "Unable to decode mariadb password. Exiting."
+        return $OCF_ERR_GENERIC
+    fi
+
+    get_status
+}
+
+dbmon_status() {
+    get_pod_and_status
+    if [ $? -ne 0 ]; then
+        # The call to debuginfo may write to STATUS, once sysinv can dynamically
+        # add services that shouldn't be necessary any more.
+        debuginfo
+    fi
+
+    if [ "${STATUS}" == "Primary" ]; then
+        if active_controller ; then
+            return $OCF_RUNNING_MASTER
+        else
+            return $OCF_SUCCESS
+        fi
+    elif [ "${STATUS}" == "non-Primary" ]; then
+        ocf_log info "mariadb server is running but not primary."
+        return $OCF_NOT_RUNNING
+    else
+        ocf_log info "unexpected mariadb status of ${STATUS}"
+        return $OCF_ERR_GENERIC
+    fi
+}
+
+dbmon_monitor() {
+    dbmon_status
+}
+
+dbmon_standby() {
+    get_pod_and_status
+    if [ $? -ne 0 ]; then
+        # something is wrong, can't query status
+        debuginfo
+        ocf_log info "unable to query status, exiting"
+        # If the app isn't installed yet then there's no point in complaining.
+        if [ $APP_STATUS == 'uninstalled' ]; then
+            return $OCF_SUCCESS
+        else
+            return $OCF_NOT_RUNNING
+        fi
+    fi
+
+    if [ "${STATUS}" == "non-Primary" ]; then
+        return $OCF_NOT_RUNNING
+    elif [ "${STATUS}" == "Primary" ]; then
+        return $OCF_SUCCESS
+    else
+        ocf_log info "unexpected mariadb status of ${STATUS}"
+        return $OCF_ERR_GENERIC
+    fi
+}
+
+dbmon_active() {
+
+    get_pod_and_status
+    if [ $? -ne 0 ]; then
+        # something is wrong, can't query status
+        debuginfo
+        ocf_log info "unable to query status, exiting"
+        # If the app isn't installed yet we don't want to hold up the
+        # controller going active.
+        if [ $APP_STATUS == 'uninstalled' ]; then
+            return $OCF_SUCCESS
+        else
+            return $OCF_NOT_RUNNING
+        fi
+    fi
+
+    if [ "${STATUS}" == "non-Primary" ]; then
+        ocf_log info "mariadb server is running but not primary"
+
+        # If we're on a standard lab, exit before telling the server to become primary
+        check_has_garbd_chart
+        if [ $? -eq 0 ]; then
+            ocf_log info "in standard lab, exiting"
+            return $OCF_NOT_RUNNING
+        fi
+
+        # tell mysql to become primary
+        kubectl exec -n openstack -it ${PODNAME} -- mysql -u root --password=${DBPASSWD} \
+                     -e "SET GLOBAL wsrep_provider_options='pc.bootstrap=YES';"
+        if [ $? -ne 0 ]; then
+            ocf_log info "Error telling mysql to become primary."
+            return $OCF_NOT_RUNNING
+        fi
+
+        # wait a bit then check the status
+        sleep 1
+        ocf_log info "checking status after bootstrapping"
+        get_status
+        if [ $? -ne 0 ]; then
+           # something is wrong, can't query status
+            debuginfo
+            ocf_log info "unable to query status, exiting"
+            return $OCF_NOT_RUNNING
+        fi
+        if [ "${STATUS}" == "non-Primary" ]; then
+            ocf_log info "mariadb server is running but still not primary"
+            return $OCF_NOT_RUNNING
+        fi
+    fi
+
+    # At this point status is either Primary or something unexpected
+    if [ "${STATUS}" == "Primary" ]; then
+        return $OCF_SUCCESS
+    else
+        ocf_log info "unexpected mariadb status of ${STATUS}"
+        return $OCF_ERR_GENERIC
+    fi
+}
+
+dbmon_start() {
+    return $OCF_SUCCESS
+}
+
+dbmon_stop() {
+    return $OCF_NOT_RUNNING
+}
+
+#######################################################################
+
+case "$1" in
+  meta-data)    meta_data
+                exit $OCF_SUCCESS;;
+  usage|help)   usage
+                exit $OCF_SUCCESS;;
+esac
+
+# Anything except meta-data and help must pass validation
+dbmon_validate || exit $?
+
+# What kind of method was invoked?
+case "$1" in
+  start)        dbmon_start;;
+  stop)         dbmon_stop;;
+  monitor)      dbmon_monitor;;
+  active)       dbmon_active;;
+  standby)      dbmon_standby;;
+  validate-all) ;;
+  *)            usage
+                exit $OCF_ERR_UNIMPLEMENTED;;
+esac
+
+
