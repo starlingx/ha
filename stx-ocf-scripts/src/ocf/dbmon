@@ -105,11 +105,13 @@ check_has_garbd_chart() {
 
 debuginfo() {
     # Log some information on what's preventing us from getting the DB status
+    # The "timeout" call is in case we're in the middle of swacting and kubectl
+    # isn't responding, in which case the audit should catch any issues.
 
     APP_STATUS='uninstalled'
 
-    # Check whether kubectl is working
-    kubectl get node ${HOSTNAME} &> /dev/null
+    # Check whether kubectl is working.
+    timeout -k 5 5 kubectl get node ${HOSTNAME} &> /dev/null
     if [ $? -ne 0 ]; then
         ocf_log info "kubectl isn't working."
         STATUS="Primary"
@@ -168,8 +170,11 @@ get_status() {
 
 get_pod_and_status() {
 
-    # Get name of local mariadb pod
-    PODNAME=`kubectl -n openstack get pod --field-selector spec.nodeName=${HOSTNAME} \
+    # Get name of local mariadb pod.
+    # The "timeout" call is in case we're in the middle of swacting and kubectl
+    # isn't responding, in which case the audit should catch any issues.
+
+    PODNAME=`timeout -k 5 5 kubectl -n openstack get pod --field-selector spec.nodeName=${HOSTNAME} \
             -l application=mariadb,component=server  -o=jsonpath='{.items[0].metadata.name'}`
     if [ $? -ne 0 ]; then
         ocf_log info "Error getting mariadb server pod name on this node."
