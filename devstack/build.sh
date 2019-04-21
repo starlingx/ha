@@ -29,7 +29,7 @@ function is_service_enabled {
 }
 
 # Get the build functions
-source $PLUGIN_DIR/devstack/lib/stx-ha
+source $PLUGIN_DIR/devstack/lib/ha
 
 # Call builds
 build_sm_common

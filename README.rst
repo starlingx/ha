@@ -1,5 +1,5 @@
-======
-stx-ha
-======
+====
+ ha
+====
 
 StarlingX Service Management

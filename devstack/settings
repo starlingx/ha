@@ -12,16 +12,16 @@
 # Defaults
 # --------
 
-STX_HA_NAME=stx-ha
+STX_HA_NAME=ha
 
 ######### Plugin Specific ##########
 enable_service $STX_HA_NAME
 
 # This must not use any variables to work properly in the devstack playbook
-define_plugin stx-ha
+define_plugin ha
 # This works for Zuul jobs using OpenStack's DevStack roles
-plugin_requires stx-ha stx-metal
-plugin_requires stx-ha stx-config
+plugin_requires ha metal
+plugin_requires ha config
 
 # Initial source of lib script
-source $DEST/stx-ha/devstack/lib/stx-ha
+source $DEST/ha/devstack/lib/ha

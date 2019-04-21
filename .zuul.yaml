@@ -53,10 +53,10 @@
         tls-proxy: false
       devstack_plugins:
         barbican: https://opendev.org/openstack/barbican
-        stx-config: https://git.starlingx.io/stx-config
-        stx-fault: https://git.starlingx.io/stx-fault
-        stx-ha: https://git.starlingx.io/stx-ha
-        stx-integ: https://git.starlingx.io/stx-integ
-        stx-metal: https://git.starlingx.io/stx-metal
-        stx-nfv: https://git.starlingx.io/stx-nfv
-        stx-update: https://git.starlingx.io/stx-update
+        config: https://opendev.org/starlingx/config
+        fault: https://opendev.org/starlingx/fault
+        ha: https://opendev.org/starlingx/ha
+        integ: https://opendev.org/starlingx/integ
+        metal: https://opendev.org/starlingx/metal
+        nfv: https://opendev.org/starlingx/nfv
+        update: https://opendev.org/starlingx/update
