@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014-2019 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -27,6 +27,7 @@
 #include "sm_failover.h"
 #include "sm_node_swact_monitor.h"
 #include "sm_failover_fsm.h"
+#include "sm_configure.h"
 
 #define SM_NODE_AUDIT_TIMER_IN_MS           1000
 #define SM_INTERFACE_AUDIT_TIMER_IN_MS      1000
@@ -240,6 +241,18 @@ static void sm_main_event_handler_api_service_restart_callback(
 }
 // ****************************************************************************
 
+static void sm_main_event_handler_api_provision_service_callback(
+    char service_group_name[], char service_name[], int seqno )
+{
+    sm_provision_service(service_group_name, service_name);
+}
+
+static void sm_main_event_handler_api_deprovision_service_callback(
+    char service_group_name[], char service_name[], int seqno )
+{
+    sm_deprovision_service(service_group_name, service_name);
+}
+
 // ****************************************************************************
 // Main Event Handler - Notify API Service Event Callback
 // ======================================================
@@ -374,6 +387,10 @@ SmErrorT sm_main_event_handler_initialize( void )
         = sm_main_event_handler_api_node_set_callback;
     _api_callbacks.service_restart 
         = sm_main_event_handler_api_service_restart_callback;
+    _api_callbacks.provision_service
+        = sm_main_event_handler_api_provision_service_callback;
+    _api_callbacks.deprovision_service
+        = sm_main_event_handler_api_deprovision_service_callback;
 
     error = sm_api_register_callbacks( &_api_callbacks );
     if( SM_OKAY != error )
