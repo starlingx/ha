@@ -73,7 +73,7 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(61,'yes','vim-services','vim-webserve
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(62,'yes','controller-services','guest-agent','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(64,'yes','oam-services','haproxy','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(65,'no','controller-services','pxeboot-ip','critical');
-INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(67,'no','storage-monitoring-services','ceph-radosgw','critical');
+INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(67,'no','storage-monitoring-services','ceph-radosgw','minor');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(75,'yes','controller-services','drbd-extension','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(76,'yes','controller-services','extension-fs','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(77,'yes','controller-services','extension-export-fs','critical');
