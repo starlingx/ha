@@ -18,6 +18,9 @@ SM_API_MSG_REVISION = "1"
 SM_API_MSG_TYPE_RESTART_SERVICE = "RESTART_SERVICE"
 SM_API_MSG_SKIP_DEP_CHECK = "skip-dep"
 
+SM_API_MSG_TYPE_PROVISION_SERVICE = "PROVISION_SERVICE"
+SM_API_MSG_TYPE_DEPROVISION_SERVICE = "DEPROVISION_SERVICE"
+
 SM_API_MSG_TYPE_RELOAD_DATA = "RELOAD_DATA"
 
 SM_API_MSG_TYPE_SDI_SET_STATE = "SERVICE_DOMAIN_INTERFACE_SET_STATE"
@@ -64,4 +67,32 @@ def restart_service_safe(service_name):
                      SM_API_MSG_TYPE_RESTART_SERVICE, "sm-action",
                      service_name, SM_API_MSG_SKIP_DEP_CHECK))
 
+    _send_msg_to_sm(sm_api_msg)
+
+
+def provision_service(service_name, service_group_name):
+    """
+
+    :param service_name:
+    :param service_group_name:
+    :return:
+    """
+    sm_api_msg = ("%s,%s,%i,%s,%s,%s,%s"
+                  % (SM_API_MSG_VERSION, SM_API_MSG_REVISION, 1,
+                     SM_API_MSG_TYPE_PROVISION_SERVICE, "sm-action",
+                     service_name, service_group_name))
+    _send_msg_to_sm(sm_api_msg)
+
+
+def deprovision_service(service_name, service_group_name):
+    """
+
+    :param service_name:
+    :param service_group_name:
+    :return:
+    """
+    sm_api_msg = ("%s,%s,%i,%s,%s,%s,%s"
+                  % (SM_API_MSG_VERSION, SM_API_MSG_REVISION, 1,
+                     SM_API_MSG_TYPE_DEPROVISION_SERVICE, "sm-action",
+                     service_name, service_group_name))
     _send_msg_to_sm(sm_api_msg)

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2015 Wind River Systems, Inc.
+# Copyright (c) 2015-2019 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -7,8 +7,23 @@ import os
 import sys
 import argparse
 import sqlite3
+from sm_api_msg_utils import provision_service
+from sm_api_msg_utils import deprovision_service
 
 database_name = "/var/lib/sm/sm.db"
+runtime_db_name = "/var/run/sm/sm.db"
+
+
+def update_db(db, sqls):
+    database = sqlite3.connect(db)
+
+    cursor = database.cursor()
+
+    for sql in sqls:
+        cursor.execute(sql)
+
+    database.commit()
+    database.close()
 
 
 def main():
@@ -64,6 +79,10 @@ def main():
         sg_member_parser.add_argument('service_group_member',
                                       help='service group member name')
 
+        sg_member_parser.add_argument("--apply",
+                                      help="Apply the new configuration "
+                                           "immediately\n",
+                                      action="store_true")
         # Service
         service_parser = subparsers.add_parser('service',
                                                help='Provision Service')
@@ -125,20 +144,36 @@ def main():
             database.close()
 
         elif args.which == 'service_group_member':
-            database = sqlite3.connect(database_name)
+            sql_update_sgm = "UPDATE SERVICE_GROUP_MEMBERS SET " \
+                             "PROVISIONED = '%s' WHERE NAME = '%s' and " \
+                             "SERVICE_NAME = '%s';" \
+                             % (provision_str, args.service_group,
+                                args.service_group_member)
+            sql_update_svc = "UPDATE SERVICES SET " \
+                             "PROVISIONED = '%s' WHERE NAME = '%s';" \
+                             % (provision_str, args.service_group_member)
 
-            cursor = database.cursor()
+            sqls = [sql_update_sgm, sql_update_svc]
+            update_db(database_name, sqls)
 
-            cursor.execute("UPDATE SERVICE_GROUP_MEMBERS SET "
-                           "PROVISIONED = '%s' WHERE NAME = '%s' and "
-                           "SERVICE_NAME = '%s';"
-                           % (provision_str, args.service_group,
-                              args.service_group_member))
+            if args.apply and os.path.isfile(runtime_db_name):
+                # update runtime configuration
+                update_db(runtime_db_name, sqls)
 
-            database.commit()
-            database.close()
+                # tell SM to apply changes
+                if "yes" == provision_str:
+                    provision_service(args.service_group_member,
+                                      args.service_group)
+                elif "no" == provision_str:
+                    deprovision_service(args.service_group_member,
+                                        args.service_group)
 
         elif args.which == 'service':
+            print('%s service <service_name>\nhas been deprecated and '
+                  'it is supported for backward compatibility.\n'
+                  'Please use %s service-group-member <service_group> '
+                  '<service_group_member>' % (file_name, file_name))
+
             database = sqlite3.connect(database_name)
 
             cursor = database.cursor()
