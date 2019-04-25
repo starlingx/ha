@@ -57,9 +57,9 @@ static bool sm_service_enabled_go_active_state_timeout_timer(
     service = sm_service_table_read_by_id( id );
     if( NULL == service )
     {
-        DPRINTFE( "Failed to read service, error=%s.",
-                  sm_error_str(SM_NOT_FOUND) );
-        return( true );
+        DPRINTFE( "Failed to read service %d, error=%s.",
+                  id, sm_error_str(SM_NOT_FOUND) );
+        return( false );
     }
 
     error = sm_service_fsm_event_handler( service->name,
