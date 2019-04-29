@@ -1137,8 +1137,8 @@ void _log_nodes_state()
         );
     }
     DPRINTFI("Host state %d, I/F state %d, peer I/F state %d",
-            _node_comm_state,
             _host_state,
+            _node_comm_state,
             _peer_if_state
         );
 }
