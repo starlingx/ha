@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014-2019 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -31,10 +31,18 @@ typedef void (*SmApiNodeSetCallbackT) ( char node_name[],
 typedef void (*SmApiServiceRestartCallbackT) ( char service_name[],
         int seqno, int flag );
 
+typedef void (*SmApiProvisionServiceCallbackT) (char service_group_name[],
+        char service_name[], int seqno);
+
+typedef void (*SmApiDeprovisionServiceCallbackT) (char service_group_name[],
+        char service_name[], int seqno);
+
 typedef struct
 {
     SmApiNodeSetCallbackT node_set;
     SmApiServiceRestartCallbackT service_restart;
+    SmApiProvisionServiceCallbackT provision_service;
+    SmApiDeprovisionServiceCallbackT deprovision_service;
 } SmApiCallbacksT;
 
 // ****************************************************************************

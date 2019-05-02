@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014-2019 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -30,6 +30,9 @@
 #define SM_API_MSG_TYPE_SET_NODE_ACK                "SET_NODE_ACK"
 #define SM_API_MSG_TYPE_RESTART_SERVICE             "RESTART_SERVICE"
 #define SM_API_MSG_SKIP_DEP_CHECK                   "skip-dep"
+#define SM_API_MSG_TYPE_PROVISION_SERVICE           "PROVISION_SERVICE"
+#define SM_API_MSG_TYPE_DEPROVISION_SERVICE         "DEPROVISION_SERVICE"
+
 
 #define SM_API_MSG_NODE_ACTION_UNKNOWN              "unknown"
 #define SM_API_MSG_NODE_ACTION_LOCK                 "lock"
@@ -375,6 +378,7 @@ static void sm_api_dispatch( int selobj, int64_t user_data )
     int seqno;
     char* node_name;
     char* service_name;
+    char* service_group_name;
     gchar** params;
     int bytes_read;
     SmNodeSetActionT action;
@@ -529,6 +533,70 @@ static void sm_api_dispatch( int selobj, int64_t user_data )
         if( NULL != _callbacks.service_restart )
         {
             _callbacks.service_restart( service_name, seqno, action_flag);
+        }
+    }
+    else if( 0 == strcmp( SM_API_MSG_TYPE_PROVISION_SERVICE,
+                          params[SM_API_MSG_TYPE_FIELD] ) )
+    {
+        if( params[SM_API_MSG_ORIGIN_FIELD] == NULL )
+        {
+            DPRINTFE( "Missing origin field in received message." );
+            goto ERROR;
+        }
+
+        if( params[SM_API_MSG_SERVICE_NAME_FIELD] == NULL )
+        {
+            DPRINTFE( "Missing service-name field in received message." );
+            goto ERROR;
+        }
+
+        service_name  = (char*) params[SM_API_MSG_SERVICE_NAME_FIELD];
+        service_group_name = (char*) params[SM_API_MSG_PARAM];
+
+        if ( NULL == service_group_name )
+        {
+            DPRINTFE( "Missing service group name parameter." );
+            goto ERROR;
+        }else
+        {
+            DPRINTFI("Provision service %s:%s", service_group_name, service_name);
+        }
+
+        if( NULL != _callbacks.provision_service )
+        {
+            _callbacks.provision_service( service_group_name, service_name, seqno);
+        }
+    }
+    else if( 0 == strcmp( SM_API_MSG_TYPE_DEPROVISION_SERVICE,
+                          params[SM_API_MSG_TYPE_FIELD] ) )
+    {
+        if( params[SM_API_MSG_ORIGIN_FIELD] == NULL )
+        {
+            DPRINTFE( "Missing origin field in received message." );
+            goto ERROR;
+        }
+
+        if( params[SM_API_MSG_SERVICE_NAME_FIELD] == NULL )
+        {
+            DPRINTFE( "Missing service-name field in received message." );
+            goto ERROR;
+        }
+
+        service_name  = (char*) params[SM_API_MSG_SERVICE_NAME_FIELD];
+        service_group_name = (char*) params[SM_API_MSG_PARAM];
+
+        if ( NULL == service_group_name )
+        {
+            DPRINTFE( "Missing service group name parameter." );
+            goto ERROR;
+        }else
+        {
+            DPRINTFI("Deprovision service %s:%s", service_group_name, service_name);
+        }
+
+        if( NULL != _callbacks.deprovision_service )
+        {
+            _callbacks.deprovision_service( service_group_name, service_name, seqno);
         }
     } else {
         DPRINTFE( "Unknown/unsupported message-type (%s) received.",

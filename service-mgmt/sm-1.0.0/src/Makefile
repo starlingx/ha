@@ -117,6 +117,7 @@ SRCS+=sm_service_domain_interface_not_in_use_state.c
 SRCS+=sm_configuration_table.c
 SRCS+=sm_failover_utils.c
 SRCS+=sm_cluster_hbs_info_msg.cpp
+SRCS+=sm_configure.cpp
 
 OBJS= $(SRCS:.c=.o)
 CCFLAGS= -g -O2 -Wall -Werror -Wformat  -std=c++11
