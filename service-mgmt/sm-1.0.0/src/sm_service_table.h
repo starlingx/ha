@@ -60,8 +60,14 @@ typedef struct
     bool provisioned;
 } SmServiceT;
 
-typedef void (*SmServiceTableForEachCallbackT) 
+typedef void (*SmServiceTableForEachCallbackT)
     (void* user_data[], SmServiceT* service);
+
+// ****************************************************************************
+// Service Table - clear failure state
+// ====================
+extern bool sm_service_clear_failure_state(SmServiceT* service);
+// ****************************************************************************
 
 // ****************************************************************************
 // Service Table - Read

@@ -183,7 +183,6 @@ static bool sm_service_audit_timeout( SmTimerIdT timer_id, int64_t user_data )
     }
    
     service->action_running = SM_SERVICE_ACTION_NONE;
-    service->action_pid = -1;
     service->action_timer_id = SM_TIMER_ID_INVALID;
 
     error = service_audit_result_handler( service, action_running,

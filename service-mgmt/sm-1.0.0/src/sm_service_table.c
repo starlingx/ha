@@ -29,6 +29,48 @@ static SmListT* _services = NULL;
 static SmDbHandleT* _sm_db_handle = NULL;
 
 static SmErrorT sm_service_table_add( void* user_data[], void* record );
+
+// ****************************************************************************
+// Service Table - clear failure state
+// returns true if service is in a failure state
+// ====================
+bool sm_service_clear_failure_state(SmServiceT* service)
+{
+    SmErrorT error;
+    bool prev_failure_condition;
+    prev_failure_condition =
+        service->recover ||
+        service->fail_count > 0 ||
+        service->action_fail_count > 0 ||
+        service->transition_fail_count > 0 ||
+        service->status == SM_SERVICE_STATUS_FAILED ||
+        service->condition == SM_SERVICE_CONDITION_RECOVERY_FAILURE ||
+        service->condition == SM_SERVICE_CONDITION_ACTION_FAILURE ||
+        service->condition == SM_SERVICE_CONDITION_FATAL_FAILURE;
+    if( prev_failure_condition )
+    {
+        service->recover = false;
+        service->fail_count = 0;
+        service->action_fail_count = 0;
+        service->transition_fail_count = 0;
+        service->status = SM_SERVICE_STATUS_NONE;
+        service->condition = SM_SERVICE_CONDITION_NONE;
+
+        error = sm_service_table_persist( service );
+        if( SM_OKAY != error )
+        {
+            DPRINTFE( "Failed to persist service (%s) data, error=%s.",
+                      service->name, sm_error_str(error) );
+        }
+
+        DPRINTFI( "Cleared previous failure condition for service (%s) "
+                  "in % state.", service->name, sm_service_state_str(service->state) );
+
+    }
+
+    return prev_failure_condition;
+}
+
 // ****************************************************************************
 // Service Table - Read
 // ====================

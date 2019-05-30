@@ -176,12 +176,9 @@ SmErrorT sm_service_enabled_active_state_exit( SmServiceT* service )
 SmErrorT sm_service_enabled_active_state_transition( SmServiceT* service,
     SmServiceStateT from_state )
 {
-    if( SM_SERVICE_STATE_ENABLING == from_state )
-    {
-        service->status = SM_SERVICE_STATUS_NONE;
-        service->condition = SM_SERVICE_CONDITION_NONE;
-    }
-
+    // do not clear the failure condition here. If the failure is triggered
+    // by an audit state mismatch, a full recovery cycle ends at the first
+    // audit success
     return( SM_OKAY );
 }
 // ****************************************************************************
@@ -290,7 +287,10 @@ SmErrorT sm_service_enabled_active_state_event_handler( SmServiceT* service,
         break;
 
         case SM_SERVICE_EVENT_AUDIT_SUCCESS:
-            DPRINTFD( "Service (%s) audit success.", service->name );
+            if(sm_service_clear_failure_state(service))
+            {
+                DPRINTFI( "Service (%s) audit success as recovered.", service->name );
+            }
         break;
 
         case SM_SERVICE_EVENT_AUDIT_MISMATCH:
