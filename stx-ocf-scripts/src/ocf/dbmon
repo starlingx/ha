@@ -183,8 +183,8 @@ get_pod_and_status() {
 
     # If this doesn't exist, the return code will still be zero
     # but the variable will be blank.
-    DBPASSWD_ENCODED=`kubectl -n openstack get secret mariadb-db-root-password \
-                     -o=jsonpath='{.data.MYSQL_ROOT_PASSWORD'}`
+    DBPASSWD_ENCODED=`kubectl -n openstack get secret mariadb-dbadmin-password \
+                     -o=jsonpath='{.data.MYSQL_DBADMIN_PASSWORD}'`
     if [ "${DBPASSWD_ENCODED}" = '' ]; then
         ocf_log info "Unable to get mariadb password. Exiting."
         return $OCF_ERR_GENERIC
