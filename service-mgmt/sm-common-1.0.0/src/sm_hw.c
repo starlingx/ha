@@ -251,8 +251,7 @@ SmErrorT sm_hw_get_if_state( const char if_name[], bool* enabled )
             *enabled = false;
         }
     } else {
-        DPRINTFE( "Failed to get interface state for interface (%s), "
-                  "error=%s.", if_name, strerror( errno ) );
+        // there are interfaces are not monitored by SM, so don't log
         return( SM_NOT_FOUND );
     }
 

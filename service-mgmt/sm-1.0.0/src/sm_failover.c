@@ -355,6 +355,10 @@ void sm_failover_interface_down( const char* const interface_name )
         SmServiceDomainInterfaceT* interface = iter->get_interface();
         if( 0 == strcmp(interface_name, interface->interface_name) )
         {
+            if(0 == impacted)
+            {
+                DPRINTFI("Interface %s is down", interface_name);
+            }
             impacted ++;
             if(iter->set_state(SM_FAILOVER_INTERFACE_DOWN))
             {
@@ -364,16 +368,8 @@ void sm_failover_interface_down( const char* const interface_name )
         }
     }
 
-    if( 0 == impacted )
+    if( 0 < impacted )
     {
-        DPRINTFD("No domain interface is impacted as i/f %s is down.",
-            interface_name);
-    }
-    else
-    {
-        DPRINTFI("%d domain interfaces are impacted as i/f %s is down.",
-            impacted, interface_name);
-
         _if_state_changed = true;
     }
 }
@@ -393,6 +389,10 @@ void sm_failover_interface_up( const char* const interface_name )
         SmServiceDomainInterfaceT* interface = iter->get_interface();
         if( 0 == strcmp(interface_name, interface->interface_name) )
         {
+            if(0 == impacted)
+            {
+                DPRINTFI("Interface %s is up", interface_name);
+            }
             impacted ++;
             if(iter->set_state(SM_FAILOVER_INTERFACE_RECOVERING))
             {
@@ -402,16 +402,8 @@ void sm_failover_interface_up( const char* const interface_name )
         }
     }
 
-    if( 0 == impacted )
+    if( 0 < impacted )
     {
-        DPRINTFI("No domain interface is impacted as i/f %s is up.",
-            interface_name);
-    }
-    else
-    {
-        DPRINTFI("%d domain interfaces are impacted as i/f %s is up.",
-            impacted, interface_name);
-
         _if_state_changed = true;
     }
 }
@@ -1201,11 +1193,9 @@ static void sm_failover_interface_change_callback(
     switch ( if_change->interface_state )
     {
         case SM_INTERFACE_STATE_DISABLED:
-            DPRINTFI("Interface %s is down", if_change->interface_name);
             sm_failover_interface_down(if_change->interface_name);
             break;
         case SM_INTERFACE_STATE_ENABLED:
-            DPRINTFI("Interface %s is up", if_change->interface_name);
             sm_failover_interface_up(if_change->interface_name);
             break;
         default:
