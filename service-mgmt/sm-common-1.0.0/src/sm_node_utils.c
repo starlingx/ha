@@ -362,13 +362,27 @@ SmErrorT sm_node_utils_config_complete( bool* complete )
 }
 // ****************************************************************************
 
+typedef enum
+{
+    BLOCKING_STATE_INIT,
+    WAIT_FOR_GOENABLED_FILE,
+    WAIT_FOR_CONFIG_COMPLETE_FILE,
+    NODE_UNHEALTHY_FILE_EXISTS,
+    NODE_DISABLED_LICENSE_INVALID,
+    NODE_DISABLED_FAILOVER,
+    NODE_ENABLED
+}SmNodeEnabledBlockingStateT;
+static SmNodeEnabledBlockingStateT blocking_state = BLOCKING_STATE_INIT;
+
 // ****************************************************************************
 // Node Utilities - Enabled
 // ========================
+// ****************************************************************************
 SmErrorT sm_node_utils_enabled( bool* enabled, char reason_text[] )
 {
     *enabled = false;
     reason_text[0] = '\0';
+    const char* goenabled_file = SM_NODE_GO_ENABLE_FILE;
 
     bool is_aio_simplex = false;
     SmErrorT error = sm_node_utils_is_aio_simplex(&is_aio_simplex);
@@ -379,18 +393,25 @@ SmErrorT sm_node_utils_enabled( bool* enabled, char reason_text[] )
         return error;
     }
 
-    if( (!is_aio_simplex && (0 > access( SM_NODE_GO_ENABLE_FILE, F_OK ))) ||
-        (is_aio_simplex && (0 > access( SM_NODE_GO_ENABLE_FILE_SIMPLEX, F_OK ))) )
+    if(is_aio_simplex)
+    {
+        goenabled_file = SM_NODE_GO_ENABLE_FILE_SIMPLEX;
+    }
+
+    if(0 > access( goenabled_file, F_OK ))
     {
         if( ENOENT == errno )
         {
-            DPRINTFD( "Go-Enable file (%s) not available, error=%s.",
-                      SM_NODE_GO_ENABLE_FILE, strerror( errno ) );
+            if(blocking_state != WAIT_FOR_GOENABLED_FILE)
+            {
+                blocking_state = WAIT_FOR_GOENABLED_FILE;
+                DPRINTFI("Node enable: blocked. wait for goenabled file %s", goenabled_file);
+            }
 
-            snprintf( reason_text, SM_LOG_REASON_TEXT_MAX_CHAR, 
+            snprintf( reason_text, SM_LOG_REASON_TEXT_MAX_CHAR,
                       "node not ready, go-enable not set" );
 
-            return( SM_OKAY ); 
+            return( SM_OKAY );
 
         } else {
             DPRINTFE( "Go-Enable file (%s) access failed, error=%s.",
@@ -403,10 +424,13 @@ SmErrorT sm_node_utils_enabled( bool* enabled, char reason_text[] )
     {
         if( ENOENT == errno )
         {
-            DPRINTFD( "Config-Complete file (%s) not available, error=%s.",
-                      SM_NODE_CONFIG_COMPLETE_FILE, strerror( errno ) );
+            if(blocking_state != WAIT_FOR_CONFIG_COMPLETE_FILE)
+            {
+                blocking_state = WAIT_FOR_CONFIG_COMPLETE_FILE;
+                DPRINTFI("Node enable: blocked. wait for config complete file %s", SM_NODE_CONFIG_COMPLETE_FILE);
+            }
 
-            snprintf( reason_text, SM_LOG_REASON_TEXT_MAX_CHAR, 
+            snprintf( reason_text, SM_LOG_REASON_TEXT_MAX_CHAR,
                       "node not ready, config-complete not set" );
 
             return( SM_OKAY );
@@ -420,9 +444,13 @@ SmErrorT sm_node_utils_enabled( bool* enabled, char reason_text[] )
 
     if( 0 == access( SM_NODE_UNHEALTHY_FILE, F_OK ) )
     {
-        DPRINTFI( "Node unhealthy file (%s) set.", SM_NODE_UNHEALTHY_FILE );
+        if(blocking_state != NODE_UNHEALTHY_FILE_EXISTS)
+        {
+            blocking_state = NODE_UNHEALTHY_FILE_EXISTS;
+            DPRINTFI("Node enable: blocked. node unhealthy file %s found", SM_NODE_UNHEALTHY_FILE);
+        }
 
-        snprintf( reason_text, SM_LOG_REASON_TEXT_MAX_CHAR, 
+        snprintf( reason_text, SM_LOG_REASON_TEXT_MAX_CHAR,
                   "node not ready, node unhealthy set" );
 
         return( SM_OKAY );
@@ -438,10 +466,20 @@ SmErrorT sm_node_utils_enabled( bool* enabled, char reason_text[] )
 
     if(_failover_disabled)
     {
-        DPRINTFI( "Failover disabled" );
+        if(blocking_state != NODE_DISABLED_FAILOVER)
+        {
+            blocking_state = NODE_DISABLED_FAILOVER;
+            DPRINTFI("Node enable: blocked. node has failed");
+        }
         snprintf( reason_text, SM_LOG_REASON_TEXT_MAX_CHAR,
                   "Failover action to disable node" );
         return( SM_OKAY );
+    }
+
+    if(blocking_state != NODE_ENABLED)
+    {
+        blocking_state = NODE_ENABLED;
+        DPRINTFI("Node enable: passed. node is enabled");
     }
 
     *enabled = true;
