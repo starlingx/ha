@@ -116,7 +116,7 @@ def main():
                     if args.impact:
                         msg += "%-10s" % (row[6])
                     if args.pid:
-                        msg += "%-7s" % (pid if pid > 0 else '')
+                        msg += "%-8s" % (pid if pid > 0 else '')
                     if args.pn:
                         msg += "%-20s" % (pn)
                     if args.pid_file:
@@ -172,7 +172,7 @@ def main():
                     if args.impact:
                         msg += "%-10s" % (row[5])
                     if args.pid:
-                        msg += "%-7s" % (pid if pid > 0 else '')
+                        msg += "%-8s" % (pid if pid > 0 else '')
                     if args.pn:
                         msg += "%-20s" % (pn)
                     if args.pid_file:
