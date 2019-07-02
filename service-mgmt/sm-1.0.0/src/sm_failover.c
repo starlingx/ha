@@ -102,7 +102,7 @@ class SmFailoverInterfaceInfo
 
         bool state_in_transition() const
         {
-            return (SM_FAILOVER_STATE_TRANSITION_TIME_IN_MS < this->time_since_last_state_change_ms());
+            return (SM_FAILOVER_STATE_TRANSITION_TIME_IN_MS > this->time_since_last_state_change_ms());
         }
 
         int time_since_last_state_change_ms() const
