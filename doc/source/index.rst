@@ -28,6 +28,6 @@ Links
 * Code Review: `Gerrit`_
 * Bugs: `Storyboard`_
 
-.. _stx-ha: https://git.starlingx.io/cgit/stx-ha/
-.. _Gerrit: https://review.openstack.org/#/q/project:openstack/stx-ha
-.. _Storyboard: https://storyboard.openstack.org/#!/project/openstack/stx-ha
+.. _stx-ha: https://opendev.org/starlingx/ha
+.. _Gerrit: https://review.opendev.org/#/q/project:starlingx/ha
+.. _Storyboard: https://storyboard.openstack.org/#!/project/starlingx/ha
