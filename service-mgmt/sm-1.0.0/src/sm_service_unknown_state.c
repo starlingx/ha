@@ -176,6 +176,25 @@ SmErrorT sm_service_unknown_state_event_handler( SmServiceT* service,
             ++(service->transition_fail_count);
         break;
 
+        case SM_SERVICE_EVENT_DISABLE:
+            if( service->disable_action_exists ) {
+                state = SM_SERVICE_STATE_DISABLING;
+                error = sm_service_fsm_set_state( service, state );
+                if( SM_OKAY != error )
+                {
+                    DPRINTFE( "Failed to set service (%s) state (%s), "
+                              "error=%s.", service->name,
+                              sm_service_state_str( state ),
+                              sm_error_str( error ) );
+                    return( error );
+                }
+            } else
+            {
+                DPRINTFE( "Service (%s) received disable event without "
+                          "disable action, event is ignored.", service->name );
+            }
+            break;
+
         case SM_SERVICE_EVENT_SHUTDOWN:
             error = sm_service_fsm_set_state( service,
                                               SM_SERVICE_STATE_SHUTDOWN );
