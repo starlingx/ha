@@ -626,6 +626,10 @@ SmErrorT sm_failover_fail_self()
         DPRINTFE("Failed to set %s failed, error %s.", _host_name, sm_error_str(error));
         return SM_FAILED;
     }
+
+    char controller_domain[] = "controller";
+    sm_service_domain_utils_service_domain_disable_self(controller_domain);
+
     return SM_OKAY;
 }
 // ****************************************************************************
