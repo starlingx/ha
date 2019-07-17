@@ -249,6 +249,8 @@ barbican_api_start() {
     chown barbican:barbican /run/barbican
     /bin/python /usr/bin/gunicorn --pid $OCF_RESKEY_pid --config /etc/barbican/gunicorn-config.py \
     --paste /etc/barbican/barbican-api-paste.ini >> /var/log/barbican/barbican-api.log 2>&1 &
+    # Restrict access to logfile
+    chmod 640 /var/log/barbican/barbican-api.log
 
     # Spin waiting for the server to come up.
     while true; do

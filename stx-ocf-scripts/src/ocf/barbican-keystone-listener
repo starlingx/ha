@@ -194,8 +194,7 @@ barbican_keystone_listener_start() {
 
     # run the actual barbican-keystone-listener daemon. Don't use ocf_run as we're sending the
     # tool's output straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
-    su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --logfile \
-    /var/log/barbican/barbican-keystone-listener.log"' >> /dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
+    su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary}"' >> /dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
 
     # Spin waiting for the server to come up.
     while true; do
