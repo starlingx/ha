@@ -752,4 +752,7 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('dbmon','audit-disabled','ocf-script','open
 INSERT INTO "SERVICE_ACTIONS" VALUES('dbmon','go-standby','ocf-script','openstack','dbmon','standby','',2,2,2,180,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dbmon','go-active','ocf-script','openstack','dbmon','active','',2,2,2,180,'');
 
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','mtc-agent','not-applicable','enable','fm-mgr','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','fm-mgr','not-applicable','disable','mtc-agent','disabled');
+
 COMMIT;
