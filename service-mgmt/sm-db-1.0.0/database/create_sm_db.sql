@@ -689,8 +689,8 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services
 INSERT INTO "SERVICES" SELECT MAX(id) + 1, 'no','ceph-mon','initial','initial','none','none',2,1,90000,4,16,'/var/run/ceph/mon.controller.pid' FROM "SERVICES";
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-mon','not-applicable','enable','management-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','disable','ceph-mon','disabled');
-INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-mon','enable','lsb-script','','ceph-init-wrapper','start','ARGS=mon',2,2,2,15,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-mon','disable','lsb-script','','ceph-init-wrapper','stop','ARGS=mon',1,1,1,15,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-mon','enable','lsb-script','','ceph-init-wrapper','start','ARGS=mon',2,2,2,30,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-mon','disable','lsb-script','','ceph-init-wrapper','stop','ARGS=mon',1,1,1,30,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-mon','audit-enabled','lsb-script','','ceph-init-wrapper','status','ARGS=mon',2,2,2,15,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-mon','audit-disabled','lsb-script','','ceph-init-wrapper','status','ARGS=mon',0,0,0,15,40);
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','cephmon-fs','critical' FROM "SERVICE_GROUP_MEMBERS";
