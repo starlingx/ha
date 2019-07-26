@@ -257,6 +257,7 @@ static SmErrorT sm_service_table_add( void* user_data[], void* record )
             DPRINTFE( "Failed to determine if go-active action for "
                       "service (%s) exists, error=%s.", service->name,
                       sm_error_str( error ) );
+            free( service );
             return( error );
         }
 
@@ -278,6 +279,7 @@ static SmErrorT sm_service_table_add( void* user_data[], void* record )
             DPRINTFE( "Failed to determine if enable action for service "
                       "(%s) exists, error=%s.", service->name,
                       sm_error_str( error ) );
+            free( service );
             return( error );
         }
 
