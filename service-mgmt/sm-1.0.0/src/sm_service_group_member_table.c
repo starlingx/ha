@@ -234,6 +234,7 @@ SmErrorT sm_service_group_member_deprovision(char service_group_name[], char ser
     }
 
     SM_LIST_REMOVE( _service_group_members, (SmListEntryDataPtrT) service_group_member );
+    free(service_group_member);
     return SM_OKAY;
 }
 
