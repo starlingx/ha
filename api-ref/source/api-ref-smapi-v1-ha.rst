@@ -180,13 +180,6 @@ itemNotFound (404)
          {
             "status":"",
             "state":"enabled-active",
-            "id":5,
-            "desired_state":"enabled-active",
-            "name":"drbd-cgcs"
-         },
-         {
-            "status":"",
-            "state":"enabled-active",
             "id":3,
             "desired_state":"enabled-active",
             "name":"drbd-pg"
