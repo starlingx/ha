@@ -204,6 +204,9 @@ static bool sm_service_enable_timeout( SmTimerIdT timer_id, int64_t user_data )
         return( false );
     }
 
+    // timer to be disarmed after exit
+    service->action_timer_id = SM_TIMER_ID_INVALID;
+
     sm_service_enable_throttle_uncheck();
 
     if( SM_SERVICE_ACTION_ENABLE != service->action_running )
@@ -251,7 +254,6 @@ static bool sm_service_enable_timeout( SmTimerIdT timer_id, int64_t user_data )
 
     service->action_running = SM_SERVICE_ACTION_NONE;
     service->action_pid = -1;
-    service->action_timer_id = SM_TIMER_ID_INVALID;
 
     error = service_enable_result_handler( service, action_running,
                                            action_result, service_state,

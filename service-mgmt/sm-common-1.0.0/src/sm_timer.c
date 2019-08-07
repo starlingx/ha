@@ -50,6 +50,7 @@ typedef struct
     int64_t user_data;
     SmTimeT last_fired;
     uint32_t total_fired;
+    char debug_info[200];
 } SmTimerEntryT;
 
 typedef struct
@@ -66,6 +67,8 @@ typedef struct
     unsigned int last_timer_dispatched;
     SmTimerEntryT timers[SM_MAX_TIMERS];
 } SmTimerThreadInfoT;
+
+static SmTimerIdT _next_timer_id = 1;
 
 static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
 static SmTimerThreadInfoT _threads[SM_THREADS_MAX];
@@ -94,8 +97,9 @@ static SmTimerThreadInfoT* sm_timer_find_thread_info( void )
 // ****************************************************************************
 // Timer - Register
 // ================
-SmErrorT sm_timer_register( const char name[], unsigned int ms,
-    SmTimerCallbackT callback, int64_t user_data, SmTimerIdT* timer_id )
+SmErrorT _sm_timer_register( const char name[], unsigned int ms,
+    SmTimerCallbackT callback, int64_t user_data, SmTimerIdT* timer_id,
+    const char* func, const char* file, int line )
 {
     SmTimerEntryT* timer_entry;
     SmTimerThreadInfoT* thread_info;
@@ -123,7 +127,7 @@ SmErrorT sm_timer_register( const char name[], unsigned int ms,
         timer_entry->timer_instance = ++thread_info->timer_instance;
         snprintf( timer_entry->timer_name, sizeof(timer_entry->timer_name),
                   "%s", name );
-        timer_entry->timer_id = timer_i;
+        timer_entry->timer_id = __sync_fetch_and_add(&_next_timer_id, 1);
         timer_entry->ms_interval = ms;
         sm_time_get( &timer_entry->arm_timestamp );
         timer_entry->callback = callback;
@@ -140,9 +144,12 @@ SmErrorT sm_timer_register( const char name[], unsigned int ms,
         abort();
     }
 
-    *timer_id = timer_i;
+    *timer_id = timer_entry->timer_id;
 
-    DPRINTFD( "Created timer (name=%s, id=%i).", timer_entry->timer_name,
+    snprintf(timer_entry->debug_info, sizeof(timer_entry->debug_info),
+        "timer %li, %s, %s %i", *timer_id, func, file, line);
+
+    DPRINTFD( "Created timer (name=%s, id=%li).", timer_entry->timer_name,
               timer_entry->timer_id );
 
     return( SM_OKAY );
@@ -152,13 +159,13 @@ SmErrorT sm_timer_register( const char name[], unsigned int ms,
 // ****************************************************************************
 // Timer - Deregister
 // ==================
-SmErrorT sm_timer_deregister( SmTimerIdT timer_id )
+SmErrorT _sm_timer_deregister( SmTimerIdT timer_id,
+    const char* func, const char* file, int line )
 {
     SmTimerEntryT* timer_entry = NULL;
     SmTimerThreadInfoT* thread_info;
 
-    if(( SM_TIMER_ID_INVALID == timer_id )||
-       ( SM_MAX_TIMERS <= timer_id ))
+    if(( SM_TIMER_ID_INVALID == timer_id ) )
     {
         return( SM_OKAY );
     }
@@ -170,14 +177,35 @@ SmErrorT sm_timer_deregister( SmTimerIdT timer_id )
         return( SM_FAILED );
     }
 
-    timer_entry = &(thread_info->timers[timer_id]);
-    timer_entry->inuse = 0;
-    timer_entry->timer_instance = 0;
-    timer_entry->user_data = 0;
+    unsigned int timer_i;
+    bool found = false;
+    for( timer_i=0; SM_MAX_TIMERS > timer_i; ++timer_i )
+    {
+        timer_entry = &(thread_info->timers[timer_i]);
 
-    DPRINTFD( "Cancelled timer (name=%s, id=%i).", timer_entry->timer_name,
-              timer_entry->timer_id );
+        if( SM_TIMER_ENTRY_INUSE == timer_entry->inuse
+            && timer_entry->timer_id == timer_id)
+        {
+            found = true;
+            break;
+        }
+    }
 
+    if(found)
+    {
+        timer_entry->inuse = 0;
+        timer_entry->timer_instance = 0;
+        timer_entry->user_data = 0;
+        timer_id = 0;
+
+        DPRINTFD( "Cancelled timer (name=%s, id=%li).", timer_entry->timer_name,
+                  timer_entry->timer_id );
+    }
+    else
+    {
+        DPRINTFI("WARN: Timer %li is not in used (already disarmed?)", timer_id);
+        DPRINTFI("WARN: Attempted to deregister by %s %s:%i", func, file, line);
+    }
     return( SM_OKAY );
 }
 // ****************************************************************************
@@ -346,13 +374,13 @@ static void sm_timer_dispatch( int selobj, int64_t user_data )
                     if( rearm )
                     {
                         sm_time_get( &timer_entry->arm_timestamp );
-                        DPRINTFD( "Timer (%i) rearmed.", timer_entry->timer_id );
+                        DPRINTFD( "Timer (%li) rearmed.", timer_entry->timer_id );
                     } else {
                         timer_entry->inuse = 0;
-                        DPRINTFD( "Timer (%i) removed.", timer_entry->timer_id );
+                        DPRINTFD( "Timer (%li) removed.", timer_entry->timer_id );
                     }
                 } else {
-                    DPRINTFD( "Timer (%i) instance changed since callback, "
+                    DPRINTFD( "Timer (%li) instance changed since callback, "
                               "rearm=%d.", timer_entry->timer_id, (int) rearm );
                 }
 
@@ -468,6 +496,7 @@ void sm_timer_dump_data( FILE* log )
     char buffer[24];
 
     fprintf( log, "--------------------------------------------------------------------\n" );
+    fprintf( log, "Next timer id %li\n", _next_timer_id );
     int thread_i;
     for( thread_i=0; SM_THREADS_MAX > thread_i; ++thread_i )
     {
@@ -487,13 +516,13 @@ void sm_timer_dump_data( FILE* log )
 
             if( SM_TIMER_ENTRY_INUSE == timer_entry->inuse )
             {
-                fprintf( log, "  timer (name=%s, id=%i)\n", timer_entry->timer_name,
+                fprintf( log, "  timer (name=%s, id=%li)\n", timer_entry->timer_name,
                          timer_entry->timer_id );
                 fprintf( log, "    instance..........%" PRIu64 "\n", timer_entry->timer_instance );
                 fprintf( log, "    ms_interval.......%i\n", timer_entry->ms_interval );
                 fprintf( log, "    user_data.........%" PRIi64 "\n", timer_entry->user_data );
                 sm_time_format_monotonic_time(&timer_entry->arm_timestamp, buffer, sizeof(buffer));
-                fprintf( log, "    timer created at .%s\n", buffer );
+                fprintf( log, "    last armed at .%s\n", buffer );
                 sm_time_format_realtime(&timer_entry->last_fired, buffer, sizeof(buffer));
                 fprintf( log, "    last fired at ....%s\n", buffer );
                 fprintf( log, "    total fired ......%d\n", timer_entry->total_fired );
