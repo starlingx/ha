@@ -33,6 +33,9 @@ static bool sm_service_enabled_go_standby_state_timeout_timer(
         return( false );
     }
 
+    // timer to be disarmed after exit
+    service->action_state_timer_id = SM_TIMER_ID_INVALID;
+
     error = sm_service_fsm_event_handler( service->name,
                                           SM_SERVICE_EVENT_GO_STANDBY_TIMEOUT,
                                           NULL, "overall go-standby timeout" );
@@ -40,12 +43,12 @@ static bool sm_service_enabled_go_standby_state_timeout_timer(
     {
         DPRINTFE( "Failed to signal overall go-standby timeout to service "
                   "(%s), error=%s.", service->name, sm_error_str( error ) );
-        return( true );
+        return( false );
     }
 
     DPRINTFI( "Service (%s) go-standby overall timeout.", service->name );
 
-    return( true );
+    return( false );
 }
 // ****************************************************************************
 
