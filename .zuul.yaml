@@ -1,26 +1,19 @@
 ---
 - project:
     templates:
-      - build-openstack-docs-pti
+      - publish-stx-docs
+      - stx-api-ref-jobs
+      - stx-release-notes-jobs
     check:
       jobs:
-        - build-openstack-api-ref
-        - build-openstack-releasenotes
         - flock-devstack-ha
         - openstack-tox-pep8
         - openstack-tox-linters
     gate:
       jobs:
-        - build-openstack-api-ref
-        - build-openstack-releasenotes
         - flock-devstack-ha
         - openstack-tox-pep8
         - openstack-tox-linters
-    post:
-      jobs:
-        - publish-stx-api-ref
-        - publish-stx-tox
-        - publish-stx-releasenotes
 
 - job:
     name: flock-devstack-ha
