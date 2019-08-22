@@ -164,6 +164,8 @@ static bool sm_service_heartbeat_timer( SmTimerIdT timer_id, int64_t user_data )
 
     if( SM_SERVICE_HEARTBEAT_STATE_STARTED !=  service_heartbeat.state )
     {
+        // timer to be disarmed after exit
+        service_heartbeat.heartbeat_timer_id = SM_TIMER_ID_INVALID;
         DPRINTFI( "Service (%s) heartbeat in the stopped state.",
                   service_heartbeat.name );
         return( false );

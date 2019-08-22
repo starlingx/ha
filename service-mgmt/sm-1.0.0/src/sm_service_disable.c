@@ -119,15 +119,16 @@ static bool sm_service_disable_timeout( SmTimerIdT timer_id, int64_t user_data )
     service = sm_service_table_read_by_id( id );
     if( NULL == service )
     {
+        // This means a bug elsewhere
         DPRINTFE( "Failed to read service, error=%s.",
                   sm_error_str(SM_NOT_FOUND) );
         return( false );
     }
 
+    // timer to be disarmed after exit
+    service->action_timer_id = SM_TIMER_ID_INVALID;
     if( SM_SERVICE_ACTION_DISABLE != service->action_running )
     {
-        // timer will be deregistered after exit
-        service->action_timer_id = SM_TIMER_ID_INVALID;
         DPRINTFE( "Service (%s) not running action (%s).", service->name,
                   sm_service_action_str( service->action_running ) );
         return( false );
@@ -171,7 +172,6 @@ static bool sm_service_disable_timeout( SmTimerIdT timer_id, int64_t user_data )
 
     service->action_running = SM_SERVICE_ACTION_NONE;
     service->action_pid = -1;
-    service->action_timer_id = SM_TIMER_ID_INVALID;
 
     error = service_disable_result_handler( service, action_running,
                                             action_result, service_state,

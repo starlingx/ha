@@ -20,22 +20,30 @@ extern "C" {
 
 #define SM_TIMER_ID_INVALID -1 
 
-typedef int SmTimerIdT;
+typedef int64_t SmTimerIdT;
 
 typedef bool (*SmTimerCallbackT) (SmTimerIdT timer_id, int64_t user_data );
 
 // ****************************************************************************
 // Timer - Register
 // ================
-extern SmErrorT sm_timer_register( const char name[], unsigned int ms,
-    SmTimerCallbackT callback, int64_t user_data, SmTimerIdT* timer_id );
+extern SmErrorT _sm_timer_register( const char name[], unsigned int ms,
+    SmTimerCallbackT callback, int64_t user_data, SmTimerIdT* timer_id,
+    const char* func, const char* file, int line);
 // ****************************************************************************
 
 // ****************************************************************************
 // Timer - Deregister
 // ==================
-extern SmErrorT sm_timer_deregister( SmTimerIdT timer_id );
+extern SmErrorT _sm_timer_deregister( SmTimerIdT timer_id,
+    const char* func, const char* file, int line );
 // ****************************************************************************
+
+#define sm_timer_register( name, ms, callback, user_data, timer_id) \
+    _sm_timer_register( name, ms, callback, user_data, timer_id, __FUNCTION__, __FILE__, __LINE__ )
+
+#define sm_timer_deregister( timer_id ) \
+    _sm_timer_deregister( timer_id, __FUNCTION__, __FILE__, __LINE__ )
 
 // ****************************************************************************
 // Timer - Scheduling On Time

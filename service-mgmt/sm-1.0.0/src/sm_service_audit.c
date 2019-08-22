@@ -136,11 +136,12 @@ static bool sm_service_audit_timeout( SmTimerIdT timer_id, int64_t user_data )
         return( false );
     }
 
+    // timer to be disarmed after exit
+    service->action_timer_id = SM_TIMER_ID_INVALID;
+
     if(( SM_SERVICE_ACTION_AUDIT_ENABLED  != service->action_running )&&
        ( SM_SERVICE_ACTION_AUDIT_DISABLED != service->action_running ))
     {
-        // timer will be deregistered after exit
-        service->action_timer_id = SM_TIMER_ID_INVALID;
         DPRINTFE( "Service (%s) not running audit-enabled or audit-disabled "
                   "action.", service->name );
         return( false );
@@ -183,8 +184,6 @@ static bool sm_service_audit_timeout( SmTimerIdT timer_id, int64_t user_data )
     }
    
     service->action_running = SM_SERVICE_ACTION_NONE;
-    service->action_timer_id = SM_TIMER_ID_INVALID;
-
     error = service_audit_result_handler( service, action_running,
                                           action_result, service_state,
                                           service_status, service_condition,
@@ -436,6 +435,9 @@ static SmErrorT sm_service_audit_abort( SmServiceT* service )
         return( error );
     }
 
+    service->action_running = SM_SERVICE_ACTION_NONE;
+    service->action_pid = -1;
+
     if( SM_TIMER_ID_INVALID != service->action_timer_id )
     {
         error = sm_timer_deregister( service->action_timer_id );
@@ -449,8 +451,6 @@ static SmErrorT sm_service_audit_abort( SmServiceT* service )
         }
     }
 
-    service->action_running = SM_SERVICE_ACTION_NONE;
-    service->action_pid = -1;
     service->action_timer_id = SM_TIMER_ID_INVALID;
     service->action_attempts = 0;
 

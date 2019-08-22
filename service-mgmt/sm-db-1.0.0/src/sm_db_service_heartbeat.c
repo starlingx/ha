@@ -284,7 +284,7 @@ SmErrorT sm_db_service_heartbeat_insert( SmDbHandleT* sm_db_handle,
     snprintf( sql, sizeof(sql), "INSERT INTO %s ( %s, "
                   "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s ) "
                   "VALUES ('%s', '%s', '%s', '%s', '%i', '%s', '%i', '%s', "
-                  "'%i', '%i', '%i', '%i', '%s', '%i', %i', '%i' );",
+                  "'%i', '%i', '%i', '%i', '%s', '%i', %li', '%i' );",
                   SM_SERVICE_HEARTBEAT_TABLE_NAME, 
                   SM_SERVICE_HEARTBEAT_TABLE_COLUMN_PROVISIONED, 
                   SM_SERVICE_HEARTBEAT_TABLE_COLUMN_NAME, 
@@ -433,7 +433,7 @@ SmErrorT sm_db_service_heartbeat_update( SmDbHandleT* sm_db_handle,
                          record->missed );
     }
 
-    len += snprintf( sql+len, sizeof(sql)-len, "%s = '%i', ",
+    len += snprintf( sql+len, sizeof(sql)-len, "%s = '%li', ",
                      SM_SERVICE_HEARTBEAT_TABLE_COLUMN_HEARTBEAT_TIMER_ID,
                      record->heartbeat_timer_id );
 

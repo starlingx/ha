@@ -33,7 +33,7 @@ static bool sm_service_enabled_active_state_audit_timer( SmTimerIdT timer_id,
     {
         DPRINTFE( "Failed to read service %d, error=%s.",
                   id, sm_error_str(SM_NOT_FOUND) );
-        return( false );
+        return( true );
     }
 
     error = sm_service_fsm_event_handler( service->name,
