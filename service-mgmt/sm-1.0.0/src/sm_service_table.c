@@ -383,6 +383,7 @@ SmErrorT sm_service_deprovision(char service_name[])
     }
 
     SM_LIST_REMOVE( _services, (SmListEntryDataPtrT) service );
+    free(service);
     return SM_OKAY;
 }
 
