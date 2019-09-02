@@ -1,0 +1,9 @@
+-------------------------------------------------------------------
+Mon Sep 23 22:03:54 UTC 2019 - Erich Cordoba <erich.cordoba.malibran@intel.com> - 2
+
+- Adding _service and removing source code tarball.
+
+-------------------------------------------------------------------
+Fri May 17 22:17:32 UTC 2019 - Erich Cordoba <erich.cm@gmail.com> - 1
+
+- Adding first version of sm-common.
