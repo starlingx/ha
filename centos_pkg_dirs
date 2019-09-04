@@ -4,3 +4,4 @@ service-mgmt/sm-1.0.0
 service-mgmt-api
 service-mgmt-client
 service-mgmt-tools
+stx-ocf-scripts

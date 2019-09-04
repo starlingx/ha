@@ -21,3 +21,6 @@ sm-client
 
 # sm-tools
 sm-tools
+
+# stx-ocf-scripts
+stx-ocf-scripts
