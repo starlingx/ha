@@ -2691,18 +2691,6 @@ static SmErrorT sm_msg_open_ipv6_udp_multicast_socket(
         return( SM_FAILED );
     }
 
-    // Set multicast interface on socket.
-    result = setsockopt( sock, IPPROTO_IPV6, IPV6_MULTICAST_IF,
-                        &(interface->id), sizeof(interface->id) );
-    if( 0 > result )
-    {
-        DPRINTFE( "Failed to set unicast address on socket for "
-                  "interface (%s), error=%s.", interface->interface_name,
-                  strerror( errno ) );
-        close( sock );
-        return( SM_FAILED );
-    }
-
     // Bind socket to interface.
     memset( &ifr, 0, sizeof(ifr) );
     snprintf( ifr.ifr_name, sizeof(ifr.ifr_name), "%s",
