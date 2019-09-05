@@ -111,7 +111,7 @@ debuginfo() {
     APP_STATUS='uninstalled'
 
     # Check whether kubectl is working.
-    timeout -k 5 5 kubectl get node ${HOSTNAME} &> /dev/null
+    timeout -k 10 10 kubectl get node ${HOSTNAME} &> /dev/null
     if [ $? -ne 0 ]; then
         ocf_log info "kubectl isn't working."
         STATUS="Primary"
@@ -174,7 +174,7 @@ get_pod_and_status() {
     # The "timeout" call is in case we're in the middle of swacting and kubectl
     # isn't responding, in which case the audit should catch any issues.
 
-    PODNAME=`timeout -k 5 5 kubectl -n openstack get pod --field-selector spec.nodeName=${HOSTNAME} \
+    PODNAME=`timeout -k 10 10 kubectl -n openstack get pod --field-selector spec.nodeName=${HOSTNAME} \
             -l application=mariadb,component=server  -o=jsonpath='{.items[0].metadata.name'}`
     if [ $? -ne 0 ]; then
         ocf_log info "Error getting mariadb server pod name on this node."
