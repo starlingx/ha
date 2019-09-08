@@ -5,6 +5,17 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+### BEGIN INIT INFO
+# Description: sm.shutdown
+#
+# Short-Description: Service Management Engine Shutdowm.
+# Provides: sm.shutdown
+# Required-Start:
+# Required-Stop:
+# Default-Start: 3 5
+# Default-Stop: 0 6
+### END INIT INFO
+
 case "$1" in
     start)
         ;;
