@@ -6,6 +6,8 @@
 #ifndef __SM_LIMITS_H__
 #define __SM_LIMITS_H__
 
+#include <net/if.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -68,7 +70,7 @@ extern "C" {
 // Interface Limits.
 #define SM_INTERFACE_MAX                                             4
 #define SM_INTERFACE_PEER_MAX           (SM_NODE_MAX*SM_INTERFACE_MAX)
-#define SM_INTERFACE_NAME_MAX_CHAR                                  32
+#define SM_INTERFACE_NAME_MAX_CHAR                                  IFNAMSIZ
 #define SM_INTERFACE_STATE_MAX_CHAR                                 32
 
 // Network Address Limits.
@@ -148,7 +150,7 @@ extern "C" {
 #define SM_SERVICE_HEARTBEAT_PROVISIONED_MAX_CHAR                   32
 #define SM_SERVICE_HEARTBEAT_NAME_MAX_CHAR                          32
 #define SM_SERVICE_HEARTBEAT_TYPE_MAX_CHAR                          32
-#define SM_SERVICE_HEARTBEAT_ADDRESS_MAX_CHAR                      256
+#define SM_SERVICE_HEARTBEAT_ADDRESS_MAX_CHAR                      108
 #define SM_SERVICE_HEARTBEAT_MESSAGE_MAX_CHAR                      256
 #define SM_SERVICE_HEARTBEAT_STATE_MAX_CHAR                         32
 
@@ -168,7 +170,7 @@ extern "C" {
 #define SM_SERVICE_ACTION_PLUGIN_NAME_MAX_CHAR                      80
 #define SM_SERVICE_ACTION_PLUGIN_COMMAND_MAX_CHAR                   80
 #define SM_SERVICE_ACTION_PLUGIN_PARAMS_MAX_CHAR                  1024
-#define SM_SERVICE_ACTION_PLUGIN_EXIT_CODE_MAX_CHAR                 10
+#define SM_SERVICE_ACTION_PLUGIN_EXIT_CODE_MAX_CHAR                 32
 
 // Service Action Result Limits.
 #define SM_SERVICE_ACTION_RESULT_MAX_CHAR                           32
