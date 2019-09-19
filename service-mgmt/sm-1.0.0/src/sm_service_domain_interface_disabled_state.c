@@ -13,6 +13,7 @@
 #include "sm_log.h"
 #include "sm_heartbeat.h"
 #include "sm_service_domain_interface_fsm.h"
+#include "sm_node_utils.h"
 
 // ****************************************************************************
 // Service Domain Interface Disabled State - Entry
@@ -75,10 +76,13 @@ SmErrorT sm_service_domain_interface_disabled_state_event_handler(
         return( error );
     }
 
+    bool is_aio;
+    sm_node_utils_is_aio(&is_aio);
+
     switch( event )
     {
         case SM_SERVICE_DOMAIN_INTERFACE_EVENT_NODE_ENABLED:
-            if( enabled )
+            if( enabled || is_aio)
             {
                 snprintf( reason_text, sizeof(reason_text), "node and %s "
                           "enabled", interface->interface_name );
