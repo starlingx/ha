@@ -15,6 +15,7 @@
 # Provides: sm
 # Required-Start: $network
 # Should-Start: $syslog
+# Should-Stop: $null
 # Required-Stop: $network
 # Default-Start: 3 5
 # Default-Stop: 0 6
