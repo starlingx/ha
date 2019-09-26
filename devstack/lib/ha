@@ -26,7 +26,7 @@ STX_SM_COMMON_VERSION=${STX_SM_COMMON_VERSION:=$STX_SM_VERSION}
 STX_SM_MAJOR_VERSION=${STX_SM_MAJOR_VERSION:="1"}
 STX_SM_DB_VERSION=${STX_SM_DB_VERSION:=$STX_SM_VERSION}
 
-STX_SM_DIR=$STX_HA_DIR/service-mgmt/sm-${STX_SM_VERSION}
+STX_SM_DIR=$STX_HA_DIR/service-mgmt/sm
 STX_SM_CONF_DIR=$STX_SYSCONFDIR/sm
 STX_SM_VAR_DIR=/var/lib/sm
 STX_SM_API_CONF_DIR=$STX_SYSCONFDIR/sm-api
@@ -46,7 +46,7 @@ PYTHON_SITE_DIR=$(python -c "from distutils.sysconfig import get_python_lib; pri
 # ---------
 
 function build_sm {
-    pushd $STX_HA_DIR/service-mgmt/sm-${STX_SM_VERSION}
+    pushd $STX_HA_DIR/service-mgmt/sm
 
     # On Xenial needed to remove -Werror and add -Wunused-result
     # CCFLAGS= -g -O2 -Wall -Werror -Wformat  -std=c++11
@@ -115,7 +115,7 @@ function cleanup_ha {
 }
 
 function cleanup_sm {
-    pushd $STX_HA_DIR/service-mgmt/sm-${STX_SM_COMMON_VERSION}
+    pushd $STX_HA_DIR/service-mgmt/sm
 
     make clean
 
@@ -256,7 +256,7 @@ function install_ha {
 }
 
 function install_sm {
-    pushd $STX_HA_DIR/service-mgmt/sm-${STX_SM_VERSION}
+    pushd $STX_HA_DIR/service-mgmt/sm
 
     build_sm
 
