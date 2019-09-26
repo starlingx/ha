@@ -1,5 +1,5 @@
 service-mgmt/sm-common
-service-mgmt/sm-db-1.0.0
+service-mgmt/sm-db
 service-mgmt/sm-1.0.0
 service-mgmt-api
 service-mgmt-client

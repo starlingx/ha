@@ -52,8 +52,8 @@ function build_sm {
     # CCFLAGS= -g -O2 -Wall -Werror -Wformat  -std=c++11
     make \
         CCFLAGS="-g -O2 -Wall -Wformat -Wunused-result -std=c++11" \
-        INCLUDES="-I$STX_HA_DIR/service-mgmt/sm-common/src -I$STX_HA_DIR/service-mgmt/sm-db-${STX_SM_DB_VERSION}/src -I/usr/lib64/glib-2.0/include -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I$/usr/local/include" \
-        LDLIBS="-L $STX_HA_DIR/service-mgmt/sm-common/src -L $STX_HA_DIR/service-mgmt/sm-db-${STX_SM_DB_VERSION}/src  -lsqlite3 -lglib-2.0 -luuid -lpthread -lrt -lsm_common -lsm_db -lfmcommon -ljson-c -lcrypto -lssl" \
+        INCLUDES="-I$STX_HA_DIR/service-mgmt/sm-common/src -I$STX_HA_DIR/service-mgmt/sm-db/src -I/usr/lib64/glib-2.0/include -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I$/usr/local/include" \
+        LDLIBS="-L $STX_HA_DIR/service-mgmt/sm-common/src -L $STX_HA_DIR/service-mgmt/sm-db/src  -lsqlite3 -lglib-2.0 -luuid -lpthread -lrt -lsm_common -lsm_db -lfmcommon -ljson-c -lcrypto -lssl" \
         build
 
     popd
@@ -83,7 +83,7 @@ function build_sm_common {
 }
 
 function build_sm_db {
-    pushd $STX_HA_DIR/service-mgmt/sm-db-${STX_SM_DB_VERSION}
+    pushd $STX_HA_DIR/service-mgmt/sm-db
 
     # INCLUDES because we need /usr/lib/x86_64-linux-gnu/glib-2.0/include
     make \
@@ -170,7 +170,7 @@ function cleanup_sm_common {
 }
 
 function cleanup_sm_db {
-    pushd $STX_HA_DIR/service-mgmt/sm-db-${STX_SM_DB_VERSION}
+    pushd $STX_HA_DIR/service-mgmt/sm-db
 
     make clean
 
@@ -357,7 +357,7 @@ function install_sm_common {
 }
 
 function install_sm_db {
-    pushd $STX_HA_DIR/service-mgmt/sm-db-${STX_SM_DB_VERSION}
+    pushd $STX_HA_DIR/service-mgmt/sm-db
 
     build_sm_db
 
