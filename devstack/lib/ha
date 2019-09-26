@@ -52,8 +52,8 @@ function build_sm {
     # CCFLAGS= -g -O2 -Wall -Werror -Wformat  -std=c++11
     make \
         CCFLAGS="-g -O2 -Wall -Wformat -Wunused-result -std=c++11" \
-        INCLUDES="-I$STX_HA_DIR/service-mgmt/sm-common-${STX_SM_COMMON_VERSION}/src -I$STX_HA_DIR/service-mgmt/sm-db-${STX_SM_DB_VERSION}/src -I/usr/lib64/glib-2.0/include -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I$/usr/local/include" \
-        LDLIBS="-L $STX_HA_DIR/service-mgmt/sm-common-${STX_SM_COMMON_VERSION}/src -L $STX_HA_DIR/service-mgmt/sm-db-${STX_SM_DB_VERSION}/src  -lsqlite3 -lglib-2.0 -luuid -lpthread -lrt -lsm_common -lsm_db -lfmcommon -ljson-c -lcrypto -lssl" \
+        INCLUDES="-I$STX_HA_DIR/service-mgmt/sm-common/src -I$STX_HA_DIR/service-mgmt/sm-db-${STX_SM_DB_VERSION}/src -I/usr/lib64/glib-2.0/include -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I$/usr/local/include" \
+        LDLIBS="-L $STX_HA_DIR/service-mgmt/sm-common/src -L $STX_HA_DIR/service-mgmt/sm-db-${STX_SM_DB_VERSION}/src  -lsqlite3 -lglib-2.0 -luuid -lpthread -lrt -lsm_common -lsm_db -lfmcommon -ljson-c -lcrypto -lssl" \
         build
 
     popd
@@ -68,7 +68,7 @@ function build_sm_api {
 }
 
 function build_sm_common {
-    pushd $STX_HA_DIR/service-mgmt/sm-common-${STX_SM_COMMON_VERSION}
+    pushd $STX_HA_DIR/service-mgmt/sm-common
 
     # On Xenial needed to remove -O2
     # CCFLAGS= -fPIC -g -O2 -Wall -Werror
@@ -89,8 +89,8 @@ function build_sm_db {
     make \
         VER=$STX_SM_DB_VERSION \
         VER_MJR=${STX_SM_DB_VERSION%%.*} \
-        INCLUDES="-I$STX_HA_DIR/service-mgmt/sm-common-${STX_SM_COMMON_VERSION}/src -I/usr/lib64/glib-2.0/include -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include" \
-        LDLIBS="-L $STX_HA_DIR/service-mgmt/sm-common-${STX_SM_COMMON_VERSION}/src -lsqlite3 -lglib-2.0 -lrt -lsm_common -luuid" \
+        INCLUDES="-I$STX_HA_DIR/service-mgmt/sm-common/src -I/usr/lib64/glib-2.0/include -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include" \
+        LDLIBS="-L $STX_HA_DIR/service-mgmt/sm-common/src -lsqlite3 -lglib-2.0 -lrt -lsm_common -luuid" \
         EXTRACCFLAGS="-D__STDC_FORMAT_MACROS -fpermissive" \
         build
 
@@ -147,7 +147,7 @@ function cleanup_sm_api {
 }
 
 function cleanup_sm_common {
-    pushd $STX_HA_DIR/service-mgmt/sm-common-${STX_SM_COMMON_VERSION}
+    pushd $STX_HA_DIR/service-mgmt/sm-common
 
     make clean
 
@@ -307,7 +307,7 @@ function install_sm_client {
 
 # This should only be things needed to build other things (libs, headers, etc)
 function install_sm_common_libs {
-    pushd $STX_HA_DIR/service-mgmt/sm-common-${STX_SM_COMMON_VERSION}
+    pushd $STX_HA_DIR/service-mgmt/sm-common
 
     build_sm_common
 
@@ -336,7 +336,7 @@ function install_sm_common_libs {
 }
 
 function install_sm_common {
-    pushd $STX_HA_DIR/service-mgmt/sm-common-${STX_SM_COMMON_VERSION}
+    pushd $STX_HA_DIR/service-mgmt/sm-common
 
     install_sm_common_libs
 
