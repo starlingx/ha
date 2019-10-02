@@ -145,7 +145,6 @@ static SmNodeScheduleStateT _prev_host_state= SM_NODE_STATE_UNKNOWN;
 
 static bool _hello_msg_alive = true;
 static SmSystemModeT _system_mode;
-static time_t _last_report_ts = 0;
 static int _heartbeat_count = 0;
 
 
@@ -394,7 +393,9 @@ void sm_failover_interface_up( const char* const interface_name )
                 DPRINTFI("Interface %s is up", interface_name);
             }
             impacted ++;
-            if(iter->set_state(SM_FAILOVER_INTERFACE_RECOVERING))
+            SmFailoverInterfaceStateT state = iter->get_state();
+            if(SM_FAILOVER_INTERFACE_OK != state &&
+                iter->set_state(SM_FAILOVER_INTERFACE_MISSING_HEARTBEAT))
             {
                 DPRINTFI("Domain interface %s is recovering, as i/f %s is now up.",
                         interface->service_domain_interface, interface_name);
@@ -558,31 +559,6 @@ SmNodeScheduleStateT get_controller_state()
 bool sm_is_active_controller()
 {
     return SM_NODE_STATE_ACTIVE == _host_state;
-}
-// ****************************************************************************
-
-// ****************************************************************************
-// Failover - interface is in transit state
-// ==================
-bool sm_failover_if_transit_state(SmFailoverInterfaceInfo* if_info)
-{
-    SmFailoverInterfaceStateT if_state = if_info->get_state();
-    if( SM_FAILOVER_INTERFACE_RECOVERING == if_state )
-    {
-        const SmServiceDomainInterfaceT* interface = if_info->get_interface();
-        if ( if_info->state_in_transition() )
-        {
-            DPRINTFI( "If %s is reconvering, wait for either trun OK or missing heartbeat",
-                interface->service_domain_interface);
-            return true;
-        }else
-        {
-            if_info->set_state(SM_FAILOVER_INTERFACE_MISSING_HEARTBEAT);
-            DPRINTFI( "If %s missing heartbeat", interface->service_domain_interface);
-            return false;
-        }
-    }
-    return false;
 }
 // ****************************************************************************
 
@@ -939,23 +915,6 @@ void sm_failover_audit()
         _prev_host_state = _host_state;
     }
 
-    bool in_transition = false;
-    in_transition = in_transition ||
-            sm_failover_if_transit_state(_mgmt_interface_info);
-    in_transition = in_transition ||
-            sm_failover_if_transit_state(_oam_interface_info);
-    if( is_cluster_host_interface_configured() )
-    {
-        in_transition = in_transition ||
-            sm_failover_if_transit_state(_cluster_host_interface_info);
-    }
-
-    if(in_transition)
-    {
-        //if state in transition, wait for next audit
-        return;
-    }
-
     int if_state_flag = sm_failover_get_if_state();
     if(if_state_flag & SM_FAILOVER_HEARTBEAT_ALIVE)
     {
@@ -967,25 +926,10 @@ void sm_failover_audit()
     }
     if( _prev_if_state_flag != if_state_flag)
     {
-        _last_report_ts = now_ms;
         DPRINTFI("Interface state flag %d", if_state_flag);
 
-        if( SM_FAILOVER_MULTI_FAILURE_WAIT_TIMER_IN_MS > now_ms - _last_if_state_ms )
-        {
-            DPRINTFD("interface state just changed. wait %d ms for concurrent changes",
-                SM_FAILOVER_MULTI_FAILURE_WAIT_TIMER_IN_MS);
-            return;
-        }else
-        {
-            _last_if_state_ms = now_ms;
-            _prev_if_state_flag = if_state_flag;
-        }
-    }
-
-    if(now_ms - _last_report_ts > SM_FAILOVER_INTERFACE_STATE_REPORT_INTERVAL_MS)
-    {
-        _last_report_ts = now_ms;
-        DPRINTFD("Interface state flag %d", if_state_flag);
+        _last_if_state_ms = now_ms;
+        _prev_if_state_flag = if_state_flag;
     }
 
     if(!peer_controller_enabled())
@@ -1439,8 +1383,7 @@ static KeyStringMapT if_state_map[] = {
     {SM_FAILOVER_INTERFACE_UNKNOWN, "Unknown"},
     {SM_NODE_STATE_ACTIVE, "Active"},
     {SM_FAILOVER_INTERFACE_MISSING_HEARTBEAT, "Missing heartbeat"},
-    {SM_FAILOVER_INTERFACE_DOWN, "Down"},
-    {SM_FAILOVER_INTERFACE_RECOVERING, "Recovering" }
+    {SM_FAILOVER_INTERFACE_DOWN, "Down"}
 };
 
 void dump_if_state(FILE* fp, SmFailoverInterfaceInfo* interface, const char* if_name )

@@ -730,8 +730,7 @@ typedef enum
     SM_FAILOVER_INTERFACE_UNKNOWN,
     SM_FAILOVER_INTERFACE_OK,
     SM_FAILOVER_INTERFACE_MISSING_HEARTBEAT,
-    SM_FAILOVER_INTERFACE_DOWN,
-    SM_FAILOVER_INTERFACE_RECOVERING
+    SM_FAILOVER_INTERFACE_DOWN
 }SmFailoverInterfaceStateT;
 
 // ****************************************************************************
