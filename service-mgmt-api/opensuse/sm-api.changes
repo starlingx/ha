@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Oct  4 22:52:52 UTC 2019 - Abraham Arce <abraham.arce.moreno@intel.com> - 4
+
+- Runtime dependencies.
+
+-------------------------------------------------------------------
 Tue Sep 24 05:22:50 UTC 2019 - Abraham Arce <abraham.arce.moreno@intel.com> - 3
 
 - Move to _service to get source from git repo

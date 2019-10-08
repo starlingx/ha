@@ -22,6 +22,9 @@ BuildRequires: systemd-sysvinit
 BuildRequires: insserv-compat
 %endif
 Requires: python2-six
+Requires: python-eventlet
+Requires: python-pecan
+Requires: python-keystonemiddleware
 # Needed for %%{_sysconfdir}/init.d, can be removed when we go fully systemd
 Requires: aaa_base
 # Needed for %%{_sysconfdir}/pmon.d

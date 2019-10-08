@@ -14,6 +14,10 @@ BuildRequires: python
 BuildRequires: python-setuptools
 BuildRequires: fdupes
 Requires: python-six
+Requires: python-pyparsing
+Requires: python-httplib2
+Requires: python-PrettyTable
+Requires: python-keystoneclient
 
 %description
 Service Management Client and command line interface.
