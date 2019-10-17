@@ -6,12 +6,10 @@
       - stx-release-notes-jobs
     check:
       jobs:
-        - flock-devstack-ha
         - openstack-tox-pep8
         - openstack-tox-linters
     gate:
       jobs:
-        - flock-devstack-ha
         - openstack-tox-pep8
         - openstack-tox-linters
 
