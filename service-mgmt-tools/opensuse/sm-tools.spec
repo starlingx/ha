@@ -8,8 +8,9 @@ URL:            https://opendev.org/starlingx/metal
 Source0:        %{name}-%{version}.tar.gz
 
 BuildRequires:  python
-BuildRequires:  python-pip
+BuildRequires:  python2-pip
 BuildRequires:  python-setuptools
+Requires:  python-psutil
 
 BuildArch:      noarch
 
