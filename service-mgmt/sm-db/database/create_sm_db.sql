@@ -729,4 +729,13 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('dbmon','go-active','ocf-script','openstack
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','mtc-agent','not-applicable','enable','fm-mgr','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','fm-mgr','not-applicable','disable','mtc-agent','disabled');
 
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dc-iso-fs','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dc-iso-fs','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dc-iso-fs','not-applicable','enable','platform-fs','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-fs','not-applicable','disable','dc-iso-fs','disabled');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dc-iso-fs','enable','ocf-script','heartbeat','Filesystem','start','',2,2,2,30,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dc-iso-fs','disable','ocf-script','heartbeat','Filesystem','stop','',1,1,1,60,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dc-iso-fs','audit-enabled','ocf-script','heartbeat','Filesystem','monitor','',2,2,2,30,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dc-iso-fs','audit-disabled','ocf-script','heartbeat','Filesystem','monitor','',0,0,0,30,40);
+
 COMMIT;
