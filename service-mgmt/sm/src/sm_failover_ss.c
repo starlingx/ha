@@ -182,10 +182,14 @@ void SmSystemFailoverStatus::serialize()
     time(&last_update);
     local_time = localtime(&last_update);
     char timestamp[20];
+    int ret;
 
-
-    sprintf(timestamp, "%04d-%02d-%02dT%02d:%02d:%02d", local_time->tm_year + 1900,
+    ret = snprintf(timestamp, 20, "%04d-%02d-%02dT%02d:%02d:%02d", local_time->tm_year + 1900,
                 local_time->tm_mon + 1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
+    if (ret >= 20)
+    {
+        DPRINTFE("timestamp is truncated.");
+    }
 
     f = fopen(filename, "w");
     fprintf(f, file_format, _host_schedule_state, _peer_schedule_state, timestamp);
