@@ -10,22 +10,22 @@ Source0: %{name}-%{version}.tar.gz
 
 %define debug_package %{nil}
 
-BuildRequires: python
-BuildRequires: python-setuptools
-BuildRequires: python2-pip
-BuildRequires: python2-wheel
-Requires: python-libs
+BuildRequires: python3
+BuildRequires: python3-setuptools
+BuildRequires: python3-pip
+BuildRequires: python3-wheel
+Requires: python3-libs
 
 %prep
 %setup -q
 
 %build
-%{__python2} setup.py build
-%py2_build_wheel
+%{__python3} setup.py build
+%py3_build_wheel
 
 %install
 %global _buildsubdir %{_builddir}/%{name}-%{version}
-%{__python2} setup.py install -O1 --skip-build --root %{buildroot}
+%{__python3} setup.py install -O1 --skip-build --root %{buildroot}
 mkdir -p $RPM_BUILD_ROOT/wheels
 install -m 644 dist/*.whl $RPM_BUILD_ROOT/wheels/
 
@@ -49,10 +49,10 @@ Service Management Tools
 
 %files
 %defattr(-,root,root,-)
-%dir "/usr/lib/python2.7/site-packages/sm_tools"
-/usr/lib/python2.7/site-packages/sm_tools/*
-%dir "/usr/lib/python2.7/site-packages/sm_tools-1.0.0-py2.7.egg-info"
-/usr/lib/python2.7/site-packages/sm_tools-1.0.0-py2.7.egg-info/*
+%dir "%{python3_sitelib}/sm_tools"
+%{python3_sitelib}/sm_tools/*
+%dir "%{python3_sitelib}/sm_tools-1.0.0-py3.6.egg-info"
+%{python3_sitelib}/sm_tools-1.0.0-py3.6.egg-info/*
 /usr/bin/*
 
 #%files -n sm-tools-py-src-tar
