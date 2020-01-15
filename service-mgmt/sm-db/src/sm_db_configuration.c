@@ -28,12 +28,12 @@ SmErrorT sm_db_configuration_convert( const char* col_name,
     if( 0 ==  strcmp( SM_CONFIGURATION_TABLE_COLUMN_KEY,
                       col_name ) )
     {
-        strncpy( record->key, col_data, SM_CONFIGURATION_KEY_MAX_CHAR );
+        snprintf( record->key, sizeof(record->key), "%s", col_data );
     }
     else if( 0 == strcmp( SM_CONFIGURATION_TABLE_COLUMN_VALUE,
                           col_name ) )
     {
-        strncpy( record->value, col_data, SM_CONFIGURATION_VALUE_MAX_CHAR );
+        snprintf( record->value, sizeof(record->value), "%s", col_data );
     }
     else if( 0 == strcmp( SM_CONFIGURATION_TABLE_COLUMN_ID,
                           col_name ) )
