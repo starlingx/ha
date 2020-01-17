@@ -51,7 +51,7 @@ master_doc = 'index'
 
 # General information about the project.
 repository_name = 'openstack/stx-ha'
-project = u'stx-ha'
+project = u'StarlingX HA'
 bug_project = 'starlingx'
 bug_tag = 'stx.ha'
 
