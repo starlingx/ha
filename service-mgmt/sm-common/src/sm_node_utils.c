@@ -68,7 +68,10 @@ static SmErrorT sm_node_utils_read_platform_config( const char key[],
         if( 1 == sscanf( line, format, val ) )
         {
             val[sizeof(val)-1] = '\0';
-            snprintf( value, value_size, "%s", val );
+            if( snprintf( value, value_size, "%s", val ) >= value_size )
+            {
+                DPRINTFE("value is truncated.");
+            }
             break;
         }
     }
