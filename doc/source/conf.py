@@ -21,7 +21,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = u'stx-ha'
+project = u'StarlingX HA'
 copyright = u'2018, StarlingX'
 author = u'StarlingX'
 
