@@ -1286,9 +1286,11 @@ static void sm_service_domain_scheduler_assignment_redundancy_alarm(
                     member->m_standby, count, problem_text, additional_text,
                     proposed_repair_action, true );
 
-                snprintf( log_text, sizeof(log_text), "%s; %s", problem_text,
-                          additional_text );
-
+                if (snprintf( log_text, sizeof(log_text), "%s; %s", problem_text,
+                          additional_text ) >= (int)sizeof(log_text))
+                {
+                    DPRINTFE( "log_text is truncated" );
+                }
             } else {
                 sm_alarm_clear( SM_ALARM_SERVICE_GROUP_REDUNDANCY, "",
                                 member->name, member->service_group_name );
@@ -1331,9 +1333,11 @@ static void sm_service_domain_scheduler_assignment_redundancy_alarm(
                 member->n_active, count, problem_text, additional_text,
                 proposed_repair_action, true );
 
-            snprintf( log_text, sizeof(log_text), "%s; %s", problem_text,
-                      additional_text );
-
+            if (snprintf( log_text, sizeof(log_text), "%s; %s", problem_text,
+                      additional_text ) >= (int)sizeof(log_text))
+            {
+                DPRINTFE( "log_text is truncated" );
+            }
         } else {
             sm_alarm_clear( SM_ALARM_SERVICE_GROUP_REDUNDANCY, "",
                             member->name, member->service_group_name );
