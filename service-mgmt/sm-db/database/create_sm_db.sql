@@ -282,6 +282,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-engine','not-applicable
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-patch-vault','not-applicable','go-active','management-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','patch-vault-fs','not-applicable','enable','drbd-patch-vault','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-patch-vault','not-applicable','go-standby','patch-vault-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-patch-api-proxy','not-applicable','enable','dcmanager-manager','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dcorch-patch-api-proxy','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-etcd','not-applicable','go-active','management-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd-fs','not-applicable','enable','drbd-etcd','enabled-active');
