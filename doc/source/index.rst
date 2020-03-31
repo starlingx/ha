@@ -1,33 +1,36 @@
-====================
-stx-ha Documentation
-====================
+=============================
+StarlingX HA Services Project
+=============================
 
-The StarlingX stx-ha project provides high availability cluster management
+The starlingx/ha project provides high availability cluster management
 for StarlingX and OpenStack services on controllers.
 
-Release Notes
+-------------
+Release notes
 -------------
 
 .. toctree::
    :maxdepth: 1
 
-   Release Notes <https://docs.starlingx.io/releasenotes/stx-ha>
+   Release notes <https://docs.starlingx.io/releasenotes/ha>
 
-API Reference
+-------------
+API reference
 -------------
 
 .. toctree::
    :maxdepth: 1
 
-   API Reference <https://docs.starlingx.io/api-ref/stx-ha>
+   API reference <https://docs.starlingx.io/api-ref/ha>
 
+-----
 Links
 -----
 
-* Source: `stx-ha`_
-* Code Review: `Gerrit`_
-* Bugs: `Storyboard`_
+* Source: `starlingx/ha`_
+* Code review: `Gerrit`_
+* Project tracking: `Storyboard`_
 
-.. _stx-ha: https://opendev.org/starlingx/ha
+.. _starlingx/ha: https://opendev.org/starlingx/ha
 .. _Gerrit: https://review.opendev.org/#/q/project:starlingx/ha
 .. _Storyboard: https://storyboard.openstack.org/#!/project/starlingx/ha

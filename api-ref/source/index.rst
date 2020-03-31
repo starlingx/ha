@@ -1,13 +1,14 @@
-====================
-stx-ha API Reference
-====================
+=========================
+HA Services API Reference
+=========================
 
-Use the StarlingX stx-ha API to manage high availability services running
+Use the StarlingX HA API to manage high availability services running
 on the StarlingX OpenStack controller cluster.
 
-stx-ha API content can be searched using the :ref:`search page <search>`.
+Search HA Services API content using the :ref:`search page <search>`.
 
-API Reference
+-------------
+API reference
 -------------
 
 .. toctree::
