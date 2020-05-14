@@ -76,6 +76,7 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(77,'yes','controller-services','exten
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(87,'no','distributed-cloud-services','dcorch-engine','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(88,'no','distributed-cloud-services','dcmanager-manager','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(89,'no','distributed-cloud-services','dcmanager-api','critical');
+INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(90,'no','distributed-cloud-services','dcmanager-audit','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(91,'no','distributed-cloud-services','dcorch-sysinv-api-proxy','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(92,'no','distributed-cloud-services','dcorch-nova-api-proxy','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(93,'no','distributed-cloud-services','dcorch-neutron-api-proxy','critical');
@@ -138,6 +139,7 @@ INSERT INTO "SERVICES" VALUES(77,'yes','extension-export-fs','initial','initial'
 INSERT INTO "SERVICES" VALUES(87,'no','dcorch-engine','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcorch-engine.pid');
 INSERT INTO "SERVICES" VALUES(88,'no','dcmanager-manager','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcmanager-manager.pid');
 INSERT INTO "SERVICES" VALUES(89,'no','dcmanager-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcmanager-api.pid');
+INSERT INTO "SERVICES" VALUES(90,'no','dcmanager-audit','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcmanager-audit.pid');
 INSERT INTO "SERVICES" VALUES(91,'no','dcorch-sysinv-api-proxy','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcorch-sysinv-api-proxy.pid');
 INSERT INTO "SERVICES" VALUES(92,'no','dcorch-nova-api-proxy','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcorch-nova-api-proxy.pid');
 INSERT INTO "SERVICES" VALUES(93,'no','dcorch-neutron-api-proxy','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcorch-neutron-api-proxy.pid');
@@ -257,6 +259,8 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','di
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','disable','dcmanager-manager','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-api','not-applicable','enable','dcmanager-manager','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dcmanager-api','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-audit','not-applicable','enable','dcmanager-manager','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dcmanager-audit','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-sysinv-api-proxy','not-applicable','enable','sysinv-inv','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-sysinv-api-proxy','not-applicable','enable','dcorch-engine','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-inv','not-applicable','disable','dcorch-sysinv-api-proxy','disabled');
@@ -491,6 +495,10 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-manager','enable','ocf-script','
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-manager','disable','ocf-script','openstack','dcmanager-manager','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-manager','audit-enabled','ocf-script','openstack','dcmanager-manager','monitor','',2,2,2,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-manager','audit-disabled','ocf-script','openstack','dcmanager-manager','monitor','',0,0,0,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-audit','enable','ocf-script','openstack','dcmanager-audit','start','',2,2,2,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-audit','disable','ocf-script','openstack','dcmanager-audit','stop','',1,1,1,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-audit','audit-enabled','ocf-script','openstack','dcmanager-audit','monitor','',2,2,2,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-audit','audit-disabled','ocf-script','openstack','dcmanager-audit','monitor','',0,0,0,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-api','enable','ocf-script','openstack','dcmanager-api','start','',2,2,2,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-api','disable','ocf-script','openstack','dcmanager-api','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-api','audit-enabled','ocf-script','openstack','dcmanager-api','monitor','',2,2,2,20,5);
