@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2018 Wind River Systems, Inc.
+// Copyright (c) 2014-2020 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -173,6 +173,7 @@ _sm_failover_event_mappings[SM_FAILOVER_EVENT_MAX] =
     {SM_FAILOVER_EVENT_HEARTBEAT_ENABLED,       "heartbeat-enabled"},
     {SM_FAILOVER_EVENT_IF_STATE_CHANGED,        "interface-state-changed"},
     {SM_FAILOVER_EVENT_FAIL_PENDING_TIMEOUT,    "fail-pending-timeout"},
+    {SM_FAILOVER_EVENT_FAILED_RECOVERY_AUDIT,   "failed-recovery-audit"},
     {SM_FAILOVER_EVENT_NODE_ENABLED,            "node-enabled"}
 };
 
@@ -184,6 +185,15 @@ _sm_failover_state_mappings[SM_FAILOVER_STATE_MAX] =
     {SM_FAILOVER_STATE_FAIL_PENDING,            "fail-pending"},
     {SM_FAILOVER_STATE_FAILED,                  "failed"},
     {SM_FAILOVER_STATE_SURVIVED,                "survived"}
+};
+
+static SmValueStrMappingT
+_sm_failover_interface_state_mappings[SM_FAILOVER_INTERFACE_STATE_MAX] =
+{
+    {SM_FAILOVER_INTERFACE_UNKNOWN,             "unknown"},
+    {SM_FAILOVER_INTERFACE_OK,                  "ok"},
+    {SM_FAILOVER_INTERFACE_MISSING_HEARTBEAT,   "missing-heartbeat"},
+    {SM_FAILOVER_INTERFACE_DOWN,                "down"}
 };
 
 static SmValueStrMappingT 
@@ -993,6 +1003,17 @@ const char* sm_failover_state_str( SmFailoverStateT state )
                                 SM_FAILOVER_STATE_MAX,
                                 state ) );
 }
+
+// ****************************************************************************
+// Types - Failover Interface State String
+// =============================================
+const char* sm_failover_interface_state_str( SmFailoverInterfaceStateT state )
+{
+    return( sm_mapping_get_str( _sm_failover_interface_state_mappings,
+                                SM_FAILOVER_INTERFACE_STATE_MAX,
+                                state ) );
+}
+
 // ****************************************************************************
 
 // ****************************************************************************

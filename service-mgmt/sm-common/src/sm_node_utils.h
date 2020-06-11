@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014,2020 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -102,6 +102,12 @@ extern SmErrorT sm_node_utils_is_aio_duplex( bool* is_aio_duplex );
 // Node Utilities - Set Failover
 // ==============================
 extern bool sm_node_utils_set_failover( bool to_disable );
+// ****************************************************************************
+
+// ****************************************************************************
+// Node Utilities - Clear the unhealthy flag
+// ==============================
+extern void sm_node_utils_reset_unhealthy_flag( void );
 // ****************************************************************************
 
 #ifdef __cplusplus
