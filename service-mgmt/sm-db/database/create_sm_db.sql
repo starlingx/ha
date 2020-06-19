@@ -735,4 +735,16 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('dc-iso-fs','disable','ocf-script','heartbe
 INSERT INTO "SERVICE_ACTIONS" VALUES('dc-iso-fs','audit-enabled','ocf-script','heartbeat','Filesystem','monitor','',2,2,2,30,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dc-iso-fs','audit-disabled','ocf-script','heartbeat','Filesystem','monitor','',0,0,0,30,40);
 
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','cert-mon','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','cert-mon','initial','initial','none','none',2,1,90000,4,16,'/var/run/cert-mon.pid' FROM "SERVICES";
+INSERT INTO "SERVICE_INSTANCES" SELECT MAX(id) + 1,'cert-mon','cert-mon','' FROM "SERVICE_INSTANCES";
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cert-mon','not-applicable','enable','sysinv-inv','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-inv','not-applicable','disable','cert-mon','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cert-mon','not-applicable','enable','dcmanager-manager','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','cert-mon','disabled');
+INSERT INTO "SERVICE_ACTIONS" VALUES('cert-mon','enable','ocf-script','platform','cert-mon','start','',2,2,2,30,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('cert-mon','disable','ocf-script','platform','cert-mon','stop','',1,1,1,60,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('cert-mon','audit-enabled','ocf-script','platform','cert-mon','monitor','',2,2,2,30,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('cert-mon','audit-disabled','ocf-script','platform','cert-mon','monitor','',0,0,0,30,40);
+
 COMMIT;
