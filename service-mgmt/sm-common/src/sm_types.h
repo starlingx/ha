@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2018 Wind River Systems, Inc.
+// Copyright (c) 2014-2020 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -293,6 +293,7 @@ typedef enum{
     SM_FAILOVER_EVENT_HEARTBEAT_ENABLED,
     SM_FAILOVER_EVENT_IF_STATE_CHANGED,
     SM_FAILOVER_EVENT_FAIL_PENDING_TIMEOUT,
+    SM_FAILOVER_EVENT_FAILED_RECOVERY_AUDIT,
     SM_FAILOVER_EVENT_NODE_ENABLED,
     SM_FAILOVER_EVENT_MAX
 }SmFailoverEventT;
@@ -730,7 +731,8 @@ typedef enum
     SM_FAILOVER_INTERFACE_UNKNOWN,
     SM_FAILOVER_INTERFACE_OK,
     SM_FAILOVER_INTERFACE_MISSING_HEARTBEAT,
-    SM_FAILOVER_INTERFACE_DOWN
+    SM_FAILOVER_INTERFACE_DOWN,
+    SM_FAILOVER_INTERFACE_STATE_MAX
 }SmFailoverInterfaceStateT;
 
 // ****************************************************************************
@@ -958,6 +960,10 @@ extern const char* sm_failover_event_str( SmFailoverEventT event );
 // Types - Failover State String
 // =============================================
 extern const char* sm_failover_state_str( SmFailoverStateT state );
+// ****************************************************************************
+
+const char* sm_failover_interface_state_str( SmFailoverInterfaceStateT state );
+
 // ****************************************************************************
 
 // ****************************************************************************

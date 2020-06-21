@@ -231,6 +231,10 @@ SmErrorT SmFailoverFailPendingState::event_handler(SmFailoverEventT event, const
                 {
                     blind_guess_scenario_start();
                 }
+                else
+                {
+                    this->fsm.set_state(SM_FAILOVER_STATE_FAILED);
+                }
             }
             else
             {
