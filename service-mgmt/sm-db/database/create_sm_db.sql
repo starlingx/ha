@@ -735,7 +735,7 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('dc-iso-fs','disable','ocf-script','heartbe
 INSERT INTO "SERVICE_ACTIONS" VALUES('dc-iso-fs','audit-enabled','ocf-script','heartbeat','Filesystem','monitor','',2,2,2,30,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dc-iso-fs','audit-disabled','ocf-script','heartbeat','Filesystem','monitor','',0,0,0,30,40);
 
-INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','cert-mon','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','cert-mon','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','cert-mon','initial','initial','none','none',2,1,90000,4,16,'/var/run/cert-mon.pid' FROM "SERVICES";
 INSERT INTO "SERVICE_INSTANCES" SELECT MAX(id) + 1,'cert-mon','cert-mon','' FROM "SERVICE_INSTANCES";
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cert-mon','not-applicable','enable','sysinv-inv','enabled-active');
