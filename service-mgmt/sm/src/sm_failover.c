@@ -11,6 +11,9 @@
 #include <time.h>
 #include <stdio.h>
 #include <json-c/json.h>
+#include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #include "sm_service_domain_interface_table.h"
 #include "sm_debug.h"
@@ -43,6 +46,8 @@
 #define SM_FAILOVER_MULTI_FAILURE_WAIT_TIMER_IN_MS 2000
 #define SM_FAILOVER_RECOVERY_INTERVAL_IN_SEC 100
 #define SM_FAILOVER_INTERFACE_STATE_REPORT_INTERVAL_MS 20000
+
+const char* RESET_PEER_NOW = "/var/run/.sm_reset_peer";
 
 typedef enum
 {
@@ -816,12 +821,25 @@ static SmErrorT sm_ensure_leader_scheduler()
     }
     return error;
 }
+
+bool file_exist(const char* filename)
+{
+    if( 0 != access(filename, F_OK ) )
+    {
+        if( ENOENT == errno )
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 // ****************************************************************************
 // Failover - set system to scheduled status
 // ==================
 SmErrorT sm_failover_set_system(const SmSystemFailoverStatus& failover_status)
 {
-    //valid combinations of target system scheduling are:
+    // valid combinations of target system scheduling are:
     // active/standby
     // active/failed
     SmFailoverActionResultT result;
@@ -829,6 +847,47 @@ SmErrorT sm_failover_set_system(const SmSystemFailoverStatus& failover_status)
     host_target_state = failover_status.get_host_schedule_state();
     peer_target_state = failover_status.get_peer_schedule_state();
     SmHeartbeatStateT heartbeat_state = failover_status.get_heartbeat_state();
+
+    if(SM_NODE_STATE_ACTIVE == host_target_state &&
+        SM_NODE_STATE_FAILED == peer_target_state &&
+        failover_status.peer_stall())
+    {
+        int seconds_to_wait = sm_failover_get_reset_peer_wait_time();
+
+        int fd = open(RESET_PEER_NOW, O_RDWR | O_CREAT, S_IRUSR | S_IRGRP | S_IROTH);
+        if( 0 > fd )
+        {
+            DPRINTFE("Failed to create file (%s), error=%s.", RESET_PEER_NOW, strerror(errno) );
+        }else
+        {
+            close(fd);
+        }
+
+        for(int i = 0; i < seconds_to_wait * 10; i ++)
+        {
+            //wait up to 30 seconds for mtce to reset peer.
+            if(!file_exist(RESET_PEER_NOW))
+            {
+                DPRINTFI("%s is gone.", RESET_PEER_NOW);
+                break;
+            }else
+            {
+                usleep(100000); // 100ms
+                if(i % 10 == 0)
+                {
+                    // log every second
+                    DPRINTFI("Wait for %s to be removed", RESET_PEER_NOW);
+                }
+            }
+        }
+
+        if(file_exist(RESET_PEER_NOW))
+        {
+            DPRINTFE("%s still exists after %d seconds. Start activating the controller.",
+                     RESET_PEER_NOW, seconds_to_wait);
+        }
+    }
+
     if(SM_HEARTBEAT_OK != heartbeat_state)
     {
         if(SM_OKAY != sm_ensure_leader_scheduler())
@@ -1102,6 +1161,9 @@ SmErrorT sm_failover_disable_peer()
     {
         DPRINTFE("Failed to disable peer %s", _peer_name);
         return SM_FAILED;
+    }else
+    {
+        DPRINTFI("Request mtce to reset peer");
     }
     return SM_OKAY;
 }
@@ -1292,12 +1354,6 @@ SmErrorT sm_failover_initialize( void )
         return SM_FAILED;
     }
 
-    error = SmClusterHbsInfoMsg::initialize();
-    if(SM_OKAY != error)
-    {
-        DPRINTFE("Failed to initialize cluster hbs info messaging");
-    }
-
     return SM_OKAY;
 }
 // ****************************************************************************
@@ -1310,12 +1366,6 @@ SmErrorT sm_failover_finalize( void )
     _total_interfaces = 0;
 
     SmErrorT error;
-
-    error = SmClusterHbsInfoMsg::finalize();
-    if(SM_OKAY != error)
-    {
-        DPRINTFE("Failed to finalize cluster hbs info messaging");
-    }
 
     sm_timer_deregister( failover_audit_timer_id );
     if( NULL != _sm_db_handle )

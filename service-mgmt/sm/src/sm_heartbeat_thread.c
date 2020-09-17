@@ -35,6 +35,7 @@
 #include "sm_alarm.h"
 #include "sm_log.h"
 #include "sm_failover.h"
+#include "sm_cluster_hbs_info_msg.h"
 
 #define SM_HEARTBEAT_THREAD_NAME                                    "sm_heartbeat"
 #define SM_HEARTBEAT_THREAD_TICK_INTERVAL_IN_MS                                100
@@ -105,6 +106,10 @@ static SmListT* _heartbeat_peer_nodes = NULL;
 static SmTimerIdT _alive_timer_id = SM_TIMER_ID_INVALID;
 static char _node_name[SM_NODE_NAME_MAX_CHAR];
 static SmHeartbeatMsgCallbacksT _callbacks;
+
+static int alive_pulse_count = 0;
+static int alive_pulse_fail_count = 0;
+static SmTimeT alive_pulse_since = {0};
 
 // ****************************************************************************
 // Heartbeat Thread - SmNetworkAddressT ==
@@ -919,6 +924,35 @@ static bool sm_heartbeat_alive_timer( SmTimerIdT timer_id, int64_t user_data )
         }
 
         DPRINTFD( "Sent alive message for node (%s).", _node_name );
+    }
+
+    if(!SmClusterHbsInfoMsg::send_alive_pulse())
+    {
+        alive_pulse_fail_count ++;
+        DPRINTFE("Failed sending alive pulse to hbsAgent");
+    }else
+    {
+        alive_pulse_count ++;
+
+    }
+
+    if(alive_pulse_since.tv_sec == 0)
+    {
+        clock_gettime(CLOCK_MONOTONIC_RAW, &alive_pulse_since);
+    }else
+    {
+        SmTimeT now;
+        clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+        int delta;
+        delta = (int)(now.tv_sec - alive_pulse_since.tv_sec);
+        if(delta > 60)
+        {
+            DPRINTFI("Record %d alive pulses (include %d failed) to hbsAgent since %d seconds ago",
+                     alive_pulse_count + alive_pulse_fail_count, alive_pulse_fail_count, delta);
+            alive_pulse_count = 0;
+            alive_pulse_fail_count = 0;
+            alive_pulse_since = now;
+        }
     }
 
 DONE:

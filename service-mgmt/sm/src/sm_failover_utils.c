@@ -8,6 +8,7 @@
 #include "sm_service_domain_member_table.h"
 #include "sm_service_domain_assignment_table.h"
 #include "sm_service_domain_table.h"
+#include "sm_configuration_table.h"
 
 #define SM_NODE_STAY_FAILED_FILE      "/var/run/.sm_stay_fail"
 
@@ -137,5 +138,29 @@ bool sm_failover_utils_is_stayfailed()
         return true;
     }
     return false;
+}
+// ****************************************************************************
+
+
+// ****************************************************************************
+// Failover Utilities - get wait time for peer to be reset
+// ==============================
+int sm_failover_get_reset_peer_wait_time()
+{
+    char buf[SM_CONFIGURATION_VALUE_MAX_CHAR + 1];
+    const int RESET_PEER_WAIT_TIME_MIN_SEC = 1;
+    const int RESET_PEER_WAIT_TIME_DEFAULT_SEC = 30;
+    int seconds_to_wait = 0;
+    if( SM_OKAY == sm_configuration_table_get("RESET_PEER_WAIT_TIMEOUT_SEC", buf, sizeof(buf) - 1) )
+    {
+        seconds_to_wait = atoi(buf);
+    }
+    if( seconds_to_wait < RESET_PEER_WAIT_TIME_MIN_SEC)
+    {
+        seconds_to_wait = RESET_PEER_WAIT_TIME_DEFAULT_SEC;
+    }
+
+    DPRINTFI("Peer reset wait time %d sec", seconds_to_wait);
+    return seconds_to_wait;
 }
 // ****************************************************************************

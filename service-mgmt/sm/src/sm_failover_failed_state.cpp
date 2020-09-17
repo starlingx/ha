@@ -24,6 +24,7 @@
 #include "sm_failover_fsm.h"
 #include "sm_failover_ss.h"
 #include "sm_failover_utils.h"
+#include "sm_cluster_hbs_info_msg.h"
 
 extern bool is_cluster_host_interface_configured( void );
 
@@ -37,6 +38,8 @@ static const int SM_FAILOVER_FAILED_LOG_THROTTLE_THLD = 12;
 #define MAX_RESTART_PROCESS_NAME_LEN 10
 #define PROCESS_HBSAGENT ((const char *)("hbsAgent"))
 #define PROCESS_SM       ((const char *)("sm"))
+
+static struct timespec start_time;
 
 // Failover Failed state class constructor
 SmFailoverFailedState::SmFailoverFailedState(SmFailoverFSM& fsm) : SmFSMState(fsm)
@@ -61,6 +64,9 @@ SmErrorT SmFailoverFailedState::enter_state()
     DPRINTFE("Entering Failover Failed state ; recovery audit started ");
     DPRINTFE("********************************************************");
 
+    clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
+    DPRINTFI("Wait for %d seconds to start failed recovery audit",
+              sm_failover_get_reset_peer_wait_time());
     SmErrorT error = this->_register_timer();
     if(SM_OKAY != error)
     {
@@ -73,7 +79,13 @@ SmErrorT SmFailoverFailedState::enter_state()
 bool SmFailoverFailedState::_failed_state_audit(
     SmTimerIdT timer_id, int64_t user_data)
 {
-    SmFailoverFSM::get_fsm().send_event(SM_FAILOVER_EVENT_FAILED_RECOVERY_AUDIT, NULL);
+    // wait enough time for peer to be reset to avoid conflict decision, i.e being reset
+    struct timespec now;
+    clock_gettime(CLOCK_REALTIME, &now);
+    if(now.tv_sec - start_time.tv_sec - 1 > sm_failover_get_reset_peer_wait_time())
+    {
+        SmFailoverFSM::get_fsm().send_event(SM_FAILOVER_EVENT_FAILED_RECOVERY_AUDIT, NULL);
+    }
     return true ;
 }
 
@@ -139,20 +151,27 @@ static bool sm_failover_failed_recovery_criteria_met( void )
     oam_state = sm_failover_get_interface_info(SM_INTERFACE_OAM);
     mgmt_state = sm_failover_get_interface_info(SM_INTERFACE_MGMT);
 
-    if ( is_cluster_host_interface_configured() )
+    const SmClusterHbsStateT& cluster_hbs_state = SmClusterHbsInfoMsg::get_current_state();
+    int peer_controller_index = SmClusterHbsInfoMsg::get_peer_controller_index();
+
+    // If peer has stalled, do not recover until peer recovers from stall
+    if(!cluster_hbs_state.controllers[peer_controller_index].sm_heartbeat_fail)
     {
-        cluster_host_state = sm_failover_get_interface_info(SM_INTERFACE_CLUSTER_HOST);
-        if ((( oam_state == SM_FAILOVER_INTERFACE_OK ) || ( oam_state == SM_FAILOVER_INTERFACE_MISSING_HEARTBEAT )) &&
-            (( mgmt_state == SM_FAILOVER_INTERFACE_OK ) || ( mgmt_state == SM_FAILOVER_INTERFACE_MISSING_HEARTBEAT )) &&
-            (( cluster_host_state == SM_FAILOVER_INTERFACE_OK ) || ( cluster_host_state == SM_FAILOVER_INTERFACE_MISSING_HEARTBEAT )))
+        if ( is_cluster_host_interface_configured() )
+        {
+            cluster_host_state = sm_failover_get_interface_info(SM_INTERFACE_CLUSTER_HOST);
+            if ((( oam_state == SM_FAILOVER_INTERFACE_OK ) || ( oam_state == SM_FAILOVER_INTERFACE_MISSING_HEARTBEAT )) &&
+                (( mgmt_state == SM_FAILOVER_INTERFACE_OK ) || ( mgmt_state == SM_FAILOVER_INTERFACE_MISSING_HEARTBEAT )) &&
+                (( cluster_host_state == SM_FAILOVER_INTERFACE_OK ) || ( cluster_host_state == SM_FAILOVER_INTERFACE_MISSING_HEARTBEAT )))
+            {
+                criteria_met = true ;
+            }
+        }
+        else if ((( oam_state == SM_FAILOVER_INTERFACE_OK ) || ( oam_state == SM_FAILOVER_INTERFACE_MISSING_HEARTBEAT )) &&
+                 (( mgmt_state == SM_FAILOVER_INTERFACE_OK ) || ( mgmt_state == SM_FAILOVER_INTERFACE_MISSING_HEARTBEAT )))
         {
             criteria_met = true ;
         }
-    }
-    else if ((( oam_state == SM_FAILOVER_INTERFACE_OK ) || ( oam_state == SM_FAILOVER_INTERFACE_MISSING_HEARTBEAT )) &&
-             (( mgmt_state == SM_FAILOVER_INTERFACE_OK ) || ( mgmt_state == SM_FAILOVER_INTERFACE_MISSING_HEARTBEAT )))
-    {
-        criteria_met = true ;
     }
 
     DPRINTFI("Oam:%s ; Mgmt:%s ; Cluster:%s ; recovery criteria met: %s",

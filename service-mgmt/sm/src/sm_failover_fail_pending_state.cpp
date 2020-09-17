@@ -6,6 +6,7 @@
 #include "sm_failover_fail_pending_state.h"
 #include <stdlib.h>
 #include <unistd.h>
+#include "sm_configuration_table.h"
 #include "sm_cluster_hbs_info_msg.h"
 #include "sm_types.h"
 #include "sm_limits.h"
@@ -18,8 +19,26 @@
 #include "sm_node_api.h"
 #include "sm_worker_thread.h"
 
-static const int FAIL_PENDING_TIMEOUT = 2000; // 2seconds
-static const int DELAY_QUERY_HBS_MS   = FAIL_PENDING_TIMEOUT - 200; // give 200ms for hbs agent to respond
+static const int FAIL_PENDING_TIMEOUT_DEFAULT = 2000; // 2 seconds
+static const int FAIL_PENDING_TIMEOUT_MIN = 1200;
+static inline int get_failpending_timeout()
+{
+    int fail_pending_timeout =0;
+    char buf[SM_CONFIGURATION_VALUE_MAX_CHAR + 1];
+
+    if( SM_OKAY == sm_configuration_table_get("FAILPENDING_TIMEOUT_MS", buf, sizeof(buf) - 1) )
+    {
+        fail_pending_timeout = atoi(buf);
+    }
+    if(fail_pending_timeout < FAIL_PENDING_TIMEOUT_MIN)
+    {
+        fail_pending_timeout = FAIL_PENDING_TIMEOUT_DEFAULT;
+    }
+
+    return fail_pending_timeout;
+}
+
+static const int fail_pending_timeout = 0;
 
 static SmTimerIdT action_timer_id = SM_TIMER_ID_INVALID;
 static const int RESET_TIMEOUT = 10 * 1000; // 10 seconds for a reset command to reboot a node
@@ -292,6 +311,10 @@ bool SmFailoverFailPendingState::_fail_pending_timeout(
 SmErrorT SmFailoverFailPendingState::enter_state()
 {
     SmFSMState::enter_state();
+    DPRINTFI("Pre failure hbs cluster info:");
+    const SmClusterHbsStateT& cluster_hbs_state = SmClusterHbsInfoMsg::get_current_state();
+    log_cluster_hbs_state(cluster_hbs_state);
+
     SmErrorT error = this->_register_timer();
     if(SM_OKAY != error)
     {
@@ -303,6 +326,7 @@ SmErrorT SmFailoverFailPendingState::enter_state()
 void _cluster_hbs_response_callback()
 {
     const SmClusterHbsStateT& cluster_hbs_state = SmClusterHbsInfoMsg::get_current_state();
+    DPRINTFI("Fail-pending timeout cluster info:");
     log_cluster_hbs_state(cluster_hbs_state);
     SmSystemFailoverStatus::get_status().set_cluster_hbs_state(cluster_hbs_state);
 }
@@ -323,13 +347,14 @@ SmErrorT SmFailoverFailPendingState::_register_timer()
         this->_deregister_timer();
     }
 
-    error = sm_timer_register(timer_name, FAIL_PENDING_TIMEOUT,
+    int fail_pending_timeout = get_failpending_timeout();
+    error = sm_timer_register(timer_name, fail_pending_timeout,
                               SmFailoverFailPendingState::_fail_pending_timeout,
                               0, &this->_pending_timer_id);
 
     const char* delay_query_hbs_timer_name = "DELAY QUERY HBS";
 
-    error = sm_timer_register(delay_query_hbs_timer_name, DELAY_QUERY_HBS_MS,
+    error = sm_timer_register(delay_query_hbs_timer_name, fail_pending_timeout - 200,
                               SmFailoverFailPendingState::_delay_query_hbs_timeout,
                               0, &this->_delay_query_hbs_timer_id);
 
