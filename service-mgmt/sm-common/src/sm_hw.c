@@ -232,6 +232,11 @@ SmErrorT sm_hw_get_if_state( const char if_name[], bool* enabled )
     struct ifreq if_data;
     SmHwThreadInfoT* thread_info;
 
+    if(strcmp(if_name, "lo") == 0)
+    {
+        *enabled = true;
+        return SM_OKAY;
+    }
     thread_info = sm_hw_find_thread_info();
     if( NULL == thread_info )
     {
