@@ -671,6 +671,38 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-dockerdistribution','go-standby','ocf
 INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-dockerdistribution','audit-enabled','ocf-script','linbit','drbd','monitor','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,20,30);
 INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-dockerdistribution','audit-disabled','ocf-script','linbit','drbd','monitor','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',0,0,0,20,28);
 
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','rook-mon-exit','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1, 'no','rook-mon-exit','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rook-mon-exit','not-applicable','enable','docker-distribution','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','docker-distribution','not-applicable','disable','rook-mon-exit','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rook-mon-exit','not-applicable','enable','cluster-host-ip','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cluster-host-ip','not-applicable','disable','rook-mon-exit','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rook-mon-exit','not-applicable','enable','etcd','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd','not-applicable','disable','rook-mon-exit','disabled');
+INSERT INTO "SERVICE_ACTIONS" VALUES('rook-mon-exit','enable','lsb-script','','rook-mon-exit','start','',2,2,2,30,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('rook-mon-exit','disable','lsb-script','','rook-mon-exit','stop','',0,0,0,360,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('rook-mon-exit','audit-enabled','lsb-script','','rook-mon-exit','status','',2,2,2,15,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('rook-mon-exit','audit-disabled','lsb-script','','rook-mon-exit','status','',0,0,0,15,40);
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','rookmon-fs','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','rookmon-fs','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rookmon-fs','not-applicable','enable','drbd-rookmon','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rook-mon-exit','not-applicable','enable','rookmon-fs','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-rookmon','not-applicable','go-standby','rookmon-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-rookmon','not-applicable','disable','rookmon-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rookmon-fs','not-applicable','disable','rook-mon-exit','disabled');
+INSERT INTO "SERVICE_ACTIONS" VALUES('rookmon-fs','enable','ocf-script','heartbeat','Filesystem','start','',2,2,2,60,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('rookmon-fs','disable','ocf-script','heartbeat','Filesystem','stop','',1,1,1,180,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('rookmon-fs','audit-enabled','ocf-script','heartbeat','Filesystem','monitor','',2,2,2,60,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('rookmon-fs','audit-disabled','ocf-script','heartbeat','Filesystem','monitor','',0,0,0,60,40);
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','drbd-rookmon','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','drbd-rookmon','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
+INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-rookmon','enable','ocf-script','linbit','drbd','start','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,90,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-rookmon','disable','ocf-script','linbit','drbd','stop','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',1,1,1,180,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-rookmon','go-active','ocf-script','linbit','drbd','promote','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,180,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-rookmon','go-standby','ocf-script','linbit','drbd','demote','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,180,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-rookmon','audit-enabled','ocf-script','linbit','drbd','monitor','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,20,30);
+INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-rookmon','audit-disabled','ocf-script','linbit','drbd','monitor','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',0,0,0,20,28);
+
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','ceph-mon','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1, 'no','ceph-mon','initial','initial','none','none',2,1,90000,4,16,'/var/run/ceph/mon.controller.pid' FROM "SERVICES";
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-mon','not-applicable','enable','management-ip','enabled-active');
