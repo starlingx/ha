@@ -85,9 +85,6 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(95,'no','controller-services','drbd-d
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(96,'no','controller-services','dc-vault-fs','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(97,'no','distributed-cloud-services','dcorch-patch-api-proxy','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(98,'no','distributed-cloud-services','dcorch-identity-api-proxy','critical');
-INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(99,'yes','controller-services','etcd','critical');
-INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','drbd-etcd','critical' FROM "SERVICE_GROUP_MEMBERS";
-INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','etcd-fs','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'yes','cloud-services','barbican-api','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'yes','cloud-services','barbican-keystone-listener','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'yes','cloud-services','barbican-worker','critical' FROM "SERVICE_GROUP_MEMBERS";
@@ -149,9 +146,6 @@ INSERT INTO "SERVICES" VALUES(95,'no','drbd-dc-vault','initial','initial','none'
 INSERT INTO "SERVICES" VALUES(96,'no','dc-vault-fs','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(97,'no','dcorch-patch-api-proxy','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcorch-patch-api-proxy.pid');
 INSERT INTO "SERVICES" VALUES(98,'no','dcorch-identity-api-proxy','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcorch-identity-api-proxy.pid');
-INSERT INTO "SERVICES" VALUES(99,'yes','etcd','initial','initial','none','none',2,1,90000,4,16,'/var/run/etcd.pid');
-INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','drbd-etcd','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
-INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','etcd-fs','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'yes','barbican-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/barbican/pid' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'yes','barbican-keystone-listener','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/barbican-keystone-listener.pid' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'yes','barbican-worker','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/barbican-worker.pid' FROM "SERVICES";
@@ -193,7 +187,6 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','fm-mgr','not-applicable','enab
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','snmp','not-applicable','enable','oam-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','snmp','not-applicable','enable','postgres','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','snmp','not-applicable','enable','platform-nfs-ip','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd','not-applicable','enable','etcd-fs','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','enable','postgres','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','enable','rabbit','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','enable','platform-nfs-ip','enabled-active');
@@ -242,7 +235,6 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dnsmasq','not-applicable','dis
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','lighttpd','not-applicable','disable','horizon','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','mgr-restful-plugin','not-applicable','disable','ceph-manager','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-platform','not-applicable','disable','iscsi','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd-fs','not-applicable','disable','etcd','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-lvm','not-applicable','disable','iscsi','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cinder','not-applicable','go-standby','cinder-lvm','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cinder','not-applicable','disable','cinder-lvm','disabled');
@@ -290,9 +282,6 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-dc-vault','not-applicable
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-dc-vault','not-applicable','disable','dc-vault-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-patch-api-proxy','not-applicable','enable','dcmanager-manager','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dcorch-patch-api-proxy','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-etcd','not-applicable','go-active','management-ip','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd-fs','not-applicable','enable','drbd-etcd','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-etcd','not-applicable','go-standby','etcd-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','barbican-api','not-applicable','enable','postgres','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','barbican-api','not-applicable','enable','rabbit','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','barbican-worker','not-applicable','enable','barbican-api','enabled-active');
@@ -415,10 +404,6 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('dnsmasq','enable','lsb-script','','dnsmasq
 INSERT INTO "SERVICE_ACTIONS" VALUES('dnsmasq','disable','lsb-script','','dnsmasq','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dnsmasq','audit-enabled','lsb-script','','dnsmasq','status','',2,2,2,15,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dnsmasq','audit-disabled','lsb-script','','dnsmasq','status','',0,0,0,15,40);
-INSERT INTO "SERVICE_ACTIONS" VALUES('etcd','enable','lsb-script','','etcd','start','',2,2,2,15,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('etcd','disable','lsb-script','','etcd','stop','',1,1,1,15,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('etcd','audit-enabled','lsb-script','','etcd','status','',2,2,2,15,40);
-INSERT INTO "SERVICE_ACTIONS" VALUES('etcd','audit-disabled','lsb-script','','etcd','status','',0,0,0,15,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('fm-mgr','enable','lsb-script','','fminit','start','',2,2,2,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('fm-mgr','disable','lsb-script','','fminit','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('fm-mgr','audit-enabled','lsb-script','','fminit','status','',2,2,2,15,40);
@@ -560,16 +545,6 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('dcdbsync-openstack-api','disable','ocf-scr
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcdbsync-openstack-api','audit-enabled','ocf-script','openstack','dcdbsync-api','monitor','',2,2,2,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcdbsync-openstack-api','audit-disabled','ocf-script','openstack','dcdbsync-api','monitor','',0,0,0,20,5);
 
-INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-etcd','enable','ocf-script','linbit','drbd','start','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,90,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-etcd','disable','ocf-script','linbit','drbd','stop','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',1,1,1,180,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-etcd','go-active','ocf-script','linbit','drbd','promote','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,180,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-etcd','go-standby','ocf-script','linbit','drbd','demote','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,180,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-etcd','audit-enabled','ocf-script','linbit','drbd','monitor','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,20,30);
-INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-etcd','audit-disabled','ocf-script','linbit','drbd','monitor','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',0,0,0,20,28);
-INSERT INTO "SERVICE_ACTIONS" VALUES('etcd-fs','enable','ocf-script','heartbeat','Filesystem','start','',2,2,2,60,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('etcd-fs','disable','ocf-script','heartbeat','Filesystem','stop','',1,1,1,180,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('etcd-fs','audit-enabled','ocf-script','heartbeat','Filesystem','monitor','',2,2,2,60,40);
-INSERT INTO "SERVICE_ACTIONS" VALUES('etcd-fs','audit-disabled','ocf-script','heartbeat','Filesystem','monitor','',0,0,0,60,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('barbican-api','enable','ocf-script','openstack','barbican-api','start','',2,2,2,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('barbican-api','disable','ocf-script','openstack','barbican-api','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('barbican-api','audit-enabled','ocf-script','openstack','barbican-api','monitor','',2,2,2,30,30);
@@ -707,15 +682,6 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-osd','enable','lsb-script','','ceph-i
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-osd','disable','lsb-script','','ceph-init-wrapper','stop','ARGS=osd',1,1,1,60,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-osd','audit-enabled','lsb-script','','ceph-init-wrapper','status','ARGS=osd',2,2,2,125,130);
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-osd','audit-disabled','lsb-script','','ceph-init-wrapper','status','ARGS=osd',0,0,0,125,130);
-
-INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','helmrepository-fs','critical' FROM "SERVICE_GROUP_MEMBERS";
-INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','helmrepository-fs','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','helmrepository-fs','not-applicable','enable','platform-fs','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-fs','not-applicable','disable','helmrepository-fs','disabled');
-INSERT INTO "SERVICE_ACTIONS" VALUES('helmrepository-fs','enable','ocf-script','heartbeat','Filesystem','start','',2,2,2,60,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('helmrepository-fs','disable','ocf-script','heartbeat','Filesystem','stop','',1,1,1,180,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('helmrepository-fs','audit-enabled','ocf-script','heartbeat','Filesystem','monitor','',2,2,2,60,40);
-INSERT INTO "SERVICE_ACTIONS" VALUES('helmrepository-fs','audit-disabled','ocf-script','heartbeat','Filesystem','monitor','',0,0,0,60,40);
 
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','registry-token-server','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1, 'no','registry-token-server','initial','initial','none','none',2,1,90000,4,16,'/var/run/registry-token-server.pid' FROM "SERVICES";
