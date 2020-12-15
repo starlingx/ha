@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <unistd.h>
+#include <signal.h>
 
 #include "sm_types.h"
 #include "sm_debug.h"
@@ -28,6 +30,7 @@
 #include "sm_node_swact_monitor.h"
 #include "sm_failover_fsm.h"
 #include "sm_configure.h"
+#include "sm_troubleshoot.h"
 
 #define SM_NODE_AUDIT_TIMER_IN_MS           1000
 #define SM_INTERFACE_AUDIT_TIMER_IN_MS      1000
@@ -318,6 +321,7 @@ static void sm_main_event_handler_service_group_state_callback(
 SmErrorT sm_main_event_handler_initialize( void )
 {
     SmErrorT error;
+    int i;
    
     memset( &_api_callbacks, 0, sizeof(_api_callbacks) );
     memset( &_notify_api_callbacks, 0, sizeof(_notify_api_callbacks) );
@@ -367,12 +371,32 @@ SmErrorT sm_main_event_handler_initialize( void )
         return( error );
     }
 
-    error = sm_main_event_handler_release_service_groups();
-    if( SM_OKAY != error )
+    #define MAX_REATTEMPT 20
+    for(i = 0; i < MAX_REATTEMPT; i ++)
     {
-        DPRINTFE( "Failed to release service groups, error=%s.",
-                  sm_error_str( error ) );
-        return( error );
+        error = sm_main_event_handler_release_service_groups();
+        if( SM_OKAY != error )
+        {
+            DPRINTFE( "Failed to release service groups, error=%s.",
+                      sm_error_str( error ) );
+            if( i == 0)
+            {
+                // collect SM troubleshooting data when it fails
+                DPRINTFE("Initialization failed, dumping troubleshooting data");
+                sm_troubleshoot_dump_data("Release service groups failed");
+            }
+            usleep(1000000);
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    if (error != SM_OKAY)
+    {
+        DPRINTFE("Failed to release service groups, after %d attempts", i);
+        return error;
     }
 
     error = sm_api_initialize();
