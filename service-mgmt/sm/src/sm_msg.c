@@ -803,6 +803,12 @@ static int sm_send_ipv6_msg(SmServiceDomainInterfaceT* interface, SmMsgT* msg )
         ipv6_dst = &(interface->network_peer_address.u.ipv6);
     }
     dst_addr6.sin6_addr = ipv6_dst->sin6;
+    if (memcmp(&in6addr_any, &dst_addr6.sin6_addr, sizeof(dst_addr6.sin6_addr)) == 0 )
+    {
+       // don't send to ::
+       return _MSG_NOT_SENT_TO_TARGET;
+    }
+
     result = sm_msg_sendmsg_src_ipv6( interface->unicast_socket, msg, sizeof(SmMsgT),
                                         0, &dst_addr6, &interface->network_address.u.ipv6.sin6 );
 
