@@ -1138,6 +1138,8 @@ SmFailoverInterfaceStateT sm_failover_get_interface_info(SmInterfaceTypeT interf
 static void sm_failover_interface_change_callback(
     SmHwInterfaceChangeDataT* if_change )
 {
+    SmFailoverInterfaceInfo* iter;
+    SmServiceDomainInterfaceT* interface;
     switch ( if_change->interface_state )
     {
         case SM_INTERFACE_STATE_DISABLED:
@@ -1147,8 +1149,20 @@ static void sm_failover_interface_change_callback(
             sm_failover_interface_up(if_change->interface_name);
             break;
         default:
-            DPRINTFI("Interface %s state changed to %d",
-                if_change->interface_name, if_change->interface_state);
+            // skip logging the state change of interfaces that are not monitored
+            // by SM.
+            for(iter = _my_if_list; iter < _my_if_list + _total_interfaces; iter ++)
+            {
+                interface = iter->get_interface();
+                if(strncmp(interface->interface_name, if_change->interface_name,
+                            sizeof(if_change->interface_name)) == 0)
+                {
+                    DPRINTFI("Interface %s state changed to %d",
+                             if_change->interface_name, if_change->interface_state);
+                    break;
+                }
+            }
+
             break;
     }
 }
