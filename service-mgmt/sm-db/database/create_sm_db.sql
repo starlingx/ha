@@ -208,9 +208,13 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','disable','rabbit-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','disable','platform-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-pg','not-applicable','go-standby','pg-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-pg','not-applicable','disable','pg-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-rabbit','not-applicable','go-standby','rabbit-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-rabbit','not-applicable','disable','rabbit-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-platform','not-applicable','go-standby','platform-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-platform','not-applicable','disable','platform-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-extension','not-applicable','go-standby','extension-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-extension','not-applicable','disable','extension-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','pg-fs','not-applicable','disable','postgres','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit-fs','not-applicable','disable','rabbit','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','nfs-mgmt','not-applicable','disable','platform-fs','disabled');
@@ -241,6 +245,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-platform','not-applicable
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd-fs','not-applicable','disable','etcd','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-lvm','not-applicable','disable','iscsi','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cinder','not-applicable','go-standby','cinder-lvm','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cinder','not-applicable','disable','cinder-lvm','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-manager','not-applicable','disable','sysinv-conductor','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','snmp','not-applicable','enable','dnsmasq','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-engine','not-applicable','enable','rabbit','enabled-active');
@@ -282,6 +287,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-engine','not-applicable
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-dc-vault','not-applicable','go-active','management-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dc-vault-fs','not-applicable','enable','drbd-dc-vault','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-dc-vault','not-applicable','go-standby','dc-vault-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-dc-vault','not-applicable','disable','dc-vault-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-patch-api-proxy','not-applicable','enable','dcmanager-manager','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dcorch-patch-api-proxy','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-etcd','not-applicable','go-active','management-ip','enabled-active');
@@ -650,6 +656,7 @@ INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dockerdistribution-fs','initial'
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dockerdistribution-fs','not-applicable','enable','drbd-dockerdistribution','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','docker-distribution','not-applicable','enable','dockerdistribution-fs','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-dockerdistribution','not-applicable','go-standby','dockerdistribution-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-dockerdistribution','not-applicable','disable','dockerdistribution-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dockerdistribution-fs','not-applicable','disable','docker-distribution','disabled');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dockerdistribution-fs','enable','ocf-script','heartbeat','Filesystem','start','',2,2,2,60,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dockerdistribution-fs','disable','ocf-script','heartbeat','Filesystem','stop','',1,1,1,180,'');
@@ -677,6 +684,7 @@ INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','cephmon-fs','initial','initial',
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cephmon-fs','not-applicable','enable','drbd-cephmon','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-mon','not-applicable','enable','cephmon-fs','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cephmon','not-applicable','go-standby','cephmon-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cephmon','not-applicable','disable','cephmon-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cephmon-fs','not-applicable','disable','ceph-mon','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-radosgw','not-applicable','enable','ceph-mon','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-mon','not-applicable','disable','ceph-radosgw','disabled');
