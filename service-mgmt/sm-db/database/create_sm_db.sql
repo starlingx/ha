@@ -52,7 +52,6 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(20,'yes','controller-services','mtc-a
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(22,'yes','controller-services','hw-mon','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(23,'yes','controller-services','dnsmasq','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(24,'yes','controller-services','fm-mgr','critical');
-INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(25,'yes','controller-services','snmp','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(26,'yes','cloud-services','keystone','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(49,'yes','directory-services','open-ldap','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(50,'yes','web-services','lighttpd','critical');
@@ -118,7 +117,6 @@ INSERT INTO "SERVICES" VALUES(23,'yes','dnsmasq','initial','initial','none','non
 INSERT INTO "SERVICES" VALUES(24,'yes','fm-mgr','initial','initial','none','none',2,1,90000,4,16,'/var/run/fmManager.pid');
 INSERT INTO "SERVICES" VALUES(25,'yes','keystone','initial','initial','none','none',2,1,90000,4,16,'/var/run/openstack-keystone.pid');
 INSERT INTO "SERVICES" VALUES(48,'yes','open-ldap','initial','initial','none','none',2,1,90000,4,16,'/var/run/slapd.pid');
-INSERT INTO "SERVICES" VALUES(49,'yes','snmp','initial','initial','none','none',32,16,90000,4,16,'/var/run/snmpd.pid');
 INSERT INTO "SERVICES" VALUES(50,'yes','lighttpd','initial','initial','none','none',2,1,90000,4,16,'/var/run/lighttpd.pid');
 INSERT INTO "SERVICES" VALUES(51,'yes','horizon','initial','initial','none','none',2,1,90000,4,16,'/var/run/openstack-dashboard.pid');
 INSERT INTO "SERVICES" VALUES(52,'yes','patch-alarm-manager','initial','initial','none','none',2,1,90000,4,16,'/var/run/patch-alarm-manager.pid');
@@ -190,9 +188,6 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','vim-api','not-applicable','ena
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','vim-webserver','not-applicable','enable','vim','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dnsmasq','not-applicable','enable','sysinv-conductor','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','fm-mgr','not-applicable','enable','postgres','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','snmp','not-applicable','enable','oam-ip','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','snmp','not-applicable','enable','postgres','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','snmp','not-applicable','enable','platform-nfs-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd','not-applicable','enable','etcd-fs','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','enable','postgres','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','enable','rabbit','enabled-active');
@@ -221,7 +216,6 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','nfs-mgmt','not-applicable','di
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','extension-fs','not-applicable','disable','extension-export-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-nfs-ip','not-applicable','disable','keystone','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-fs','not-applicable','disable','platform-export-fs','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','snmp','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','fm-mgr','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','keystone','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','sysinv-conductor','disabled');
@@ -247,7 +241,6 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-lvm','not-applicable','
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cinder','not-applicable','go-standby','cinder-lvm','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cinder','not-applicable','disable','cinder-lvm','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-manager','not-applicable','disable','sysinv-conductor','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','snmp','not-applicable','enable','dnsmasq','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-engine','not-applicable','enable','rabbit','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-engine','not-applicable','enable','postgres','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-engine','not-applicable','enable','management-ip','enabled-active');
@@ -308,7 +301,6 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','di
 CREATE TABLE SERVICE_INSTANCES ( ID INTEGER PRIMARY KEY AUTOINCREMENT, SERVICE_NAME CHAR(32), INSTANCE_NAME CHAR(32), INSTANCE_PARAMETERS CHAR(1024) );
 INSERT INTO "SERVICE_INSTANCES" VALUES(1,'lighttpd','lighttpd','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(2,'horizon','horizon','');
-INSERT INTO "SERVICE_INSTANCES" VALUES(3,'snmp','snmp','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(4,'patch-alarm-manager','patch-alarm-manager','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(5,'hw-mon','hw-mon','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(6,'guest-agent','guest-agent','');
@@ -431,10 +423,6 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('open-ldap','enable','lsb-script','','openl
 INSERT INTO "SERVICE_ACTIONS" VALUES('open-ldap','disable','lsb-script','','openldap','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('open-ldap','audit-enabled','lsb-script','','openldap','status','',2,2,2,15,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('open-ldap','audit-disabled','lsb-script','','openldap','status','',0,0,0,15,40);
-INSERT INTO "SERVICE_ACTIONS" VALUES('snmp','enable','lsb-script','','snmpd','start','',2,2,2,15,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('snmp','disable','lsb-script','','snmpd','stop','',1,1,1,15,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('snmp','audit-enabled','lsb-script','','snmpd','status','',2,2,2,15,40);
-INSERT INTO "SERVICE_ACTIONS" VALUES('snmp','audit-disabled','lsb-script','','snmpd','status','',0,0,0,15,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('lighttpd','enable','lsb-script','','lighttpd','start','',2,2,2,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('lighttpd','disable','lsb-script','','lighttpd','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('lighttpd','audit-enabled','lsb-script','','lighttpd','status','',2,2,2,15,40);
