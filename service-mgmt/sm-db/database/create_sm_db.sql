@@ -783,4 +783,13 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('cert-mon','disable','ocf-script','platform
 INSERT INTO "SERVICE_ACTIONS" VALUES('cert-mon','audit-enabled','ocf-script','platform','cert-mon','monitor','',2,2,2,30,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('cert-mon','audit-disabled','ocf-script','platform','cert-mon','monitor','',0,0,0,30,40);
 
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','device-image-fs','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','device-image-fs','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','device-image-fs','not-applicable','enable','platform-fs','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-fs','not-applicable','disable','device-image-fs','disabled');
+INSERT INTO "SERVICE_ACTIONS" VALUES('device-image-fs','enable','ocf-script','heartbeat','Filesystem','start','',2,2,2,60,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('device-image-fs','disable','ocf-script','heartbeat','Filesystem','stop','',1,1,1,180,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('device-image-fs','audit-enabled','ocf-script','heartbeat','Filesystem','monitor','',2,2,2,60,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('device-image-fs','audit-disabled','ocf-script','heartbeat','Filesystem','monitor','',0,0,0,60,40);
+
 COMMIT;
