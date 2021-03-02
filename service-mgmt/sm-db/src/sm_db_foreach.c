@@ -9,8 +9,6 @@
 #include "sm_debug.h"
 #include "sm_db.h"
 #include "sm_db_iterator.h"
-#include "sm_failover_utils.h"
-
 
 // ****************************************************************************
 // Database For-Each
