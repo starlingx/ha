@@ -41,6 +41,9 @@ static SmNotifyApiCallbacksT _notify_api_callbacks = {0};
 static SmTimerIdT _node_audit_timer_id = SM_TIMER_ID_INVALID;
 static SmTimerIdT _interface_audit_timer_id = SM_TIMER_ID_INVALID;
 
+// This function is defined in sm_db_foreach.c for temporary troubleshooting
+void sm_set_foreach_log(bool on);
+
 // ****************************************************************************
 // Main Event Handler - Audit Node
 // ===============================
@@ -398,6 +401,8 @@ SmErrorT sm_main_event_handler_initialize( void )
         DPRINTFE("Failed to release service groups, after %d attempts", i);
         return error;
     }
+    // passed the checkpoint, disable troubleshooting log.
+    sm_set_foreach_log(false);
 
     error = sm_api_initialize();
     if( SM_OKAY != error )
