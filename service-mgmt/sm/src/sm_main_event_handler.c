@@ -9,8 +9,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
-#include <unistd.h>
-#include <signal.h>
 
 #include "sm_types.h"
 #include "sm_debug.h"
@@ -30,19 +28,14 @@
 #include "sm_node_swact_monitor.h"
 #include "sm_failover_fsm.h"
 #include "sm_configure.h"
-#include "sm_troubleshoot.h"
 
 #define SM_NODE_AUDIT_TIMER_IN_MS           1000
 #define SM_INTERFACE_AUDIT_TIMER_IN_MS      1000
 
-static SmDbHandleT* _sm_db_handle = NULL;
 static SmApiCallbacksT _api_callbacks = {0}; 
 static SmNotifyApiCallbacksT _notify_api_callbacks = {0};
 static SmTimerIdT _node_audit_timer_id = SM_TIMER_ID_INVALID;
 static SmTimerIdT _interface_audit_timer_id = SM_TIMER_ID_INVALID;
-
-// This function is defined in sm_db_foreach.c for temporary troubleshooting
-void sm_set_foreach_log(bool on);
 
 // ****************************************************************************
 // Main Event Handler - Audit Node
@@ -324,18 +317,9 @@ static void sm_main_event_handler_service_group_state_callback(
 SmErrorT sm_main_event_handler_initialize( void )
 {
     SmErrorT error;
-    int i;
    
     memset( &_api_callbacks, 0, sizeof(_api_callbacks) );
     memset( &_notify_api_callbacks, 0, sizeof(_notify_api_callbacks) );
-
-    error = sm_db_connect( SM_DATABASE_NAME, &_sm_db_handle );
-    if( SM_OKAY != error )
-    {
-        DPRINTFE( "Failed to connect to database (%s), error=%s.",
-                  SM_DATABASE_NAME, sm_error_str( error ) );
-        return( error );
-    }
 
     error = sm_timer_register( "node audit",
                                SM_NODE_AUDIT_TIMER_IN_MS,
@@ -374,35 +358,13 @@ SmErrorT sm_main_event_handler_initialize( void )
         return( error );
     }
 
-    #define MAX_REATTEMPT 20
-    for(i = 0; i < MAX_REATTEMPT; i ++)
+    error = sm_main_event_handler_release_service_groups();
+    if( SM_OKAY != error )
     {
-        error = sm_main_event_handler_release_service_groups();
-        if( SM_OKAY != error )
-        {
-            DPRINTFE( "Failed to release service groups, error=%s.",
-                      sm_error_str( error ) );
-            if( i == 0)
-            {
-                // collect SM troubleshooting data when it fails
-                DPRINTFE("Initialization failed, dumping troubleshooting data");
-                sm_troubleshoot_dump_data("Release service groups failed");
-            }
-            usleep(1000000);
-        }
-        else
-        {
-            break;
-        }
-    }
-
-    if (error != SM_OKAY)
-    {
-        DPRINTFE("Failed to release service groups, after %d attempts", i);
+        DPRINTFE( "Failed to release service groups, error=%s.",
+                  sm_error_str( error ) );
         return error;
     }
-    // passed the checkpoint, disable troubleshooting log.
-    sm_set_foreach_log(false);
 
     error = sm_api_initialize();
     if( SM_OKAY != error )
@@ -525,18 +487,6 @@ SmErrorT sm_main_event_handler_finalize( void )
         }
 
         _interface_audit_timer_id = SM_TIMER_ID_INVALID;
-    }
-
-    if( NULL != _sm_db_handle )
-    {
-        error = sm_db_disconnect( _sm_db_handle );
-        if( SM_OKAY != error )
-        {
-            DPRINTFE( "Failed to disconnect from database (%s), error=%s.",
-                      SM_DATABASE_NAME, sm_error_str( error ) );
-        }
-
-        _sm_db_handle = NULL;
     }
 
     return( SM_OKAY );

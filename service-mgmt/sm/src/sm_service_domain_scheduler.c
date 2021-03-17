@@ -1926,7 +1926,7 @@ SmErrorT sm_service_domain_scheduler_initialize( SmDbHandleT* sm_db_handle )
         return( error );
     }
 
-    error = sm_service_domain_weight_initialize( _sm_db_handle );
+    error = sm_service_domain_weight_initialize();
     if( SM_OKAY != error )
     {
         DPRINTFE( "Failed to intialize service domain weighting, "

@@ -164,13 +164,18 @@ SmErrorT sm_db_statement_finalize( SmDbStatementT* sm_db_statement )
 // ****************************************************************************
 // Database - Connect
 // ==================
-SmErrorT sm_db_connect( const char* sm_db_name, SmDbHandleT** sm_db_handle )
+SmErrorT sm_db_connect( const char* sm_db_name, SmDbHandleT** sm_db_handle, bool readonly )
 {
     int rc;
-
-    rc = sqlite3_open_v2( sm_db_name, (sqlite3**) sm_db_handle,
-                          SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE |
-                          SQLITE_OPEN_NOMUTEX, NULL );
+    int flag;
+    if (readonly)
+    {
+        flag = SQLITE_OPEN_READONLY | SQLITE_OPEN_NOMUTEX;
+    } else
+    {
+        flag = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX;
+    }
+    rc = sqlite3_open_v2( sm_db_name, (sqlite3**) sm_db_handle, flag, NULL );
     if( SQLITE_OK != rc )
     {
         DPRINTFE( "Failed to connect to database (%s), rc=%i.", sm_db_name, rc );

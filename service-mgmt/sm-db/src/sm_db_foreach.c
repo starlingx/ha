@@ -10,19 +10,6 @@
 #include "sm_db.h"
 #include "sm_db_iterator.h"
 
-// below is temporary function for troubleshooting, it is not exposed through .h file
-// and will be removed in the future.
-bool static _foreach_log_enabled = true;
-
-void sm_set_foreach_log(bool on)
-{
-    if(_foreach_log_enabled && !on)
-    {
-        DPRINTFI("Turning foreach log off");
-    }
-    _foreach_log_enabled = on;
-}
-
 // ****************************************************************************
 // Database For-Each
 // =================
@@ -33,11 +20,6 @@ SmErrorT sm_db_foreach( const char* db_name, const char* db_table,
 {
     SmDbIteratorT it;
     SmErrorT error, error2;
-
-    if (_foreach_log_enabled)
-    {
-        DPRINTFI("Entering db foreach");
-    }
 
     error = sm_db_iterator_initialize( db_name, db_table, db_query, &it );
     if( SM_OKAY != error )
@@ -92,10 +74,6 @@ ERROR:
         return( error );
     }
 
-    if (_foreach_log_enabled)
-    {
-         DPRINTFI("Exiting db foreach");
-    }
     return( error );
 }
 // ****************************************************************************

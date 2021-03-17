@@ -220,7 +220,7 @@ SmErrorT sm_service_dependency_table_initialize( void )
 {
     SmErrorT error;
 
-    error = sm_db_connect( SM_DATABASE_NAME, &_sm_db_handle );
+    error = sm_db_connect( SM_DATABASE_NAME, &_sm_db_handle, true );
     if( SM_OKAY != error )
     {
         DPRINTFE( "Failed to connect to database (%s), error=%s.",

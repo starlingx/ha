@@ -1259,7 +1259,7 @@ SmErrorT sm_failover_initialize( void )
     _system_mode = sm_node_utils_get_system_mode();
     DPRINTFI("System mode %s", sm_system_mode_str(_system_mode));
 
-    error = sm_db_connect( SM_DATABASE_NAME, &_sm_db_handle );
+    error = sm_db_connect( SM_DATABASE_NAME, &_sm_db_handle, true );
     if( SM_OKAY != error )
     {
         DPRINTFE( "Failed to connect to database (%s), error=%s.",

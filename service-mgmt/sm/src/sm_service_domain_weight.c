@@ -16,8 +16,6 @@
 #include "sm_db_nodes.h"
 #include "sm_service_domain_assignment_table.h"
 
-static SmDbHandleT* _sm_db_handle = NULL;
-
 // ****************************************************************************
 // Service Domain Weight - Cleanup
 // ===============================
@@ -205,10 +203,8 @@ SmErrorT sm_service_domain_weight_apply( char service_domain_name[] )
 // ****************************************************************************
 // Service Domain Weight - Initialize
 // ==================================
-SmErrorT sm_service_domain_weight_initialize( SmDbHandleT* sm_db_handle )
+SmErrorT sm_service_domain_weight_initialize()
 {
-    _sm_db_handle = sm_db_handle;
-
     return( SM_OKAY );
 }
 // ****************************************************************************
@@ -218,8 +214,6 @@ SmErrorT sm_service_domain_weight_initialize( SmDbHandleT* sm_db_handle )
 // ================================
 SmErrorT sm_service_domain_weight_finalize( void )
 {
-    _sm_db_handle = NULL;
-
     return( SM_OKAY );
 }
 // ****************************************************************************

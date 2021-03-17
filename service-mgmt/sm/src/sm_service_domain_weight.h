@@ -22,7 +22,7 @@ extern SmErrorT sm_service_domain_weight_apply( char service_domain_name[] );
 // ****************************************************************************
 // Service Domain Weight - Initialize
 // ==================================
-extern SmErrorT sm_service_domain_weight_initialize( SmDbHandleT* sm_db_handle );
+extern SmErrorT sm_service_domain_weight_initialize();
 // ****************************************************************************
 
 // ****************************************************************************
