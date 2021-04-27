@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018 Wind River Systems, Inc.
+// Copyright (c) 2018-2021 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -36,7 +36,6 @@ static const int SM_FAILOVER_FAILED_LOG_THROTTLE_THLD = 12;
 
 // processes to restart over a failover failed recovery
 #define MAX_RESTART_PROCESS_NAME_LEN 10
-#define PROCESS_HBSAGENT ((const char *)("hbsAgent"))
 #define PROCESS_SM       ((const char *)("sm"))
 
 static struct timespec start_time;
@@ -198,7 +197,6 @@ SmErrorT SmFailoverFailedState::event_handler(SmFailoverEventT event, const ISmF
                 DPRINTFI("** Failover Failed state recovery **");
                 DPRINTFI("************************************");
                 sm_node_utils_reset_unhealthy_flag();
-                sm_failover_failed_process_restart(PROCESS_HBSAGENT);
                 sm_failover_failed_process_restart(PROCESS_SM);
                 for ( int i = 0 ; i < 10 ; i++ )
                 {
