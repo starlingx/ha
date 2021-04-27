@@ -7,8 +7,8 @@ import os
 import sys
 import argparse
 import sqlite3
-from sm_api_msg_utils import provision_service
-from sm_api_msg_utils import deprovision_service
+from sm_tools.sm_api_msg_utils import provision_service
+from sm_tools.sm_api_msg_utils import deprovision_service
 
 database_name = "/var/lib/sm/sm.db"
 runtime_db_name = "/var/run/sm/sm.db"

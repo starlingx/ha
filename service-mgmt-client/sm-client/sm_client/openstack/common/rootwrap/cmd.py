@@ -107,7 +107,8 @@ def main():
                                    stdout=sys.stdout,
                                    stderr=sys.stderr,
                                    preexec_fn=_subprocess_setup,
-                                   env=filtermatch.get_environment(userargs))
+                                   env=filtermatch.get_environment(userargs),
+                                   universal_newlines=True)
             obj.wait()
             sys.exit(obj.returncode)
 

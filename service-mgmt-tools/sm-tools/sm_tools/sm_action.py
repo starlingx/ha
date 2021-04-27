@@ -8,9 +8,9 @@ import sys
 import argparse
 import sqlite3
 
-from sm_api_msg_utils import restart_service as restart_service
-from sm_api_msg_utils import restart_service_safe as restart_service_safe
-from sm_api_msg_utils import database_running_name as database_name
+from sm_tools.sm_api_msg_utils import restart_service as restart_service
+from sm_tools.sm_api_msg_utils import restart_service_safe as restart_service_safe
+from sm_tools.sm_api_msg_utils import database_running_name as database_name
 
 
 def main():

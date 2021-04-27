@@ -333,7 +333,7 @@ class Sm_apiObject(object):
 
         NOTE(danms): May be removed in the future.
         """
-        for name in self.fields.keys() + self.obj_extra_fields:
+        for name in list(self.fields.keys()) + self.obj_extra_fields:
             if (hasattr(self, get_attrname(name)) or
                     name in self.obj_extra_fields):
                 yield name, getattr(self, name)

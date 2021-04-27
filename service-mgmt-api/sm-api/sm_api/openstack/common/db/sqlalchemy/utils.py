@@ -28,6 +28,8 @@ import sqlalchemy
 
 from sm_api.openstack.common.gettextutils import _
 from sm_api.openstack.common import log as logging
+from six.moves import range
+from six.moves import zip
 
 
 LOG = logging.getLogger(__name__)

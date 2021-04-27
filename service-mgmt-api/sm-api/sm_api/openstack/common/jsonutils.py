@@ -42,9 +42,9 @@ import functools
 import inspect
 import itertools
 import json
-import xmlrpclib
 
 import six
+import six.moves.xmlrpc_client as xmlrpclib
 
 from sm_api.openstack.common import timeutils
 

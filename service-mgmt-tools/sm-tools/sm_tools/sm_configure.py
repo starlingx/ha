@@ -7,7 +7,8 @@ import sys
 import argparse
 import sqlite3
 from netaddr import IPNetwork
-from sm_api_msg_utils import database_name as database_name
+from sm_tools.sm_api_msg_utils import database_name as database_name
+from six.moves import range
 
 cpe_duplex = "duplex"
 cpe_duplex_direct = "duplex-direct"

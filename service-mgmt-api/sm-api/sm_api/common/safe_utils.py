@@ -24,6 +24,7 @@
 """Utilities and helper functions that won't produce circular imports."""
 
 import inspect
+from six.moves import zip
 
 
 def getcallargs(function, *args, **kwargs):

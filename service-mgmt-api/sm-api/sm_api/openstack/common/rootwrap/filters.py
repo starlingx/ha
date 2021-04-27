@@ -21,6 +21,7 @@
 
 import os
 import re
+from six.moves import zip
 
 
 class CommandFilter(object):

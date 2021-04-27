@@ -34,7 +34,7 @@ It also allows setting of formatting information through conf.
 """
 
 from six.moves import configparser
-import cStringIO
+from six.moves import cStringIO as StringIO
 import inspect
 import itertools
 import logging
@@ -524,7 +524,7 @@ class ContextFormatter(logging.Formatter):
         if not record:
             return logging.Formatter.formatException(self, exc_info)
 
-        stringbuffer = cStringIO.StringIO()
+        stringbuffer = StringIO()
         traceback.print_exception(exc_info[0], exc_info[1], exc_info[2],
                                   None, stringbuffer)
         lines = stringbuffer.getvalue().split('\n')
