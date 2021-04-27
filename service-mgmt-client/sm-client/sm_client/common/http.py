@@ -18,7 +18,7 @@
 
 
 import copy
-import httplib
+import six.moves.http_client
 import logging
 import os
 import socket
@@ -66,7 +66,7 @@ class HTTPClient(object):
             _kwargs['key_file'] = kwargs.get('key_file', None)
             _kwargs['insecure'] = kwargs.get('insecure', False)
         elif parts.scheme == 'http':
-            _class = httplib.HTTPConnection
+            _class = six.moves.http_client.HTTPConnection
         else:
             msg = 'Unsupported scheme: %s' % parts.scheme
             raise exc.InvalidEndpoint(msg)
@@ -78,7 +78,7 @@ class HTTPClient(object):
         try:
             return _class(*self.connection_params[1][0:2],
                           **self.connection_params[2])
-        except httplib.InvalidURL:
+        except six.moves.http_client.InvalidURL:
             raise exc.InvalidEndpoint()
 
     def log_curl_request(self, method, url, kwargs):
@@ -216,7 +216,7 @@ class HTTPClient(object):
         return self._http_request(url, method, **kwargs)
 
 
-class VerifiedHTTPSConnection(httplib.HTTPSConnection):
+class VerifiedHTTPSConnection(six.moves.http_client.HTTPSConnection):
     """httplib-compatibile connection using client-side SSL authentication
 
     :see http://code.activestate.com/recipes/
@@ -225,8 +225,8 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
 
     def __init__(self, host, port, key_file=None, cert_file=None,
                  ca_file=None, timeout=None, insecure=False):
-        httplib.HTTPSConnection.__init__(self, host, port, key_file=key_file,
-                                         cert_file=cert_file)
+        six.moves.http_client.HTTPSConnection.__init__(self, host, port, key_file=key_file,
+                                                       cert_file=cert_file)
         self.key_file = key_file
         self.cert_file = cert_file
         if ca_file is not None:

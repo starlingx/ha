@@ -79,7 +79,7 @@ def get_context_from_function_and_args(function, args, kwargs):
        know much about the function we're wrapping.
     """
 
-    for arg in itertools.chain(kwargs.values(), args):
+    for arg in itertools.chain(list(kwargs.values()), args):
         if isinstance(arg, RequestContext):
             return arg
 

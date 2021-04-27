@@ -39,7 +39,7 @@ def _send_msg_to_sm(sm_api_msg):
     s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
     try:
         s.setblocking(True)
-        s.sendto(sm_api_msg, SM_API_SERVER_ADDR)
+        s.sendto(sm_api_msg.encode("ascii", "ignore"), SM_API_SERVER_ADDR)
         time.sleep(1)
 
     except socket.error as e:

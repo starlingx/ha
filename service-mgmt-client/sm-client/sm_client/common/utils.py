@@ -28,6 +28,7 @@ import six
 
 from sm_client import exc
 from sm_client.openstack.common import importutils
+from six.moves import zip
 
 
 class HelpFormatter(argparse.HelpFormatter):

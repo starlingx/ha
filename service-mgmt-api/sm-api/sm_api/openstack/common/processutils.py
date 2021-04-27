@@ -138,7 +138,7 @@ def execute(*cmd, **kwargs):
                          'helper.'))
         cmd = shlex.split(root_helper) + list(cmd)
 
-    cmd = map(str, cmd)
+    cmd = [str(c) for c in cmd]
 
     while attempts > 0:
         attempts -= 1
@@ -159,7 +159,8 @@ def execute(*cmd, **kwargs):
                                    stderr=_PIPE,
                                    close_fds=close_fds,
                                    preexec_fn=preexec_fn,
-                                   shell=shell)
+                                   shell=shell,
+                                   universal_newlines=True)
             result = None
             if process_input is not None:
                 result = obj.communicate(process_input)

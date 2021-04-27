@@ -125,11 +125,13 @@ def _run_shell_command(cmd, throw_on_error=False):
     if os.name == 'nt':
         output = subprocess.Popen(["cmd.exe", "/C", cmd],
                                   stdout=subprocess.PIPE,
-                                  stderr=subprocess.PIPE)
+                                  stderr=subprocess.PIPE,
+                                  universal_newlines=True)
     else:
         output = subprocess.Popen(["/bin/sh", "-c", cmd],
                                   stdout=subprocess.PIPE,
-                                  stderr=subprocess.PIPE)
+                                  stderr=subprocess.PIPE,
+                                  universal_newlines=True)
     out = output.communicate()
     if output.returncode and throw_on_error:
         raise Exception("%s returned %d" % cmd, output.returncode)

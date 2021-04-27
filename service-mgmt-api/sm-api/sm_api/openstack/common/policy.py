@@ -62,14 +62,14 @@ as it allows particular rules to be explicitly disabled.
 
 import abc
 import re
-import urllib
 
 import six
-import urllib2
 
 from sm_api.openstack.common.gettextutils import _
 from sm_api.openstack.common import jsonutils
 from sm_api.openstack.common import log as logging
+from six.moves import urllib
+from six.moves import range
 
 
 LOG = logging.getLogger(__name__)
@@ -758,8 +758,8 @@ class HttpCheck(Check):
         url = ('http:' + self.match) % target
         data = {'target': jsonutils.dumps(target),
                 'credentials': jsonutils.dumps(creds)}
-        post_data = urllib.urlencode(data)
-        f = urllib2.urlopen(url, post_data)
+        post_data = urllib.parse.urlencode(data)
+        f = urllib.request.urlopen(url, post_data)
         return f.read() == "True"
 
 

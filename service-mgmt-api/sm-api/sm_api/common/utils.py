@@ -47,6 +47,7 @@ from oslo_config import cfg
 
 from sm_api.common import exception
 from sm_api.openstack.common import log as logging
+from six.moves import range
 
 utils_opts = [
     cfg.StrOpt('rootwrap_config',
@@ -125,7 +126,7 @@ def execute(*cmd, **kwargs):
     if run_as_root and os.geteuid() != 0:
         cmd = ['sudo', 'sm_api-rootwrap', CONF.rootwrap_config] + list(cmd)
 
-    cmd = map(str, cmd)
+    cmd = [str(c) for c in cmd]
 
     while attempts > 0:
         attempts -= 1
@@ -146,7 +147,8 @@ def execute(*cmd, **kwargs):
                                    stderr=_PIPE,
                                    close_fds=close_fds,
                                    preexec_fn=preexec_fn,
-                                   shell=shell)
+                                   shell=shell,
+                                   universal_newlines=True)
             result = None
             if process_input is not None:
                 result = obj.communicate(process_input)
@@ -445,7 +447,7 @@ def file_open(*args, **kwargs):
           be able to provide a stub module that doesn't alter system
           state at all (for unit tests)
     """
-    return file(*args, **kwargs)
+    return open(*args, **kwargs)
 
 
 def hash_file(file_like_object):

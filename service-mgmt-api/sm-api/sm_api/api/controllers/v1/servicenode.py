@@ -24,10 +24,10 @@ import pecan
 from pecan import rest
 import wsme
 import six
+from six.moves import urllib
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 import socket
-import urllib2
 import json
 
 from sm_api.api.controllers.v1 import base
@@ -128,7 +128,7 @@ def rest_api_request(token, method, api_cmd, api_cmd_headers=None,
 
     response = None
     try:
-        request_info = urllib2.Request(api_cmd)
+        request_info = urllib.request.Request(api_cmd)
         request_info.get_method = lambda: method
         if token:
             request_info.add_header("X-Auth-Token", token)
@@ -139,9 +139,9 @@ def rest_api_request(token, method, api_cmd, api_cmd_headers=None,
                 request_info.add_header(header_type, header_value)
 
         if api_cmd_payload is not None:
-            request_info.add_data(api_cmd_payload)
+            request_info.data = api_cmd_payload
 
-        request = urllib2.urlopen(request_info, timeout=timeout)
+        request = urllib.request.urlopen(request_info, timeout=timeout)
         response = request.read()
 
         if response == "":
@@ -152,7 +152,7 @@ def rest_api_request(token, method, api_cmd, api_cmd_headers=None,
 
         LOG.info("Response=%s" % response)
 
-    except urllib2.HTTPError as e:
+    except urllib.error.HTTPError as e:
         LOG.warn("HTTP Error e.code=%s e=%s" % (e.code, e))
         if hasattr(e, 'msg') and e.msg:
             response = json.loads(e.msg)
@@ -160,7 +160,7 @@ def rest_api_request(token, method, api_cmd, api_cmd_headers=None,
             response = {}
 
         LOG.info("HTTPError response=%s" % (response))
-    except urllib2.URLError as urle:
+    except urllib.error.URLError as urle:
         LOG.debug("Connection refused")
 
     return response

@@ -67,7 +67,7 @@ class InstallVenv(object):
         else:
             stdout = None
 
-        proc = subprocess.Popen(cmd, cwd=self.root, stdout=stdout)
+        proc = subprocess.Popen(cmd, cwd=self.root, stdout=stdout, universal_newlines=True)
         output = proc.communicate()[0]
         if check_exit_code and proc.returncode != 0:
             self.die('Command "%s" failed.\n%s', ' '.join(cmd), output)
