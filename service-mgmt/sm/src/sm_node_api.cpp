@@ -743,6 +743,44 @@ SmErrorT sm_node_api_fail_node( char node_name[] )
 // ****************************************************************************
 
 // ****************************************************************************
+// Node API - Recover Node
+// ======================
+SmErrorT sm_node_api_recover_node( char node_name[] )
+{
+    SmDbNodeT node;
+    SmErrorT error;
+    error = sm_db_nodes_read( _sm_db_handle, node_name, &node );
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to read node (%s) information, error=%s.",
+                  node_name, sm_error_str( error ) );
+        return( error );
+    }
+
+    if( node.oper_state != SM_NODE_OPERATIONAL_STATE_DISABLED ||
+        node.avail_status != SM_NODE_AVAIL_STATUS_FAILED )
+    {
+        DPRINTFD("Not in failure mode %s", node_name);
+    }
+
+    DPRINTFE("Node %s is to recover from failure mode.", node_name);
+
+    error = sm_node_api_update_node(
+        node_name,
+        node.admin_state,
+        SM_NODE_OPERATIONAL_STATE_ENABLED, 
+        SM_NODE_AVAIL_STATUS_AVAILABLE);
+
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to set node (%s) failed, error=%s.",
+                  node_name, sm_error_str( error ) );
+    }
+    return( error );
+}
+// ****************************************************************************
+
+// ****************************************************************************
 // Node API - Delete Node
 // ======================
 SmErrorT sm_node_api_delete_node( char node_name[] )
