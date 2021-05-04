@@ -20,6 +20,7 @@
 #include "sm_types.h"
 #include "sm_debug.h"
 #include "sm_node_utils.h"
+#include "sm_node_api.h"
 #include "sm_failover.h"
 #include "sm_failover_fsm.h"
 #include "sm_failover_ss.h"
@@ -182,9 +183,54 @@ static bool sm_failover_failed_recovery_criteria_met( void )
     return (criteria_met);
 }
 
+SmErrorT proceed_recovery()
+{
+    SmErrorT error;
+    char peer_name[SM_NODE_NAME_MAX_CHAR];
+    char host_name[SM_NODE_NAME_MAX_CHAR];
+    // delete peer node
+    error = sm_node_api_get_peername(peer_name);
+    if(SM_OKAY != error)
+    {
+        DPRINTFI("Cannot retrieve peer's hostname, error %s", sm_error_str(error));
+        return error;
+    }
+    error = sm_node_api_delete_node(peer_name);
+    if(SM_OKAY != error)
+    {
+        DPRINTFI("Failed to delete peer %s, error %s", peer_name, sm_error_str(error));
+        return error;
+    }else
+    {
+        DPRINTFI("Peer %s is deleted.", peer_name);
+    }
+
+    // enable host
+    error = sm_node_api_get_hostname(host_name);
+    if(SM_OKAY != error)
+    {
+        DPRINTFI("Cannot retrieve hostname, error %s", sm_error_str(error));
+        return error;
+    }
+    error = sm_node_api_recover_node(host_name);
+    if(SM_OKAY != error)
+    {
+        DPRINTFI("Failed to recover %s, error %s", host_name, sm_error_str(error));
+        return error;
+    }else
+    {
+        DPRINTFI("Host %s is recovered.", host_name);
+    }
+
+    sm_node_utils_reset_unhealthy_flag();
+    DPRINTFI("Unhealthy flag is removed");
+    return SM_OKAY;
+}
+
 // The 'Failover Failed' state recovery audit handler
 SmErrorT SmFailoverFailedState::event_handler(SmFailoverEventT event, const ISmFSMEventData* event_data)
 {
+    SmErrorT error;
     event_data=event_data;
     switch (event)
     {
@@ -196,15 +242,21 @@ SmErrorT SmFailoverFailedState::event_handler(SmFailoverEventT event, const ISmF
                 DPRINTFI("************************************");
                 DPRINTFI("** Failover Failed state recovery **");
                 DPRINTFI("************************************");
-                sm_node_utils_reset_unhealthy_flag();
-                sm_failover_failed_process_restart(PROCESS_SM);
-                for ( int i = 0 ; i < 10 ; i++ )
+                error = proceed_recovery();
+                if(SM_OKAY != error)
                 {
-                    // waiting for shutdown
-                    sleep(1);
+                    DPRINTFE("Cannot recover from failed state");
+                }else
+                {
+                    sm_failover_failed_process_restart(PROCESS_SM);
+                    for ( int i = 0 ; i < 10 ; i++ )
+                    {
+                        // waiting for shutdown
+                        sleep(1);
+                    }
+                    DPRINTFE("Restart did not occur ; reinstating unhealthy flag ; recovery will retry");
+                    sm_node_utils_set_unhealthy();
                 }
-                DPRINTFE("Restart did not occur ; reinstating unhealthy flag ; recovery will retry");
-                sm_node_utils_set_unhealthy();
             }
             else if ( ++_log_throttle > 1 )
             {
