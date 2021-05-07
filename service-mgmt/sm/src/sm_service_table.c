@@ -40,7 +40,6 @@ bool sm_service_clear_failure_state(SmServiceT* service)
     bool prev_failure_condition;
     prev_failure_condition =
         service->recover ||
-        service->fail_count > 0 ||
         service->action_fail_count > 0 ||
         service->transition_fail_count > 0 ||
         service->status == SM_SERVICE_STATUS_FAILED ||
@@ -50,7 +49,6 @@ bool sm_service_clear_failure_state(SmServiceT* service)
     if( prev_failure_condition )
     {
         service->recover = false;
-        service->fail_count = 0;
         service->action_fail_count = 0;
         service->transition_fail_count = 0;
         service->status = SM_SERVICE_STATUS_NONE;
