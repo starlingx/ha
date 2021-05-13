@@ -206,8 +206,8 @@ SmFailoverFailPendingState::~SmFailoverFailPendingState()
 
 SmErrorT SmFailoverFailPendingState::event_handler(SmFailoverEventT event, const ISmFSMEventData* event_data)
 {
-    //SmFSMEventDataTypeT event_data_type = event_data->get_event_data_type();
     bool duplex = false;
+    bool blind_guess = false;
     switch (event)
     {
         case SM_FAILOVER_EVENT_IF_STATE_CHANGED:
@@ -249,13 +249,10 @@ SmErrorT SmFailoverFailPendingState::event_handler(SmFailoverEventT event, const
                 if(healthy)
                 {
                     blind_guess_scenario_start();
-                }
-                else
-                {
-                    this->fsm.set_state(SM_FAILOVER_STATE_FAILED);
+                    blind_guess = true;
                 }
             }
-            else
+            if( !blind_guess )
             {
                 SmSystemFailoverStatus& failover_status = SmSystemFailoverStatus::get_status();
                 SmErrorT error = sm_failover_ss_get_survivor(failover_status);
