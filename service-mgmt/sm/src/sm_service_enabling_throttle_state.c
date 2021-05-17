@@ -17,10 +17,12 @@
 
 #define SM_SERVICE_ENABLING_THROTTLE_TIMEOUT_IN_MS  25
 
+// Check if a service is ready to go enable from throttling
+static SmErrorT sm_service_enabling_throttle_check( SmServiceT* service, bool& goahead );
+
 // ****************************************************************************
 // Service Enabling Throttle State - Timeout Timer
 // ======================================
-
 static bool sm_service_enabling_throttle_state_timeout_timer( SmTimerIdT timer_id,
     int64_t user_data )
 {
@@ -33,20 +35,74 @@ static bool sm_service_enabling_throttle_state_timeout_timer( SmTimerIdT timer_i
     {
         DPRINTFE( "Failed to read service %d, error=%s.",
                   id, sm_error_str(SM_NOT_FOUND) );
+        // service no longer exists, deprovisioned?
+        service->action_state_timer_id = SM_TIMER_ID_INVALID;
         return( false );
     }
 
-    error = sm_service_fsm_event_handler( service->name,
-                                          SM_SERVICE_EVENT_ENABLE_THROTTLE,
-                                          NULL, "wait for enabling throttle reopen" );
+    bool goahead;
+    error = sm_service_enabling_throttle_check(service, goahead);
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to signal service enabling throttle "
-                  "(%s), error=%s.", service->name, sm_error_str( error ) );
-        return( true );
+        DPRINTFE( "Failed to check service %s throttling state, error=%s.",
+                  service->name, sm_error_str( error ) );
+        // retry next time
+        return true;
     }
 
-    return( true );
+    if ( goahead )
+    {
+        error = sm_service_fsm_set_state( service,
+                                          SM_SERVICE_STATE_ENABLING );
+        if( SM_OKAY != error )
+        {
+            DPRINTFE( "Set state (%s) of service (%s) failed, error=%s.",
+                      sm_service_state_str( SM_SERVICE_STATE_ENABLING ),
+                      service->name, sm_error_str( error ) );
+            // retry next time
+            return true;
+        }
+    }else
+    {
+        DPRINTFD("%s dependency not met", service->name);
+        // cannot goahead enable the service, wait for next attempt
+        return true;
+    }
+
+    // set to enabling state, timer is no more needed
+    service->action_state_timer_id = SM_TIMER_ID_INVALID;
+    return( false );
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Service Enabling Throttle State - check if a service is ready to enable
+// ==============================
+SmErrorT sm_service_enabling_throttle_check( SmServiceT* service, bool& goahead )
+{
+    bool dependency_met;
+    SmErrorT error;
+    // Are enable dependencies met?
+    goahead = false;
+    error =  sm_service_dependency_enable_met( service, &dependency_met );
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to check service (%s) dependencies, error=%s.",
+                  service->name, sm_error_str( error ) );
+        return( error );
+    }
+
+    if( !dependency_met )
+    {
+        DPRINTFD( "Some dependencies for service (%s) were not met.", service->name );
+        return( SM_OKAY );
+    }
+
+    DPRINTFD( "All dependencies for service (%s) were met.Attempt to enable service ",
+                service->name );
+
+    goahead = sm_service_enable_throttle_check();
+    return SM_OKAY;
 }
 // ****************************************************************************
 
@@ -72,55 +128,21 @@ SmErrorT sm_service_enabling_throttle_state_entry( SmServiceT* service )
         service->action_state_timer_id = SM_TIMER_ID_INVALID;
     }
 
-    bool dependency_met;
-    // Are enable dependencies met?
-    error =  sm_service_dependency_enable_met( service, &dependency_met );
+    snprintf( timer_name, sizeof(timer_name), "%s wait for enabling",
+              service->name );
+
+    error = sm_timer_register( timer_name,
+                               timeout,
+                               sm_service_enabling_throttle_state_timeout_timer,
+                               service->id, &action_state_timer_id );
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to check service (%s) dependencies, error=%s.",
-                  service->name, sm_error_str( error ) );
+        DPRINTFE( "Failed to create enabling throttle timer for service "
+                  "(%s), error=%s.", service->name, sm_error_str( error ) );
         return( error );
     }
 
-    if( !dependency_met )
-    {
-        DPRINTFD( "Some dependencies for service (%s) were not met.",
-                  service->name );
-        return( SM_OKAY );
-    }
-
-    DPRINTFD( "All dependencies for service (%s) were met.Attempt to enable service ",
-                service->name );
-
-    if ( sm_service_enable_throttle_check() )
-    {
-        error = sm_service_fsm_set_state( service,
-                                          SM_SERVICE_STATE_ENABLING );
-        if( SM_OKAY != error )
-        {
-            DPRINTFE( "Set state (%s) of service (%s) failed, error=%s.",
-                      sm_service_state_str( SM_SERVICE_STATE_ENABLING ),
-                      service->name, sm_error_str( error ) );
-            return( error );
-        }
-    }else
-    {
-        snprintf( timer_name, sizeof(timer_name), "%s wait for enabling",
-                  service->name );
-
-        error = sm_timer_register( timer_name,
-                                   timeout,
-                                   sm_service_enabling_throttle_state_timeout_timer,
-                                   service->id, &action_state_timer_id );
-        if( SM_OKAY != error )
-        {
-            DPRINTFE( "Failed to create enabling throttle timer for service "
-                      "(%s), error=%s.", service->name, sm_error_str( error ) );
-            return( error );
-        }
-
-        service->action_state_timer_id = action_state_timer_id;
-    }
+    service->action_state_timer_id = action_state_timer_id;
     return( SM_OKAY );
 }
 // ****************************************************************************
@@ -169,15 +191,8 @@ SmErrorT sm_service_enabling_throttle_state_event_handler( SmServiceT* service,
     switch( event )
     {
         case SM_SERVICE_EVENT_ENABLE_THROTTLE:
-            error = sm_service_fsm_set_state( service,
-                                              SM_SERVICE_STATE_ENABLING_THROTTLE );
-            if( SM_OKAY != error )
-            {
-                DPRINTFE( "Set state (%s) of service (%s) failed, error=%s.",
-                          sm_service_state_str( SM_SERVICE_STATE_ENABLING_THROTTLE ),
-                          service->name, sm_error_str( error ) );
-                return( error );
-            }
+            // ignore. already in this state
+        break;
 
         break;
         case SM_SERVICE_EVENT_ENABLE:
