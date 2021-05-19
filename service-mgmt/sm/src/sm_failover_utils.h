@@ -36,6 +36,10 @@ extern SmErrorT sm_failover_utils_reset_stayfailed_flag();
 extern bool sm_failover_utils_is_stayfailed();
 // ****************************************************************************
 
+// ****************************************************************************
+// Failover Utilities - get wait time for peer to be reset
+// ==============================
+extern int sm_failover_get_reset_peer_wait_time();
 #ifdef __cplusplus
 }
 #endif

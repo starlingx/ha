@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2018 Wind River Systems, Inc.
+// Copyright (c) 2014-2020 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -584,3 +584,17 @@ SmErrorT sm_node_utils_is_aio_duplex( bool* is_aio_duplex )
     return SM_OKAY;
 }
 
+// ****************************************************************************
+// Node Utilities - Clear the unhealthy flag
+// ==============================
+extern void sm_node_utils_reset_unhealthy_flag( void )
+{
+    if( 0 == access( SM_NODE_UNHEALTHY_FILE,  F_OK ) )
+    {
+        unlink( SM_NODE_UNHEALTHY_FILE );
+        if( 0 == access( SM_NODE_UNHEALTHY_FILE,  F_OK ) )
+        {
+            DPRINTFE("file did not get removed ; %s", SM_NODE_UNHEALTHY_FILE);
+        }
+    }
+}

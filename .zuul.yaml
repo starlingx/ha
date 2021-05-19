@@ -4,14 +4,17 @@
       - publish-stx-docs
       - stx-api-ref-jobs
       - stx-release-notes-jobs
+      - stx-bandit-jobs
     check:
       jobs:
         - openstack-tox-pep8
         - openstack-tox-linters
+        - ha-tox-pylint
     gate:
       jobs:
         - openstack-tox-pep8
         - openstack-tox-linters
+        - ha-tox-pylint
     post:
       jobs:
         - stx-ha-upload-git-mirror
@@ -55,6 +58,14 @@
         nfv: https://opendev.org/starlingx/nfv
         update: https://opendev.org/starlingx/update
 
+- job:
+    name: ha-tox-pylint
+    parent: tox
+    description: |
+      Run pylint test for ha in python2.7
+    nodeset: ubuntu-bionic
+    vars:
+      tox_envlist: pylint
 - job:
     name: stx-ha-upload-git-mirror
     parent: upload-git-mirror

@@ -59,7 +59,7 @@ extern SmErrorT sm_db_statement_finalize( SmDbStatementT* sm_db_statement );
 // Database - Connect
 // ==================
 extern SmErrorT sm_db_connect( const char* sm_db_name,
-    SmDbHandleT** sm_db_handle );
+    SmDbHandleT** sm_db_handle, bool readonly = false );
 // ****************************************************************************
 
 // ****************************************************************************

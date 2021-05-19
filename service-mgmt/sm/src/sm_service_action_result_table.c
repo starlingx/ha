@@ -18,7 +18,6 @@
 #include "sm_db_service_action_results.h"
 
 static SmListT* _service_action_results = NULL;
-static SmDbHandleT* _sm_db_handle = NULL;
 
 // ****************************************************************************
 // Service Action Result Table - Read
@@ -149,14 +148,6 @@ SmErrorT sm_service_action_result_table_initialize( void )
 
     _service_action_results = NULL;
 
-    error = sm_db_connect( SM_DATABASE_NAME, &_sm_db_handle );
-    if( SM_OKAY != error )
-    {
-        DPRINTFE( "Failed to connect to database (%s), error=%s.",
-                  SM_DATABASE_NAME, sm_error_str( error ) );
-        return( error );
-    }
-
     error = sm_service_action_result_table_load();
     if( SM_OKAY != error )
     {
@@ -174,21 +165,7 @@ SmErrorT sm_service_action_result_table_initialize( void )
 // ======================================
 SmErrorT sm_service_action_result_table_finalize( void )
 {
-    SmErrorT error;
-
     SM_LIST_CLEANUP_ALL( _service_action_results );
-
-    if( NULL != _sm_db_handle )
-    {
-        error = sm_db_disconnect( _sm_db_handle );
-        if( SM_OKAY != error )
-        {
-            DPRINTFE( "Failed to disconnect from database (%s), error=%s.",
-                      SM_DATABASE_NAME, sm_error_str( error ) );
-        }
-
-        _sm_db_handle = NULL;
-    }
 
     return( SM_OKAY );
 }

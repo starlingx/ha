@@ -52,7 +52,6 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(20,'yes','controller-services','mtc-a
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(22,'yes','controller-services','hw-mon','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(23,'yes','controller-services','dnsmasq','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(24,'yes','controller-services','fm-mgr','critical');
-INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(25,'yes','controller-services','snmp','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(26,'yes','cloud-services','keystone','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(49,'yes','directory-services','open-ldap','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(50,'yes','web-services','lighttpd','critical');
@@ -95,6 +94,8 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'yes','controller-service
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcdbsync-api','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','ironic-ip','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcdbsync-openstack-api','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcmanager-orchestrator','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcmanager-audit-worker','critical' FROM "SERVICE_GROUP_MEMBERS";
 CREATE TABLE SERVICES ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), DESIRED_STATE CHAR(32), STATE CHAR(32), STATUS CHAR(32), CONDITION CHAR(32), MAX_FAILURES INT, FAIL_COUNTDOWN INT, FAIL_COUNTDOWN_INTERVAL INT, MAX_ACTION_FAILURES INT, MAX_TRANSITION_FAILURES INT, PID_FILE CHAR(256) );
 INSERT INTO "SERVICES" VALUES(1,'yes','oam-ip','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(2,'yes','management-ip','initial','initial','none','none',2,1,90000,4,16,'');
@@ -117,7 +118,6 @@ INSERT INTO "SERVICES" VALUES(23,'yes','dnsmasq','initial','initial','none','non
 INSERT INTO "SERVICES" VALUES(24,'yes','fm-mgr','initial','initial','none','none',2,1,90000,4,16,'/var/run/fmManager.pid');
 INSERT INTO "SERVICES" VALUES(25,'yes','keystone','initial','initial','none','none',2,1,90000,4,16,'/var/run/openstack-keystone.pid');
 INSERT INTO "SERVICES" VALUES(48,'yes','open-ldap','initial','initial','none','none',2,1,90000,4,16,'/var/run/slapd.pid');
-INSERT INTO "SERVICES" VALUES(49,'yes','snmp','initial','initial','none','none',32,16,90000,4,16,'/var/run/snmpd.pid');
 INSERT INTO "SERVICES" VALUES(50,'yes','lighttpd','initial','initial','none','none',2,1,90000,4,16,'/var/run/lighttpd.pid');
 INSERT INTO "SERVICES" VALUES(51,'yes','horizon','initial','initial','none','none',2,1,90000,4,16,'/var/run/openstack-dashboard.pid');
 INSERT INTO "SERVICES" VALUES(52,'yes','patch-alarm-manager','initial','initial','none','none',2,1,90000,4,16,'/var/run/patch-alarm-manager.pid');
@@ -158,6 +158,8 @@ INSERT INTO "SERVICES" SELECT MAX(id) + 1,'yes','cluster-host-ip','initial','ini
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcdbsync-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcdbsync-api.pid' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','ironic-ip','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcdbsync-openstack-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcdbsync-openstack-api.pid' FROM "SERVICES";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcmanager-orchestrator','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcmanager-orchestrator.pid' FROM "SERVICES";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcmanager-audit-worker','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcmanager-audit-worker.pid' FROM "SERVICES";
 CREATE TABLE SERVICE_HEARTBEAT ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), TYPE CHAR(32), SRC_ADDRESS CHAR(108), SRC_PORT INT, DST_ADDRESS CHAR(108), DST_PORT INT, MESSAGE CHAR(256), INTERVAL_IN_MS INT, MISSED_WARN INT, MISSED_DEGRADE INT, MISSED_FAIL INT, STATE CHAR(32), MISSED INT, HEARTBEAT_TIMER_ID INT, HEARTBEAT_SOCKET INT );
 CREATE TABLE SERVICE_DEPENDENCY ( DEPENDENCY_TYPE CHAR(32), SERVICE_NAME CHAR(32), STATE CHAR(32), ACTION CHAR(32), DEPENDENT CHAR(32), DEPENDENT_STATE CHAR(32), PRIMARY KEY (DEPENDENCY_TYPE, SERVICE_NAME, STATE, ACTION, DEPENDENT));
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','oam-ip','not-applicable','enable','management-ip','enabled-active');
@@ -188,9 +190,6 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','vim-api','not-applicable','ena
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','vim-webserver','not-applicable','enable','vim','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dnsmasq','not-applicable','enable','sysinv-conductor','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','fm-mgr','not-applicable','enable','postgres','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','snmp','not-applicable','enable','oam-ip','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','snmp','not-applicable','enable','postgres','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','snmp','not-applicable','enable','platform-nfs-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd','not-applicable','enable','etcd-fs','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','enable','postgres','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','enable','rabbit','enabled-active');
@@ -206,16 +205,19 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','disable','rabbit-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','disable','platform-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-pg','not-applicable','go-standby','pg-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-pg','not-applicable','disable','pg-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-rabbit','not-applicable','go-standby','rabbit-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-rabbit','not-applicable','disable','rabbit-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-platform','not-applicable','go-standby','platform-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-platform','not-applicable','disable','platform-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-extension','not-applicable','go-standby','extension-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-extension','not-applicable','disable','extension-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','pg-fs','not-applicable','disable','postgres','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit-fs','not-applicable','disable','rabbit','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','nfs-mgmt','not-applicable','disable','platform-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','extension-fs','not-applicable','disable','extension-export-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-nfs-ip','not-applicable','disable','keystone','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-fs','not-applicable','disable','platform-export-fs','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','snmp','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','fm-mgr','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','keystone','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','sysinv-conductor','disabled');
@@ -239,8 +241,8 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-platform','not-applicable
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd-fs','not-applicable','disable','etcd','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-lvm','not-applicable','disable','iscsi','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cinder','not-applicable','go-standby','cinder-lvm','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cinder','not-applicable','disable','cinder-lvm','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-manager','not-applicable','disable','sysinv-conductor','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','snmp','not-applicable','enable','dnsmasq','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-engine','not-applicable','enable','rabbit','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-engine','not-applicable','enable','postgres','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-engine','not-applicable','enable','management-ip','enabled-active');
@@ -259,8 +261,10 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','di
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','disable','dcmanager-manager','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-api','not-applicable','enable','dcmanager-manager','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dcmanager-api','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-audit','not-applicable','enable','dcmanager-manager','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dcmanager-audit','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-audit','not-applicable','enable','dcmanager-audit-worker','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-audit-worker','not-applicable','disable','dcmanager-audit','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-orchestrator','not-applicable','enable','dcmanager-manager','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dcmanager-orchestrator','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-sysinv-api-proxy','not-applicable','enable','sysinv-inv','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-sysinv-api-proxy','not-applicable','enable','dcorch-engine','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-inv','not-applicable','disable','dcorch-sysinv-api-proxy','disabled');
@@ -278,6 +282,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-engine','not-applicable
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-dc-vault','not-applicable','go-active','management-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dc-vault-fs','not-applicable','enable','drbd-dc-vault','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-dc-vault','not-applicable','go-standby','dc-vault-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-dc-vault','not-applicable','disable','dc-vault-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-patch-api-proxy','not-applicable','enable','dcmanager-manager','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dcorch-patch-api-proxy','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-etcd','not-applicable','go-active','management-ip','enabled-active');
@@ -295,10 +300,11 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcdbsync-api','not-applicable'
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','disable','dcdbsync-api','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcdbsync-openstack-api','not-applicable','enable','keystone','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','disable','dcdbsync-openstack-api','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-audit-worker','not-applicable','enable','dcmanager-manager','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dcmanager-audit-worker','disabled');
 CREATE TABLE SERVICE_INSTANCES ( ID INTEGER PRIMARY KEY AUTOINCREMENT, SERVICE_NAME CHAR(32), INSTANCE_NAME CHAR(32), INSTANCE_PARAMETERS CHAR(1024) );
 INSERT INTO "SERVICE_INSTANCES" VALUES(1,'lighttpd','lighttpd','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(2,'horizon','horizon','');
-INSERT INTO "SERVICE_INSTANCES" VALUES(3,'snmp','snmp','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(4,'patch-alarm-manager','patch-alarm-manager','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(5,'hw-mon','hw-mon','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(6,'guest-agent','guest-agent','');
@@ -421,10 +427,6 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('open-ldap','enable','lsb-script','','openl
 INSERT INTO "SERVICE_ACTIONS" VALUES('open-ldap','disable','lsb-script','','openldap','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('open-ldap','audit-enabled','lsb-script','','openldap','status','',2,2,2,15,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('open-ldap','audit-disabled','lsb-script','','openldap','status','',0,0,0,15,40);
-INSERT INTO "SERVICE_ACTIONS" VALUES('snmp','enable','lsb-script','','snmpd','start','',2,2,2,15,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('snmp','disable','lsb-script','','snmpd','stop','',1,1,1,15,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('snmp','audit-enabled','lsb-script','','snmpd','status','',2,2,2,15,40);
-INSERT INTO "SERVICE_ACTIONS" VALUES('snmp','audit-disabled','lsb-script','','snmpd','status','',0,0,0,15,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('lighttpd','enable','lsb-script','','lighttpd','start','',2,2,2,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('lighttpd','disable','lsb-script','','lighttpd','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('lighttpd','audit-enabled','lsb-script','','lighttpd','status','',2,2,2,15,40);
@@ -499,6 +501,10 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-audit','enable','ocf-script','op
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-audit','disable','ocf-script','openstack','dcmanager-audit','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-audit','audit-enabled','ocf-script','openstack','dcmanager-audit','monitor','',2,2,2,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-audit','audit-disabled','ocf-script','openstack','dcmanager-audit','monitor','',0,0,0,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator','enable','ocf-script','openstack','dcmanager-orchestrator','start','',2,2,2,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator','disable','ocf-script','openstack','dcmanager-orchestrator','stop','',1,1,1,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator','audit-enabled','ocf-script','openstack','dcmanager-orchestrator','monitor','',2,2,2,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator','audit-disabled','ocf-script','openstack','dcmanager-orchestrator','monitor','',0,0,0,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-api','enable','ocf-script','openstack','dcmanager-api','start','',2,2,2,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-api','disable','ocf-script','openstack','dcmanager-api','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-api','audit-enabled','ocf-script','openstack','dcmanager-api','monitor','',2,2,2,20,5);
@@ -572,6 +578,10 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('ironic-ip','enable','ocf-script','heartbea
 INSERT INTO "SERVICE_ACTIONS" VALUES('ironic-ip','disable','ocf-script','heartbeat','IPaddr2','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('ironic-ip','audit-enabled','ocf-script','heartbeat','IPaddr2','monitor','',2,2,2,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('ironic-ip','audit-disabled','ocf-script','heartbeat','IPaddr2','monitor','',0,0,0,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-audit-worker','enable','ocf-script','openstack','dcmanager-audit-worker','start','',2,2,2,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-audit-worker','disable','ocf-script','openstack','dcmanager-audit-worker','stop','',1,1,1,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-audit-worker','audit-enabled','ocf-script','openstack','dcmanager-audit-worker','monitor','',2,2,2,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-audit-worker','audit-disabled','ocf-script','openstack','dcmanager-audit-worker','monitor','',0,0,0,20,5);
 CREATE TABLE SERVICE_ACTION_RESULTS ( PLUGIN_TYPE CHAR(32), PLUGIN_NAME CHAR(80), PLUGIN_COMMAND CHAR(80), PLUGIN_EXIT_CODE CHAR(32), ACTION_RESULT CHAR(32), SERVICE_STATE CHAR(32), SERVICE_STATUS CHAR(32), SERVICE_CONDITION CHAR(32), PRIMARY KEY (PLUGIN_TYPE, PLUGIN_NAME, PLUGIN_COMMAND, PLUGIN_EXIT_CODE));
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('lsb-script','default','status','0','success','enabled-active','unknown','unknown');
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('lsb-script','default','status','1','success','disabled','unknown','unknown');
@@ -642,6 +652,7 @@ INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dockerdistribution-fs','initial'
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dockerdistribution-fs','not-applicable','enable','drbd-dockerdistribution','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','docker-distribution','not-applicable','enable','dockerdistribution-fs','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-dockerdistribution','not-applicable','go-standby','dockerdistribution-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-dockerdistribution','not-applicable','disable','dockerdistribution-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dockerdistribution-fs','not-applicable','disable','docker-distribution','disabled');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dockerdistribution-fs','enable','ocf-script','heartbeat','Filesystem','start','',2,2,2,60,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dockerdistribution-fs','disable','ocf-script','heartbeat','Filesystem','stop','',1,1,1,180,'');
@@ -656,6 +667,38 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-dockerdistribution','go-standby','ocf
 INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-dockerdistribution','audit-enabled','ocf-script','linbit','drbd','monitor','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,20,30);
 INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-dockerdistribution','audit-disabled','ocf-script','linbit','drbd','monitor','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',0,0,0,20,28);
 
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','rook-mon-exit','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1, 'no','rook-mon-exit','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rook-mon-exit','not-applicable','enable','docker-distribution','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','docker-distribution','not-applicable','disable','rook-mon-exit','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rook-mon-exit','not-applicable','enable','cluster-host-ip','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cluster-host-ip','not-applicable','disable','rook-mon-exit','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rook-mon-exit','not-applicable','enable','etcd','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd','not-applicable','disable','rook-mon-exit','disabled');
+INSERT INTO "SERVICE_ACTIONS" VALUES('rook-mon-exit','enable','lsb-script','','rook-mon-exit','start','',2,2,2,30,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('rook-mon-exit','disable','lsb-script','','rook-mon-exit','stop','',0,0,0,360,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('rook-mon-exit','audit-enabled','lsb-script','','rook-mon-exit','status','',2,2,2,15,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('rook-mon-exit','audit-disabled','lsb-script','','rook-mon-exit','status','',0,0,0,15,40);
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','rookmon-fs','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','rookmon-fs','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rookmon-fs','not-applicable','enable','drbd-rookmon','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rook-mon-exit','not-applicable','enable','rookmon-fs','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-rookmon','not-applicable','go-standby','rookmon-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-rookmon','not-applicable','disable','rookmon-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rookmon-fs','not-applicable','disable','rook-mon-exit','disabled');
+INSERT INTO "SERVICE_ACTIONS" VALUES('rookmon-fs','enable','ocf-script','heartbeat','Filesystem','start','',2,2,2,60,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('rookmon-fs','disable','ocf-script','heartbeat','Filesystem','stop','',1,1,1,180,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('rookmon-fs','audit-enabled','ocf-script','heartbeat','Filesystem','monitor','',2,2,2,60,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('rookmon-fs','audit-disabled','ocf-script','heartbeat','Filesystem','monitor','',0,0,0,60,40);
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','drbd-rookmon','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','drbd-rookmon','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
+INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-rookmon','enable','ocf-script','linbit','drbd','start','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,90,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-rookmon','disable','ocf-script','linbit','drbd','stop','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',1,1,1,180,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-rookmon','go-active','ocf-script','linbit','drbd','promote','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,180,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-rookmon','go-standby','ocf-script','linbit','drbd','demote','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,180,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-rookmon','audit-enabled','ocf-script','linbit','drbd','monitor','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,20,30);
+INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-rookmon','audit-disabled','ocf-script','linbit','drbd','monitor','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',0,0,0,20,28);
+
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','ceph-mon','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1, 'no','ceph-mon','initial','initial','none','none',2,1,90000,4,16,'/var/run/ceph/mon.controller.pid' FROM "SERVICES";
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-mon','not-applicable','enable','management-ip','enabled-active');
@@ -669,6 +712,7 @@ INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','cephmon-fs','initial','initial',
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cephmon-fs','not-applicable','enable','drbd-cephmon','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-mon','not-applicable','enable','cephmon-fs','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cephmon','not-applicable','go-standby','cephmon-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cephmon','not-applicable','disable','cephmon-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cephmon-fs','not-applicable','disable','ceph-mon','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-radosgw','not-applicable','enable','ceph-mon','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-mon','not-applicable','disable','ceph-radosgw','disabled');
@@ -734,5 +778,26 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('dc-iso-fs','enable','ocf-script','heartbea
 INSERT INTO "SERVICE_ACTIONS" VALUES('dc-iso-fs','disable','ocf-script','heartbeat','Filesystem','stop','',1,1,1,60,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dc-iso-fs','audit-enabled','ocf-script','heartbeat','Filesystem','monitor','',2,2,2,30,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dc-iso-fs','audit-disabled','ocf-script','heartbeat','Filesystem','monitor','',0,0,0,30,40);
+
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','cert-mon','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','cert-mon','initial','initial','none','none',2,1,90000,4,16,'/var/run/cert-mon.pid' FROM "SERVICES";
+INSERT INTO "SERVICE_INSTANCES" SELECT MAX(id) + 1,'cert-mon','cert-mon','' FROM "SERVICE_INSTANCES";
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cert-mon','not-applicable','enable','sysinv-inv','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-inv','not-applicable','disable','cert-mon','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cert-mon','not-applicable','enable','dcmanager-manager','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','cert-mon','disabled');
+INSERT INTO "SERVICE_ACTIONS" VALUES('cert-mon','enable','ocf-script','platform','cert-mon','start','',2,2,2,30,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('cert-mon','disable','ocf-script','platform','cert-mon','stop','',1,1,1,60,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('cert-mon','audit-enabled','ocf-script','platform','cert-mon','monitor','',2,2,2,30,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('cert-mon','audit-disabled','ocf-script','platform','cert-mon','monitor','',0,0,0,30,40);
+
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','device-image-fs','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','device-image-fs','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','device-image-fs','not-applicable','enable','platform-fs','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-fs','not-applicable','disable','device-image-fs','disabled');
+INSERT INTO "SERVICE_ACTIONS" VALUES('device-image-fs','enable','ocf-script','heartbeat','Filesystem','start','',2,2,2,60,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('device-image-fs','disable','ocf-script','heartbeat','Filesystem','stop','',1,1,1,180,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('device-image-fs','audit-enabled','ocf-script','heartbeat','Filesystem','monitor','',2,2,2,60,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('device-image-fs','audit-disabled','ocf-script','heartbeat','Filesystem','monitor','',0,0,0,60,40);
 
 COMMIT;

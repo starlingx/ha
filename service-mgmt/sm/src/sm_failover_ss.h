@@ -69,6 +69,14 @@ class SmSystemFailoverStatus
         inline SmHeartbeatStateT get_heartbeat_state() const {
             return _heartbeat_state;
         }
+
+        inline bool peer_stall() const {
+            return _peer_stall;
+        }
+        inline void set_peer_stall(bool stall) {
+            _peer_stall = stall;
+        }
+
         void set_host_schedule_state(SmNodeScheduleStateT state);
         void set_host_pre_failure_schedule_state(SmNodeScheduleStateT state);
         void set_cluster_hbs_state(const SmClusterHbsStateT& state);
@@ -93,6 +101,7 @@ class SmSystemFailoverStatus
         SmNodeScheduleStateT _peer_schedule_state;
         SmClusterHbsStateT   _cluster_hbs_state;
         SmHeartbeatStateT    _heartbeat_state;
+        bool                 _peer_stall;
         static const char filename[];
         static const char file_format[];
 

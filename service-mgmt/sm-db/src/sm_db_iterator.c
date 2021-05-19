@@ -123,7 +123,7 @@ SmErrorT sm_db_iterator_initialize( const char* db_name,
 
     memset( it, 0, sizeof(SmDbIteratorT) );
 
-    error = sm_db_connect( db_name, &(it->sm_db_handle) );
+    error = sm_db_connect( db_name, &(it->sm_db_handle), true );
     if( SM_OKAY != error )
     {
         DPRINTFE( "Failed to connect to database (%s), error=%s.", db_name,

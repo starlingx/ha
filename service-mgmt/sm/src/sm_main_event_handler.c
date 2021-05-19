@@ -32,7 +32,6 @@
 #define SM_NODE_AUDIT_TIMER_IN_MS           1000
 #define SM_INTERFACE_AUDIT_TIMER_IN_MS      1000
 
-static SmDbHandleT* _sm_db_handle = NULL;
 static SmApiCallbacksT _api_callbacks = {0}; 
 static SmNotifyApiCallbacksT _notify_api_callbacks = {0};
 static SmTimerIdT _node_audit_timer_id = SM_TIMER_ID_INVALID;
@@ -322,14 +321,6 @@ SmErrorT sm_main_event_handler_initialize( void )
     memset( &_api_callbacks, 0, sizeof(_api_callbacks) );
     memset( &_notify_api_callbacks, 0, sizeof(_notify_api_callbacks) );
 
-    error = sm_db_connect( SM_DATABASE_NAME, &_sm_db_handle );
-    if( SM_OKAY != error )
-    {
-        DPRINTFE( "Failed to connect to database (%s), error=%s.",
-                  SM_DATABASE_NAME, sm_error_str( error ) );
-        return( error );
-    }
-
     error = sm_timer_register( "node audit",
                                SM_NODE_AUDIT_TIMER_IN_MS,
                                sm_main_event_handler_audit_node,
@@ -372,7 +363,7 @@ SmErrorT sm_main_event_handler_initialize( void )
     {
         DPRINTFE( "Failed to release service groups, error=%s.",
                   sm_error_str( error ) );
-        return( error );
+        return error;
     }
 
     error = sm_api_initialize();
@@ -496,18 +487,6 @@ SmErrorT sm_main_event_handler_finalize( void )
         }
 
         _interface_audit_timer_id = SM_TIMER_ID_INVALID;
-    }
-
-    if( NULL != _sm_db_handle )
-    {
-        error = sm_db_disconnect( _sm_db_handle );
-        if( SM_OKAY != error )
-        {
-            DPRINTFE( "Failed to disconnect from database (%s), error=%s.",
-                      SM_DATABASE_NAME, sm_error_str( error ) );
-        }
-
-        _sm_db_handle = NULL;
     }
 
     return( SM_OKAY );

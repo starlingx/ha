@@ -384,32 +384,25 @@ SmErrorT sm_failover_ss_get_survivor(const SmSystemStatusT& system_status, SmSys
             has_cluser_info = false;
         }
 
+        DPRINTFI("cluster info (%s), maximum available nodes %d", has_cluser_info ? "yes": "no", max_nodes_available);
         if(has_cluser_info && max_nodes_available > 1)
         {
             DPRINTFD("storage-0 is %s", expect_storage_0 ? "enabled":"not enabled");
-            int this_controller_index, peer_controller_index;
-
-            char host_name[SM_NODE_NAME_MAX_CHAR];
-            SmErrorT error = sm_node_utils_get_hostname(host_name);
-            if( SM_OKAY != error )
-            {
-                DPRINTFE( "Failed to get hostname, error=%s.",
-                          sm_error_str( error ) );
-                return SM_FAILED;
-            }
-
-            if(0 == strncmp(SM_NODE_CONTROLLER_0_NAME, host_name, sizeof(SM_NODE_CONTROLLER_0_NAME)))
-            {
-                this_controller_index = 0;
-                peer_controller_index = 1;
-            }else
-            {
-                this_controller_index = 1;
-                peer_controller_index = 0;
-            }
+            int this_controller_index = SmClusterHbsInfoMsg::get_this_controller_index();
+            int peer_controller_index = SmClusterHbsInfoMsg::get_peer_controller_index();
 
             bool survivor_selected = false;
-            if(expect_storage_0)
+            selection.set_peer_stall(false);
+            if(current_cluster_hbs_state.controllers[peer_controller_index].sm_heartbeat_fail)
+            {
+                // peer sm not sending alive pulse, failed
+                DPRINTFI("Peer controller has stalled.");
+                selection.set_host_schedule_state(SM_NODE_STATE_ACTIVE);
+                selection.set_peer_schedule_state(SM_NODE_STATE_FAILED);
+                survivor_selected = true;
+                selection.set_peer_stall(true);
+            }
+            else if(expect_storage_0)
             {
                 if(current_cluster_hbs_state.controllers[this_controller_index].storage0_responding &&
                     !current_cluster_hbs_state.controllers[peer_controller_index].storage0_responding)

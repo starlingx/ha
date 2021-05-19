@@ -63,17 +63,20 @@ SmErrorT sm_service_domain_interface_unknown_state_event_handler(
     SmServiceDomainInterfaceT* interface, SmServiceDomainInterfaceEventT event,
     void* event_data[] )
 {
-    bool enabled;
+    bool enabled = false;
     SmErrorT error;
     char reason_text[SM_LOG_REASON_TEXT_MAX_CHAR] = {0};
 
-    error = sm_hw_get_if_state( interface->interface_name, &enabled );
-    if( SM_OKAY != error )
+    if (SM_SERVICE_DOMAIN_INTERFACE_EVENT_NOT_IN_USE != event)
     {
-        DPRINTFE( "Failed to audit hardware state of interface (%s), "
-                  "error=%s", interface->interface_name,
-                  sm_error_str( error ) );
-        return( error );
+        error = sm_hw_get_if_state( interface->interface_name, &enabled );
+        if( SM_OKAY != error )
+        {
+            DPRINTFE( "Failed to audit hardware state of interface (%s), "
+                      "error=%s", interface->interface_name,
+                      sm_error_str( error ) );
+            return( error );
+        }
     }
 
     switch( event )
