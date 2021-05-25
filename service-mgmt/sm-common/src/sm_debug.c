@@ -46,6 +46,7 @@ typedef SmDebugThreadMsgT SmDebugSchedLogSetT[SCHED_LOGS_MAX];
 
 static int _sched_log_set = 0;
 static int _sched_log_num = 0;
+static bool _print_sched_log = true;
 static SmDebugSchedLogSetT _sched_logs[2];
 
 // ****************************************************************************
@@ -231,9 +232,13 @@ void sm_debug_sched_log_done( char* domain )
 
                 send( _client_fd, msg, sizeof(SmDebugThreadMsgLogT), 0 );
             }
-        } else {
-            sm_debug_log( SM_DEBUG_SCHED_LOG, "%s: no scheduling changes "
-                          "required.", domain );
+            _print_sched_log = true;
+        }
+        else {
+            if (_print_sched_log)
+                sm_debug_log( SM_DEBUG_SCHED_LOG, "%s: no scheduling changes "
+                              "required.", domain );
+                _print_sched_log = false;
         }
     }
 }
