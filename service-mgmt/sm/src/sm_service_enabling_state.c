@@ -82,7 +82,8 @@ static bool sm_service_enabling_state_timeout_timer( SmTimerIdT timer_id,
 
     DPRINTFI( "Service (%s) enabling overall timeout.", service->name );
 
-    return( true );
+    // don't need to rearm
+    return( false );
 }
 // ****************************************************************************
 

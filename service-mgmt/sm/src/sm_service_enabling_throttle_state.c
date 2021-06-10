@@ -52,13 +52,14 @@ static bool sm_service_enabling_throttle_state_timeout_timer( SmTimerIdT timer_i
 
     if ( goahead )
     {
-        error = sm_service_fsm_set_state( service,
-                                          SM_SERVICE_STATE_ENABLING );
+        error = sm_service_fsm_event_handler( service->name,
+                                          SM_SERVICE_EVENT_ENABLE,
+                                          NULL, "throttle open to enable service" );
         if( SM_OKAY != error )
         {
-            DPRINTFE( "Set state (%s) of service (%s) failed, error=%s.",
-                      sm_service_state_str( SM_SERVICE_STATE_ENABLING ),
-                      service->name, sm_error_str( error ) );
+            DPRINTFE( "Failed to signal enable service "
+                      "(%s), error=%s.", service->name, sm_error_str( error ) );
+
             // retry next time
             return true;
         }
@@ -70,7 +71,6 @@ static bool sm_service_enabling_throttle_state_timeout_timer( SmTimerIdT timer_i
     }
 
     // set to enabling state, timer is no more needed
-    service->action_state_timer_id = SM_TIMER_ID_INVALID;
     return( false );
 }
 // ****************************************************************************
