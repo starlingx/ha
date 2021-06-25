@@ -14,7 +14,6 @@ setuptools.setup(
     packages=['sm_client', 'sm_client.v1', 'sm_client.openstack',
               'sm_client.openstack.common',
               'sm_client.openstack.common.config',
-              'sm_client.openstack.common.rootwrap',
               'sm_client.common'],
     # entry_points={
     #      'console_scripts': [
