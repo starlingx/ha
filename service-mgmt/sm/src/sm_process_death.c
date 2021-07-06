@@ -35,10 +35,14 @@
 #define SM_KERNEL_NOTIFY_FLAGS \
     ( SM_KERNEL_NOTIFY_EXITED | SM_KERNEL_NOTIFY_KILLED )
 
+#define SM_KERNEL_NOTIFY_SIGNAL (SIGRTMIN+1)
+
+// Avoid redefinition errors for PR_DO_NOTIFY_TASK_STATE macro and
+// task_state_notify_info struct as the kernel headers may have
+// already defined them.
+#ifndef PR_DO_NOTIFY_TASK_STATE
 // Set/get notification for task state changes.
 #define PR_DO_NOTIFY_TASK_STATE 17
-
-#define SM_KERNEL_NOTIFY_SIGNAL (SIGRTMIN+1)
 
 // This is the data structure for requestion process death
 // (and other state change) information.  Sig of -1 means
@@ -46,12 +50,13 @@
 // that you want to set it.  sig and events are value-result
 // and will be updated with the previous values on every
 // successful call.
-struct task_state_notify_info 
+struct task_state_notify_info
 {
     pid_t pid;
-	int sig;
-	unsigned int events;
+    int sig;
+    unsigned int events;
 };
+#endif // !PR_DO_NOTIFY_TASK_STATE
 #endif // __SM_PROCESS_DEATH_KERNEL_NOTIFICATION_SUPPORTED__
 
 #define SM_PROCESS_DEATH_MAX                              1024
