@@ -53,7 +53,7 @@ libsm_watchdog_nfs.so: libsm_watchdog_nfs.so.$(VER_MJR)
 libsm_watchdog_nfs.so.$(VER_MJR): libsm_watchdog_nfs.so.$(VER)
 	ln -sf $^ $@
 
-libsm_watchdog_nfs.so.$(VER): libsm_common.so.$(VER)
+libsm_watchdog_nfs.so.$(VER): libsm_common.so.$(VER) libsm_common.so
 	$(CXX) $(INCLUDES) $(CCFLAGS) $(EXTRACCFLAGS) sm_watchdog_nfs.c ${LDFLAGS} $(LDLIBS) -L./ -lsm_common -Wl,-soname,libsm_watchdog_nfs.so.$(VER_MJR) -o $@
 
 sm_watchdog: libsm_common.so
