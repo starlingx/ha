@@ -22,7 +22,7 @@ import six.moves.http_client
 import logging
 import os
 import socket
-import StringIO
+from six import StringIO
 from six.moves.urllib.parse import urlparse
 
 try:
@@ -166,9 +166,10 @@ class HTTPClient(object):
         # Read body into string if it isn't obviously image data
         body_str = None
         if resp.getheader('content-type', None) != 'application/octet-stream':
-            body_str = ''.join([chunk for chunk in body_iter])
+            body_str = b''.join([chunk for chunk in body_iter])
+            body_str = body_str.decode("utf-8")
             self.log_http_response(resp, body_str)
-            body_iter = StringIO.StringIO(body_str)
+            body_iter = StringIO(body_str)
         else:
             self.log_http_response(resp)
 
