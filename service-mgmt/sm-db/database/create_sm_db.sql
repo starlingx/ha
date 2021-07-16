@@ -800,4 +800,14 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('device-image-fs','disable','ocf-script','h
 INSERT INTO "SERVICE_ACTIONS" VALUES('device-image-fs','audit-enabled','ocf-script','heartbeat','Filesystem','monitor','',2,2,2,60,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('device-image-fs','audit-disabled','ocf-script','heartbeat','Filesystem','monitor','',0,0,0,60,40);
 
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','cert-alarm','major' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','cert-alarm','initial','initial','none','none',2,1,90000,4,16,'/var/run/cert-alarm.pid' FROM "SERVICES";
+INSERT INTO "SERVICE_INSTANCES" SELECT MAX(id) + 1,'cert-alarm','cert-alarm','' FROM "SERVICE_INSTANCES";
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cert-alarm','not-applicable','enable','fm-mgr','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','fm-mgr','not-applicable','disable','cert-alarm','disabled');
+INSERT INTO "SERVICE_ACTIONS" VALUES('cert-alarm','enable','ocf-script','platform','cert-alarm','start','',2,2,2,30,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('cert-alarm','disable','ocf-script','platform','cert-alarm','stop','',1,1,1,60,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('cert-alarm','audit-enabled','ocf-script','platform','cert-alarm','monitor','',2,2,2,30,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('cert-alarm','audit-disabled','ocf-script','platform','cert-alarm','monitor','',0,0,0,30,40);
+
 COMMIT;
