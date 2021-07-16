@@ -26,8 +26,8 @@ import uuid
 import prettytable
 import six
 
+from oslo_utils import importutils
 from sm_client import exc
-from sm_client.openstack.common import importutils
 from six.moves import zip
 
 

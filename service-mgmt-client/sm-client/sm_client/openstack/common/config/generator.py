@@ -31,9 +31,9 @@ import sys
 import textwrap
 import six
 from oslo_config import cfg
+from oslo_utils import importutils
 
 from sm_client.openstack.common import gettextutils
-from sm_client.openstack.common import importutils
 
 gettextutils.install('python-sm_client')
 
