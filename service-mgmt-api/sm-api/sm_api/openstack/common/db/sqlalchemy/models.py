@@ -73,7 +73,7 @@ class ModelBase(object):
         self._i = iter(columns)
         return self
 
-    def next(self):
+    def next(self):  # pylint: disable=next-method-defined
         n = next(self._i)
         return n, getattr(self, n)
 
