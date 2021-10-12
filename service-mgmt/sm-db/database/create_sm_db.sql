@@ -805,6 +805,8 @@ INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','cert-alarm','initial','initial',
 INSERT INTO "SERVICE_INSTANCES" SELECT MAX(id) + 1,'cert-alarm','cert-alarm','' FROM "SERVICE_INSTANCES";
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cert-alarm','not-applicable','enable','fm-mgr','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','fm-mgr','not-applicable','disable','cert-alarm','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cert-alarm','not-applicable','enable','sysinv-inv','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-inv','not-applicable','disable','cert-alarm','disabled');
 INSERT INTO "SERVICE_ACTIONS" VALUES('cert-alarm','enable','ocf-script','platform','cert-alarm','start','',2,2,2,30,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('cert-alarm','disable','ocf-script','platform','cert-alarm','stop','',1,1,1,60,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('cert-alarm','audit-enabled','ocf-script','platform','cert-alarm','monitor','',2,2,2,30,40);
