@@ -1,0 +1,2 @@
+/usr/lib/ocf/resource.d/openstack
+/usr/lib/ocf/resource.d/openstack/*

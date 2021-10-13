@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+# export DH_VERBOSE = 1
+
+ROOT := $(CURDIR)/debian/tmp
+
+%:
+	dh $@
+
+override_dh_install:
+	install -d -m 755 ${ROOT}/usr/lib/ocf/resource.d/openstack
+	install -p -D -m 755 ocf/* ${ROOT}/usr/lib/ocf/resource.d/openstack/
+	dh_install
