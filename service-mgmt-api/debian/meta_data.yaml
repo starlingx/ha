@@ -1,0 +1,7 @@
+---
+debname: sm-api
+debver: 1.0-1
+src_path: sm-api
+revision:
+  dist: $STX_DIST
+  PKG_GITREVCOUNT: true
