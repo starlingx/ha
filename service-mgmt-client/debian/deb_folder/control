@@ -1,0 +1,54 @@
+Source: sm-client
+Section: admin
+Priority: optional
+Maintainer: StarlingX Developers <starlingx-discuss@lists.starlingx.io>
+Build-Depends: debhelper-compat (= 13),
+ dh-python,
+ python3-setuptools,
+ python3-all,
+ python3-wheel
+Build-Depends-Indep:
+ python3-eventlet,
+ python3-httplib2,
+ python3-iso8601,
+ python3-jsonpatch,
+ python3-keystonemiddleware,
+ python3-kombu,
+ python3-mysqldb,
+ python3-oslo.config,
+ python3-pecan,
+ python3-prettytable,
+ python3-psutil,
+ python3-sqlalchemy,
+ python3-migrate,
+ python3-wsme
+Standards-Version: 4.5.1
+Homepage: https://www.starlingx.io
+Rules-Requires-Root: no
+
+Package: sm-client
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends}, python3-six,
+ python3-eventlet,
+ python3-httplib2,
+ python3-iso8601,
+ python3-jsonpatch,
+ python3-keystonemiddleware,
+ python3-kombu,
+ python3-mysqldb,
+ python3-oslo.config,
+ python3-pecan,
+ python3-prettytable,
+ python3-psutil,
+ python3-sqlalchemy,
+ python3-migrate,
+ python3-wsme
+Description: Service Management Client and CLI
+ This is the python3 version of the package
+
+Package: sm-client-wheels
+Architecture: all
+Depends: ${misc:Depends}
+Description: Contains python wheels for Service Management Client and CLI
+ This is the support package for the PEP 427 wheel version of the package,
+ required for using pip inside a virtual environment.
