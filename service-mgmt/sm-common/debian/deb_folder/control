@@ -1,0 +1,37 @@
+Source: sm-common
+Section: admin
+Priority: optional
+Maintainer: StarlingX Developers <starlingx-discuss@lists.starlingx.io>
+Build-Depends: debhelper (>= 13),
+ libsqlite3-dev,
+ libglib2.0-dev,
+ uuid-dev,
+ libsystemd-dev
+Standards-Version: 4.1.2
+Homepage: https://www.starlingx.io
+
+Package: sm-common
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, sm-common-libs
+Description: Service Management Common
+ This package handles Service Management Common files
+
+Package: sm-common-libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends},
+ mtce-pmon, sqlite3, systemd
+Description: Service Management Common - shared library files
+ This package contains shared libraries.
+
+Package: sm-common-dev
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, sm-common-libs
+Description: Service Management Common - Development files
+ This package contains symbolic links, header files,
+ and related items necessary for software development.
+
+Package: sm-eru
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, sm-common-libs
+Description: Service Management ERU
+ Service Management Event Recorder Unit

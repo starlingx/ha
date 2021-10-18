@@ -1,0 +1,2 @@
+usr/lib64/*.so.*
+var/lib/sm/watchdog/modules/*.so.*

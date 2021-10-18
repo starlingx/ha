@@ -236,9 +236,11 @@ void sm_debug_sched_log_done( char* domain )
         }
         else {
             if (_print_sched_log)
+            {
                 sm_debug_log( SM_DEBUG_SCHED_LOG, "%s: no scheduling changes "
                               "required.", domain );
                 _print_sched_log = false;
+            }
         }
     }
 }
