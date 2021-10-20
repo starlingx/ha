@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+
+ROOT := $(CURDIR)/debian/tmp
+
+%:
+	dh $@
+
+override_dh_usrlocal:
+	# dh_usrlocal complains about files being put in /usr/local
+	# this empty override causes dh_usrlocal to be skipped.
+
+override_dh_auto_install:
+	rm -rf ${ROOT}
+	$(MAKE) DEST_DIR=${ROOT} \
+		UNIT_DIR=/usr/lib/systemd/system \
+		install
