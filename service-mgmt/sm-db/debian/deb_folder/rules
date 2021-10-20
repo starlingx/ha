@@ -1,0 +1,26 @@
+#!/usr/bin/make -f
+
+export ROOT = $(CURDIR)/debian/tmp
+export VER = $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' ')
+export VER_MJR = $(shell echo $(VER) | cut -d. -f1)
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	sqlite3 database/sm.db < database/create_sm_db.sql
+	sqlite3 database/sm.hb.db < database/create_sm_hb_db.sql
+	dh_auto_build
+
+override_dh_auto_install:
+	rm -rf ${ROOT}
+	$(MAKE) DEST_DIR=${ROOT} \
+		VER=$(VER) \
+		VER_MJR=$(VER_MJR) \
+		install
+
+# Prevents dh_fixperms from changing the permissions defined in the makefiles
+override_dh_fixperms:
+	dh_fixperms \
+	-Xlibsm_db.so.*
+

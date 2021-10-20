@@ -1,0 +1,25 @@
+Source: sm-db
+Section: admin
+Priority: optional
+Maintainer: StarlingX Developers <starlingx-discuss@lists.starlingx.io>
+Build-Depends: debhelper (>= 13),
+ sm-common-dev,
+ libglib2.0-dev,
+ libsqlite3-dev,
+ uuid-dev,
+ sqlite3
+Standards-Version: 4.1.2
+Homepage: https://www.starlingx.io
+
+Package: sm-db
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Service Management Databases
+ This package handles the Service Management Databases
+
+Package: sm-db-dev
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, sm-db
+Description: Service Management Databases - Development files
+ This package contains symbolic links, header files,
+ and related items necessary for software development.
