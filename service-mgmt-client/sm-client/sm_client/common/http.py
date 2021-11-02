@@ -289,7 +289,7 @@ class ResponseBodyIterator(object):
         while True:
             yield next(self)
 
-    def next(self):
+    def next(self):  # pylint: disable=next-method-defined
         chunk = self.resp.read(CHUNKSIZE)
         if chunk:
             return chunk

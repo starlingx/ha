@@ -174,7 +174,7 @@ def delta_seconds(before, after):
         return delta.total_seconds()
     except AttributeError:
         return ((delta.days * 24 * 3600) + delta.seconds +
-                float(delta.microseconds) / (10 ** 6))
+                float(delta.microseconds) / (10 ** 6))  # pylint: disable=old-division
 
 
 def is_soon(dt, window):

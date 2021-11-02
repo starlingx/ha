@@ -140,7 +140,7 @@ class SmApiException(Exception):
 
         if not message:
             try:
-                message = self.message % kwargs
+                message = self.message % kwargs  # pylint: disable=W1645
 
             except Exception as e:
                 # kwargs doesn't match a variable in the message
@@ -153,7 +153,7 @@ class SmApiException(Exception):
                     raise e
                 else:
                     # at least get the core message out if something happened
-                    message = self.message
+                    message = self.message  # pylint: disable=W1645
 
         super(SmApiException, self).__init__(message)
 

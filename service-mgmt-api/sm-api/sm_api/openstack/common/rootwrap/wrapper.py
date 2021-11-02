@@ -23,7 +23,6 @@ from six.moves import configparser
 import logging
 import logging.handlers
 import os
-import string
 
 from sm_api.openstack.common.rootwrap import filters
 
@@ -116,7 +115,7 @@ def load_filters(filters_path):
             filterconfig = configparser.RawConfigParser()
             filterconfig.read(os.path.join(filterdir, filterfile))
             for (name, value) in filterconfig.items("Filters"):
-                filterdefinition = [string.strip(s) for s in value.split(',')]
+                filterdefinition = [str.strip(s) for s in value.split(',')]
                 newfilter = build_filter(*filterdefinition)
                 if newfilter is None:
                     continue
