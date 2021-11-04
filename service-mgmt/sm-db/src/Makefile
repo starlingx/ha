@@ -5,6 +5,7 @@
 #
 INCLUDES =-I$(STAGING_DIR)/usr/include/glib-2.0
 INCLUDES+=-I$(STAGING_DIR)/usr/lib64/glib-2.0/include
+INCLUDES+=-I$(STAGING_DIR)/usr/lib/x86_64-linux-gnu/glib-2.0/include
 
 SRCS=sm_db.c
 SRCS+=sm_db_iterator.c
@@ -28,7 +29,7 @@ SRCS+=sm_db_build.c
 SRCS+=sm_db_configuration.c
 
 OBJS = $(SRCS:.c=.o)
-CCFLAGS= -fPIC -g -O2 -Wall -Werror -std=c++11 -Wformat -Wformat-security
+CCFLAGS= -fPIC -g -O2 -Wall -Werror -std=c++11 -Wformat -Wformat-security -Wno-stringop-truncation
 EXTRACCFLAGS= -D__STDC_FORMAT_MACROS
 LDLIBS= -lsqlite3 -lglib-2.0 -luuid -lrt -lsm_common
 LDFLAGS = -shared -rdynamic

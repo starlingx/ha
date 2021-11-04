@@ -1,0 +1,6 @@
+usr/lib64/libsm_db.so.*
+var/lib/sm/patches/sm-patch.sql
+
+# Marked on centos .spec file as "%config(noreplace)"
+var/lib/sm/sm.hb.db
+var/lib/sm/sm.db
