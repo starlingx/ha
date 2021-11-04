@@ -1,0 +1,9 @@
+usr/lib/systemd/system/*
+usr/bin/sm
+usr/local/sbin/sm-notify
+usr/local/sbin/sm-troubleshoot
+usr/local/sbin/sm-notification
+etc/init.d/sm
+etc/init.d/sm-shutdown
+etc/pmon.d/sm.conf
+etc/logrotate.d/sm.logrotate

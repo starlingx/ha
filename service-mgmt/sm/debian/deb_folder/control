@@ -1,0 +1,28 @@
+Source: sm
+Section: admin
+Priority: optional
+Maintainer: StarlingX Developers <starlingx-discuss@lists.starlingx.io>
+Build-Depends: debhelper (>= 13),
+ fm-common-dev,
+ sm-db-dev,
+ sm-common-dev,
+ mtce-dev,
+ libglib2.0-dev,
+ libsqlite3-dev,
+ uuid-dev,
+ libjson-c-dev,
+ libssl-dev,
+ libsystemd-dev
+Standards-Version: 4.1.2
+Homepage: https://www.starlingx.io
+
+Package: sm
+Architecture: any
+Pre-Depends: ${shlibs:Pre-Depends}, ${misc:Pre-Depends}, systemd
+Depends: ${shlibs:Depends}, ${misc:Depends},
+ mtce-pmon,
+ logrotate,
+ time,
+ sqlite3
+Description: Service Management
+ This package handles Service Management

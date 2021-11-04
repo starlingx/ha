@@ -5,6 +5,7 @@
 #
 INCLUDES =-I$(STAGING_DIR)/usr/include/glib-2.0
 INCLUDES+=-I$(STAGING_DIR)/usr/lib64/glib-2.0/include
+INCLUDES+=-I$(STAGING_DIR)/usr/lib/x86_64-linux-gnu/glib-2.0/include
 
 SRCS=main.c
 SRCS+=sm_process.c
@@ -120,9 +121,9 @@ SRCS+=sm_cluster_hbs_info_msg.cpp
 SRCS+=sm_configure.cpp
 
 OBJS= $(SRCS:.c=.o)
-CCFLAGS= -g -O2 -Wall -Werror -Wformat  -std=c++11
+CCFLAGS= -g -O2 -Wall -Werror -Wformat -Wno-stringop-truncation -Wno-format-truncation -Wno-format-overflow -std=c++11
 EXTRACCFLAGS= -D__STDC_FORMAT_MACROS -Wformat -Wformat-security
-LDLIBS= -lsqlite3 -lglib-2.0 -luuid -lpthread -lrt -lsm_common -lsm_db -lfmcommon -ljson-c -lcrypto -lssl
+LDLIBS= -lglib-2.0 -luuid -lpthread -lrt -lsm_common -lsm_db -lfmcommon -ljson-c -lcrypto -lssl -lsqlite3
 LDFLAGS = -rdynamic
 
 .c.o:
