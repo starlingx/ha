@@ -80,7 +80,7 @@ case "$1" in
         fi    
         ;;
 
-    restart)
+    restart|force-reload)
         $0 stop
         sleep 1
         $0 start
