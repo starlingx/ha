@@ -1,0 +1,30 @@
+#!/usr/bin/make -f
+
+export ROOT = $(CURDIR)/debian/tmp
+
+export VER = $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' ')
+export VER_MJR = $(shell echo $(VER) | cut -d. -f1)
+
+%:
+	dh $@
+
+override_dh_auto_install:
+	rm -rf ${ROOT}
+	$(MAKE) DEST_DIR=${ROOT} \
+		BIN_DIR=usr/bin \
+		UNIT_DIR=usr/lib/systemd/system \
+		LIB_DIR=/usr/lib64 \
+		INC_DIR=/usr/include \
+		BUILDSUBDIR=$(CURDIR) \
+		ETC_DIR=etc \
+		VER=${VER}  \
+		VER_MJR=${VER_MJR} \
+		install
+
+# Prevents dh_fixperms from changing the permissions defined in the makefiles
+override_dh_fixperms:
+	dh_fixperms \
+	-Xsm-watchdog* \
+	-Xlibsm_common.so.* \
+	-Xlibsm_watchdog_nfs.so.* \
+	-Xsm-eru*

@@ -6,6 +6,7 @@
 
 INCLUDES =-I$(STAGING_DIR)/usr/include/glib-2.0
 INCLUDES+=-I$(STAGING_DIR)/usr/lib64/glib-2.0/include -I.
+INCLUDES+=-I$(STAGING_DIR)/usr/lib/x86_64-linux-gnu/glib-2.0/include
 
 SRCS=sm_types.c
 SRCS+=sm_debug.c
@@ -27,7 +28,7 @@ SRCS+=sm_eru_db.c
 SRCS+=sm_util_types.c
 
 OBJS = $(SRCS:.c=.o)
-CCFLAGS= -fPIC -g -O2 -Wall -Werror -std=c++11
+CCFLAGS= -fPIC -g -O2 -Wall -Werror -Wno-restrict -Wno-format-truncation -std=c++11
 EXTRACCFLAGS= -D__STDC_FORMAT_MACROS -DSW_VERSION=\"$(SW_VERSION)\"
 EXTRACCFLAGS+= -Wformat -Wformat-security
 LDLIBS= -lsqlite3 -lglib-2.0 -lgmodule-2.0 -luuid -lrt -lpthread
