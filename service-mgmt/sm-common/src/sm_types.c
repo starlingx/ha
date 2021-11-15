@@ -309,6 +309,7 @@ _sm_service_group_condition_mappings[SM_SERVICE_GROUP_CONDITION_MAX] =
     { SM_SERVICE_GROUP_CONDITION_RECOVERY_FAILURE,  "recovery-failure"  },
     { SM_SERVICE_GROUP_CONDITION_ACTION_FAILURE,    "action-failure"    },
     { SM_SERVICE_GROUP_CONDITION_FATAL_FAILURE,     "fatal-failure"     },
+    { SM_SERVICE_GROUP_CONDITION_FD_LIMIT_REACHED,  "FD-limit-reached"  },
 };
 
 static SmValueStrMappingT 
@@ -414,6 +415,7 @@ _sm_service_condition_mappings[SM_SERVICE_CONDITION_MAX] =
     { SM_SERVICE_CONDITION_RECOVERY_FAILURE,  "recovery-failure"  },
     { SM_SERVICE_CONDITION_ACTION_FAILURE,    "action-failure"    },
     { SM_SERVICE_CONDITION_FATAL_FAILURE,     "fatal-failure"     },
+    { SM_SERVICE_CONDITION_FD_LIMIT_REACHED,  "FD-limit-reached"  },
 };
 
 static SmValueStrMappingT 

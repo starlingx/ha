@@ -124,6 +124,10 @@ static void sm_service_group_audit_map_service_condition(
             *condition = SM_SERVICE_GROUP_CONDITION_FATAL_FAILURE;
         break;
 
+        case SM_SERVICE_CONDITION_FD_LIMIT_REACHED:
+            *condition = SM_SERVICE_GROUP_CONDITION_FD_LIMIT_REACHED;
+        break;
+
         default:
             *condition = SM_SERVICE_GROUP_CONDITION_UNKNOWN;
             DPRINTFE( "Unknown service condition (%i) given.",
