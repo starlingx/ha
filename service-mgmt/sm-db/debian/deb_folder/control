@@ -19,7 +19,7 @@ Description: Service Management Databases
 
 Package: sm-db-dev
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, sm-db
+Depends: ${misc:Depends}, sm-db
 Description: Service Management Databases - Development files
  This package contains symbolic links, header files,
  and related items necessary for software development.
