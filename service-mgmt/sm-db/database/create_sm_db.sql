@@ -628,6 +628,9 @@ INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('ocf-script','default','stop','5','s
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('ocf-script','default','demote','5','success','disabled','unknown','unknown');
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('ocf-script','Filesystem','stop','1','success','disabled','unknown','unknown');
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('ocf-script','Filesystem','stop','plugin-timeout','success','disabled','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('lsb-script','openldap','status','0','success','enabled-active','','');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('lsb-script','openldap','status','160','success','enabled-active','','');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('lsb-script','openldap','status','161','success','enabled-active','degraded','FD-limit-reached');
 CREATE TABLE SCHEMA_VERSION (ID INTEGER PRIMARY KEY AUTOINCREMENT, MAJOR INTEGER, MINOR INTEGER);
 INSERT INTO "SCHEMA_VERSION" VALUES(2,0,0);
 CREATE TABLE CONFIGURATION ( ID INTEGER PRIMARY KEY AUTOINCREMENT, "KEY" CHAR(32), "VALUE" CHAR(32) );

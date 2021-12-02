@@ -458,6 +458,7 @@ typedef enum
     SM_SERVICE_GROUP_CONDITION_RECOVERY_FAILURE,
     SM_SERVICE_GROUP_CONDITION_ACTION_FAILURE,
     SM_SERVICE_GROUP_CONDITION_FATAL_FAILURE,
+    SM_SERVICE_GROUP_CONDITION_FD_LIMIT_REACHED,
     SM_SERVICE_GROUP_CONDITION_MAX
 } SmServiceGroupConditionT;
 
@@ -565,6 +566,7 @@ typedef enum
 //   recovery-failure:  recovery of the service has failed.
 //   action-failure:    a service action has failed.
 //   fatal-failure:     a fatal failure has occured.
+//   FD-limit-reached:  limit of open FD has reached.
 typedef enum 
 {
     SM_SERVICE_CONDITION_NIL,
@@ -578,6 +580,7 @@ typedef enum
     SM_SERVICE_CONDITION_RECOVERY_FAILURE,
     SM_SERVICE_CONDITION_ACTION_FAILURE,
     SM_SERVICE_CONDITION_FATAL_FAILURE,
+    SM_SERVICE_CONDITION_FD_LIMIT_REACHED,
     SM_SERVICE_CONDITION_MAX
 } SmServiceConditionT;
 
