@@ -500,7 +500,7 @@ class MulticallProxyWaiter(object):
     def __iter__(self):
         """Return a result until we get a reply with an 'ending" flag"""
         if self._done:
-            raise StopIteration
+            return
         while True:
             try:
                 data = self._dataqueue.get(timeout=self._timeout)
@@ -513,7 +513,7 @@ class MulticallProxyWaiter(object):
                     self.done()
             if self._got_ending:
                 self.done()
-                raise StopIteration
+                return
             if isinstance(result, Exception):
                 self.done()
                 raise result
@@ -556,7 +556,7 @@ class MulticallWaiter(object):
     def __iter__(self):
         """Return a result until we get a 'None' response from consumer"""
         if self._done:
-            raise StopIteration
+            return
         while True:
             try:
                 next(self._iterator)
@@ -565,7 +565,7 @@ class MulticallWaiter(object):
                     self.done()
             if self._got_ending:
                 self.done()
-                raise StopIteration
+                return
             result = self._result
             if isinstance(result, Exception):
                 self.done()

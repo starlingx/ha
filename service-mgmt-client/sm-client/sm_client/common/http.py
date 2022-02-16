@@ -294,7 +294,7 @@ class ResponseBodyIterator(object):
         if chunk:
             return chunk
         else:
-            raise StopIteration()
+            return
 
     # In Python 3, __next__() has replaced next().
     __next__ = next

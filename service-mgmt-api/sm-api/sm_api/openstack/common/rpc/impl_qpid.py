@@ -440,7 +440,7 @@ class Connection(object):
 
         for iteration in itertools.count(0):
             if limit and iteration >= limit:
-                raise StopIteration
+                return
             yield self.ensure(_error_callback, _consume)
 
     def cancel_consumer_thread(self):
