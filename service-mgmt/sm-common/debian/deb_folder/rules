@@ -21,6 +21,9 @@ override_dh_auto_install:
 		VER_MJR=${VER_MJR} \
 		install
 
+override_dh_installsystemd:
+	dh_installsystemd --name sm-eru
+
 # Prevents dh_fixperms from changing the permissions defined in the makefiles
 override_dh_fixperms:
 	dh_fixperms \
