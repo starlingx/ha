@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -e
+
+mkdir -p /usr/lib/sm
+mv /usr/lib64/libsm_db.so* /usr/lib/sm
+
+#DEBHELPER#
+exit 0

@@ -3,5 +3,4 @@ usr/bin/sm-api
 etc/init.d/sm-api
 etc/pmon.d/sm-api.conf
 etc/sm/sm_api.ini
-usr/lib/systemd/system/*
 usr/lib/python*/dist-packages/*

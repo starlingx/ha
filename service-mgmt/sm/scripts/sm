@@ -22,7 +22,7 @@
 ### END INIT INFO
 
 . /etc/init.d/functions
-
+export LD_LIBRARY_PATH=/usr/lib/sm
 RETVAL=0
 
 SM_NAME="sm"

@@ -1,4 +1,3 @@
-usr/lib/systemd/system/*
 usr/bin/sm
 usr/local/sbin/sm-notify
 usr/local/sbin/sm-troubleshoot
