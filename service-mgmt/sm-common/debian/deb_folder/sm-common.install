@@ -1,3 +1,4 @@
 etc/init.d/sm-watchdog
 etc/pmon.d/sm-watchdog.conf
 usr/bin/sm-watchdog
+usr/lib/systemd/system/sm-watchdog.service
