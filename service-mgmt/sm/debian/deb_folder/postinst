@@ -1,8 +1,0 @@
-#!/bin/sh
-
-set -e
-
-/usr/bin/systemctl enable sm-shutdown.service >/dev/null 2>&1
-
-#DEBHELPER#
-exit 0
