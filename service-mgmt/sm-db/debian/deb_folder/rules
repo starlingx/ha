@@ -13,7 +13,6 @@ override_dh_auto_build:
 	dh_auto_build
 
 override_dh_auto_install:
-	rm -rf ${ROOT}
 	$(MAKE) DEST_DIR=${ROOT} \
 		VER=$(VER) \
 		VER_MJR=$(VER_MJR) \

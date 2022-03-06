@@ -33,6 +33,12 @@ CCFLAGS= -fPIC -g -O2 -Wall -Werror -std=c++11 -Wformat -Wformat-security -Wno-s
 EXTRACCFLAGS= -D__STDC_FORMAT_MACROS
 LDLIBS= -lsqlite3 -lglib-2.0 -luuid -lrt -lsm_common
 LDFLAGS = -shared -rdynamic
+OS_ID = $(shell grep '^ID=' /etc/os-release | cut -f2- -d= | sed -e 's/\"//g')
+ifeq ($(OS_ID),debian)
+LIBDIR = $(DEST_DIR)/usr/lib
+else
+LIBDIR = $(DEST_DIR)/usr/lib64
+endif
 
 build: libsm_db.so sm_db_build
 
@@ -52,9 +58,9 @@ sm_db_build: ${OBJS}
 	$(CXX) $(INCLUDES) $(CCFLAGS) $(EXTRACCFLAGS) $(OBJS) $(LDLIBS) -o sm_db_build
 
 install:
-	install -d ${DEST_DIR}/usr/lib64
-	install libsm_db.so.${VER} $(DEST_DIR)/usr/lib64
-	cp -P libsm_db.so libsm_db.so.$(VER_MJR) $(DEST_DIR)/usr/lib64
+	install -d $(LIBDIR)
+	install libsm_db.so.${VER} $(LIBDIR)
+	cp -P libsm_db.so libsm_db.so.$(VER_MJR) $(LIBDIR)
 	install -d ${DEST_DIR}/usr/include
 	install -m 0644 *.h ${DEST_DIR}/usr/include
 	install -d 755 ${DEST_DIR}/usr/bin
