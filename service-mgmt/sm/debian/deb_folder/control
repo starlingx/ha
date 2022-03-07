@@ -12,13 +12,11 @@ Build-Depends: debhelper (>= 13),
  uuid-dev,
  libjson-c-dev,
  libssl-dev,
- libsystemd-dev
 Standards-Version: 4.1.2
 Homepage: https://www.starlingx.io
 
 Package: sm
 Architecture: any
-Pre-Depends: ${shlibs:Pre-Depends}, ${misc:Pre-Depends}, systemd
 Depends: ${shlibs:Depends}, ${misc:Depends},
  mtce-pmon,
  logrotate,
