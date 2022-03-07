@@ -9,11 +9,10 @@ export VER_MJR = $(shell echo $(VER) | cut -d. -f1)
 	dh $@
 
 override_dh_auto_install:
-	rm -rf ${ROOT}
 	$(MAKE) DEST_DIR=${ROOT} \
 		BIN_DIR=usr/bin \
-		UNIT_DIR=usr/lib/systemd/system \
-		LIB_DIR=/usr/lib64 \
+		UNIT_DIR=/lib/systemd/system \
+		LIB_DIR=/usr/lib \
 		INC_DIR=/usr/include \
 		BUILDSUBDIR=$(CURDIR) \
 		ETC_DIR=etc \
@@ -28,3 +27,7 @@ override_dh_fixperms:
 	-Xlibsm_common.so.* \
 	-Xlibsm_watchdog_nfs.so.* \
 	-Xsm-eru*
+
+override_dh_installsystemd:
+	dh_installsystemd -psm-common sm-watchdog.service
+	dh_installsystemd -psm-eru sm-eru.service
