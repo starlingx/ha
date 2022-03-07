@@ -28,7 +28,7 @@ Rules-Requires-Root: no
 
 Package: sm-tools
 Architecture: all
-Depends: python3:any, ${python3:Depends}, ${misc:Depends},
+Depends: ${python3:Depends}, ${misc:Depends},
  python3-eventlet,
  python3-httplib2,
  python3-iso8601,

@@ -7,11 +7,9 @@ export PYBUILD_NAME=sm-tools
 
 override_dh_install:
 	python3 setup.py install -f --install-layout=deb --root=$(CURDIR)/debian/tmp
-
 	python3 setup.py bdist_wheel \
 		--universal \
 		-d $(CURDIR)/debian/sm-tools-wheels/usr/share/python3-wheels
-
 	dh_install
 
 override_dh_python3:
