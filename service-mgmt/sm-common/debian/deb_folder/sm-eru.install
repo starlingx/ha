@@ -2,4 +2,5 @@ etc/init.d/sm-eru
 etc/pmon.d/sm-eru.conf
 usr/bin/sm-eru
 usr/bin/sm-eru-dump
-usr/lib/systemd/system/sm-eru.service
+lib/systemd/system/sm-eru.service
+debian/systemd/00-sm-eru.preset etc/systemd/system-preset

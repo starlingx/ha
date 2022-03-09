@@ -5,8 +5,7 @@ Maintainer: StarlingX Developers <starlingx-discuss@lists.starlingx.io>
 Build-Depends: debhelper (>= 13),
  libsqlite3-dev,
  libglib2.0-dev,
- uuid-dev,
- libsystemd-dev
+ uuid-dev
 Standards-Version: 4.1.2
 Homepage: https://www.starlingx.io
 
@@ -25,7 +24,7 @@ Description: Service Management Common - shared library files
 
 Package: sm-common-dev
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, sm-common-libs
+Depends: ${misc:Depends}, sm-common-libs
 Description: Service Management Common - Development files
  This package contains symbolic links, header files,
  and related items necessary for software development.
