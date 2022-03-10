@@ -22,13 +22,16 @@ override_dh_install:
 	install -d $(ROOT)/etc/sm
 	install -d $(ROOT)/etc/init.d
 	install -d $(ROOT)/etc/pmon.d
-	install -d $(ROOT)/usr/lib/systemd/system/
+	install -d $(ROOT)/lib/systemd/system/
 	install -m 644 -p -D scripts/sm_api.ini $(ROOT)/etc/sm
 	install -m 755 -p -D scripts/sm-api $(ROOT)/etc/init.d
-	install -m 644 -p -D scripts/sm-api.service $(ROOT)/usr/lib/systemd/system/
+	install -m 644 -p -D scripts/sm-api.service $(ROOT)/lib/systemd/system/
 	install -m 644 -p -D scripts/sm-api.conf $(ROOT)/etc/pmon.d
 
 	dh_install
 
 override_dh_python3:
 	dh_python3 --shebang=/usr/bin/python3
+
+override_dh_installsystemd:
+	dh_installsystemd -psm-api sm-api.service
