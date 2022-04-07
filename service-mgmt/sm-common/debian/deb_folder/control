@@ -5,7 +5,8 @@ Maintainer: StarlingX Developers <starlingx-discuss@lists.starlingx.io>
 Build-Depends: debhelper (>= 13),
  libsqlite3-dev,
  libglib2.0-dev,
- uuid-dev
+ uuid-dev,
+ mtce
 Standards-Version: 4.1.2
 Homepage: https://www.starlingx.io
 
