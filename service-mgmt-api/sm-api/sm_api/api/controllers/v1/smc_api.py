@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014-2018 Wind River Systems, Inc.
+# Copyright (c) 2014-2022 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -77,12 +77,12 @@ def sm_api_notify(sm_dict):
         s.setblocking(1)  # blocking, timeout must be specified
         s.settimeout(6)   # give sm a few secs to respond
         s.bind(SM_API_CLIENT_ADDR)
-        s.sendto(sm_buf, SM_API_SERVER_ADDR)
+        s.sendto(sm_buf.encode('ascii', 'ignore'), SM_API_SERVER_ADDR)
 
         count = 0
         while count < 5:
             count += 1
-            sm_ack = s.recv(1024)
+            sm_ack = s.recv(1024).decode('ascii')
 
             try:
                 sm_ack_list = sm_ack.split(",")
