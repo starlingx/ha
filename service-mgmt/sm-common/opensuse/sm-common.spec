@@ -72,19 +72,6 @@ MAJOR=`echo $VER | awk -F . '{print $1}'`
 MINOR=`echo $VER | awk -F . '{print $2}'`
 make DEST_DIR=%{buildroot} BIN_DIR=%{_bindir} UNIT_DIR=%{_unitdir} LIB_DIR=%{_libdir} INC_DIR=%{_includedir} BUILDSUBDIR=%{_buildsubdir} VER=$VER VER_MJR=$MAJOR install
 
-%pre
-%service_add_pre sm-watchdog.service sm-watchdog.target
-
-%preun
-%service_del_preun sm-watchdog.service sm-watchdog.target
-
-%post
-%service_add_post sm-watchdog.service sm-watchdog.target
-/usr/bin/systemctl enable sm-watchdog.service
-
-%postun
-%service_del_postun sm-watchdog.service sm-watchdog.target
-
 %pre -n sm-eru
 %service_add_pre sm-eru.service sm-eru.target
 
@@ -108,17 +95,10 @@ make DEST_DIR=%{buildroot} BIN_DIR=%{_bindir} UNIT_DIR=%{_unitdir} LIB_DIR=%{_li
 %files
 %license LICENSE
 %defattr(-,root,root,-)
-%{_sysconfdir}/init.d/sm-watchdog
-%config %{_sysconfdir}/pmon.d/sm-watchdog.conf
-%{_bindir}/sm-watchdog
-%{_unitdir}/sm-watchdog.service
 
 %files libs
 %{_libdir}/*.so.*
 %dir %{_sharedstatedir}/sm
-%dir %{_sharedstatedir}/sm/watchdog
-%dir %{_sharedstatedir}/sm/watchdog/modules
-%{_sharedstatedir}/sm/watchdog/modules/*.so.*
 
 %files -n sm-eru
 %defattr(-,root,root,-)
@@ -134,6 +114,5 @@ make DEST_DIR=%{buildroot} BIN_DIR=%{_bindir} UNIT_DIR=%{_unitdir} LIB_DIR=%{_li
 %defattr(-,root,root,-)
 %{_includedir}/*
 %{_libdir}/*.so
-%{_sharedstatedir}/sm/watchdog/modules/libsm_watchdog_nfs.so
 
 %changelog

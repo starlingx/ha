@@ -34,7 +34,7 @@ EXTRACCFLAGS+= -Wformat -Wformat-security
 LDLIBS= -lsqlite3 -lglib-2.0 -lgmodule-2.0 -luuid -lrt -lpthread
 LDFLAGS = -shared -rdynamic
 
-build: libsm_common.so libsm_watchdog_nfs.so sm_watchdog sm_eru sm_eru_dump
+build: libsm_common.so sm_eru sm_eru_dump
 
 .c.o:
 	$(CXX) $(INCLUDES) $(CCFLAGS) $(EXTRACCFLAGS) -c $< -o $@
@@ -48,18 +48,6 @@ libsm_common.so.$(VER_MJR): libsm_common.so.$(VER)
 libsm_common.so.$(VER): ${OBJS}
 	$(CXX) ${LDFLAGS} -Wl,--start-group $(LDLIBS) -Wl,-soname,libsm_common.so.$(VER_MJR) -o $@ $^
 
-libsm_watchdog_nfs.so: libsm_watchdog_nfs.so.$(VER_MJR)
-	ln -sf $^ $@
-
-libsm_watchdog_nfs.so.$(VER_MJR): libsm_watchdog_nfs.so.$(VER)
-	ln -sf $^ $@
-
-libsm_watchdog_nfs.so.$(VER): libsm_common.so.$(VER) libsm_common.so
-	$(CXX) $(INCLUDES) $(CCFLAGS) $(EXTRACCFLAGS) sm_watchdog_nfs.c ${LDFLAGS} $(LDLIBS) -L./ -lsm_common -Wl,-soname,libsm_watchdog_nfs.so.$(VER_MJR) -o $@
-
-sm_watchdog: libsm_common.so
-	$(CXX) $(INCLUDES) $(CCFLAGS) $(EXTRACCFLAGS) $(OBJS) sm_watchdog_module.c sm_watchdog_process.c sm_watchdog_main.c $(LDLIBS) -L./ -lsm_common -o sm_watchdog
-
 sm_eru: libsm_common.so
 	$(CXX) $(INCLUDES) $(CCFLAGS) $(EXTRACCFLAGS) $(OBJS) sm_eru_process.c sm_eru_main.c $(LDLIBS) -L./ -lsm_common -o sm_eru
 
@@ -71,15 +59,12 @@ install:
 	# renamed with '-' like they are in the bitbake file.
 	#
 	# install -d $(DEST_DIR)$(BIN_DIR)
-	# install sm_watchdog sm_eru sm_eru_dump $(DEST_DIR)$(BIN_DIR)
+	# install sm_eru sm_eru_dump $(DEST_DIR)$(BIN_DIR)
 	install -d $(DEST_DIR)$(LIB_DIR)
 	install libsm_common.so.${VER} $(DEST_DIR)$(LIB_DIR)
 	cp -P libsm_common.so libsm_common.so.$(VER_MJR) $(DEST_DIR)$(LIB_DIR)
 	install -d $(DEST_DIR)$(INC_DIR)
 	install -m 644 *.h $(DEST_DIR)$(INC_DIR)
-	install -d $(DEST_DIR)/var/lib/sm/watchdog/modules
-	install libsm_watchdog_nfs.so.${VER} $(DEST_DIR)/var/lib/sm/watchdog/modules
-	cp -P libsm_watchdog_nfs.so libsm_watchdog_nfs.so.${VER_MJR}  $(DEST_DIR)/var/lib/sm/watchdog/modules
 
 clean:
 	rm -f *.o *.so *.so.*

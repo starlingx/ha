@@ -23,11 +23,8 @@ override_dh_auto_install:
 # Prevents dh_fixperms from changing the permissions defined in the makefiles
 override_dh_fixperms:
 	dh_fixperms \
-	-Xsm-watchdog* \
 	-Xlibsm_common.so.* \
-	-Xlibsm_watchdog_nfs.so.* \
 	-Xsm-eru*
 
 override_dh_installsystemd:
-	dh_installsystemd -psm-common sm-watchdog.service
 	dh_installsystemd -psm-eru sm-eru.service

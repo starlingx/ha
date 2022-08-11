@@ -44,7 +44,6 @@
         sm-tools: true
         sm-api: true
         sm-eru: true
-        sm-watchdog: true
         mysql: false
         postgresql: true
         tls-proxy: false

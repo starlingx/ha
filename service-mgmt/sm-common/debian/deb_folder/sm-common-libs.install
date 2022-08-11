@@ -1,2 +1,1 @@
 usr/lib/*.so.*
-var/lib/sm/watchdog/modules/*.so.*

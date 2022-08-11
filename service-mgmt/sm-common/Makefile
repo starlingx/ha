@@ -16,14 +16,10 @@ install:
 	install -m 750 -d $(DEST_DIR)/usr/bin
 	install -m 750 -p -D $(BUILDSUBDIR)/src/sm_eru $(DEST_DIR)/$(BIN_DIR)/sm-eru
 	install -m 750 -p -D $(BUILDSUBDIR)/src/sm_eru_dump $(DEST_DIR)/$(BIN_DIR)/sm-eru-dump
-	install -m 750 -p -D $(BUILDSUBDIR)/src/sm_watchdog $(DEST_DIR)/$(BIN_DIR)/sm-watchdog
 	install -m 644 -p -D $(BUILDSUBDIR)/scripts/sm-eru.service $(DEST_DIR)/$(UNIT_DIR)/sm-eru.service
-	install -m 644 -p -D $(BUILDSUBDIR)/scripts/sm-watchdog.service $(DEST_DIR)/$(UNIT_DIR)/sm-watchdog.service
 	install -m 750 -d $(DEST_DIR)/$(ETC_DIR)/pmon.d
 	install -m 640 -p -D $(BUILDSUBDIR)/scripts/sm-eru.conf $(DEST_DIR)/$(ETC_DIR)/pmon.d/sm-eru.conf
-	install -m 640 -p -D $(BUILDSUBDIR)/scripts/sm-watchdog.conf $(DEST_DIR)/$(ETC_DIR)/pmon.d/sm-watchdog.conf
 	install -m 750 -p -D $(BUILDSUBDIR)/scripts/sm-eru $(DEST_DIR)/$(ETC_DIR)/init.d/sm-eru
-	install -m 750 -p -D $(BUILDSUBDIR)/scripts/sm-watchdog $(DEST_DIR)/$(ETC_DIR)/init.d/sm-watchdog
 
 clean:
 	@( cd src; make clean )

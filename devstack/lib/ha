@@ -156,14 +156,9 @@ function cleanup_sm_common {
         $STX_INST_DIR/lib64/libsm_common.so.* \
         $STX_BIN_DIR/sm-eru \
         $STX_BIN_DIR/sm-eru-dump \
-        $STX_BIN_DIR/sm-watchdog \
-        $STX_SM_VAR_DIR/watchdog/modules/libsm_watchdog_nfs.so.* \
         $STX_SYSCONFDIR/systemd/system/sm-eru.service \
-        $STX_SYSCONFDIR/systemd/system/sm-watchdog.service \
         $STX_SYSCONFDIR/pmon.d/sm-eru.conf \
-        $STX_SYSCONFDIR/pmon.d/sm-watchdog.conf \
         $STX_SYSCONFDIR/init.d/sm-eru \
-        $STX_SYSCONFDIR/init.d/sm-watchdog \
         /etc/ld.so.conf.d/stx-ha.conf
 
     popd
@@ -190,7 +185,6 @@ function configure_ha {
 
     if is_service_enabled sm-common; then
         config_eru
-        config_watchdog
     fi
 
     if is_service_enabled sm-daemon; then
@@ -213,12 +207,6 @@ function config_eru {
     sudo sed -i "s%SM_ERU=\"/usr/bin/\${SM_ERU_NAME}\"%SM_ERU=\"$STX_INST_DIR/bin/\${SM_ERU_NAME}\"%" $STX_SYSCONFDIR/init.d/sm-eru
     iniset -sudo ${STX_SYSCONFDIR}/systemd/system/devstack@sm-eru.service "Service" "Type" "forking"
     iniset -sudo ${STX_SYSCONFDIR}/systemd/system/devstack@sm-eru.service "Service" "PIDFile" "/var/run/sm-eru.pid"
-}
-
-function config_watchdog {
-    sudo sed -i "s%SM_WATCHDOG=\"/usr/bin/\${SM_WATCHDOG_NAME}\"%SM_WATCHDOG=\"$STX_INST_DIR/bin/\${SM_WATCHDOG_NAME}\"%" $STX_SYSCONFDIR/init.d/sm-watchdog
-    iniset -sudo ${STX_SYSCONFDIR}/systemd/system/devstack@sm-watchdog.service "Service" "Type" "forking"
-    iniset -sudo ${STX_SYSCONFDIR}/systemd/system/devstack@sm-watchdog.service "Service" "PIDFile" "/var/run/sm-watchdog.pid"
 }
 
 function create_sm_accounts {
@@ -340,15 +328,11 @@ function install_sm_common {
 
     install_sm_common_libs
 
-    sudo install -m 0755 -p -D -t $STX_SM_VAR_DIR/watchdog/modules src/libsm_watchdog_nfs.so.${STX_SM_COMMON_VERSION}
-    sudo cp -P src/libsm_watchdog_nfs.so src/libsm_watchdog_nfs.so.${STX_SM_COMMON_VERSION%%.*} $STX_SM_VAR_DIR/watchdog/modules
-
     # scripts/
     (cd scripts; sudo make DEST_DIR= UNIT_DIR=$STX_SYSCONFDIR/systemd/system install)
 
     sudo install -m 750 -p -D src/sm_eru $STX_BIN_DIR/sm-eru
     sudo install -m 750 -p -D src/sm_eru_dump $STX_BIN_DIR/sm-eru-dump
-    sudo install -m 750 -p -D src/sm_watchdog $STX_BIN_DIR/sm-watchdog
 
     echo $STX_INST_DIR/lib64 | sudo tee /etc/ld.so.conf.d/stx-ha.conf
     sudo ldconfig
@@ -411,10 +395,6 @@ function start_eru {
     run_process sm-eru "${STX_SYSCONFDIR}/init.d/sm-eru start" root root
 }
 
-function start_watchdog {
-    run_process sm-watchdog "${STX_SYSCONFDIR}/init.d/sm-watchdog start" root root
-}
-
 function start_ha {
     if is_service_enabled sm-daemon; then
         start_sm
@@ -426,14 +406,12 @@ function start_ha {
 
     if is_service_enabled sm-common; then
         start_eru
-        start_watchdog
     fi
 }
 
 function stop_ha {
     if is_service_enabled sm-common; then
         stop_process sm-eru
-        stop_process sm-watchdog
     fi
 
     if is_service_enabled sm-api; then

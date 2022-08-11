@@ -40,9 +40,7 @@ typedef struct
     SmServiceGroupNotificationT service_group_notification;
 } SmNotificationEnvT;
 
-#define SM_NOTIFICATION_SCRIPT_MAX_DELAY_IN_SECS                     4
 #define SM_NOTIFICATION_SCRIPT_TIMEOUT_IN_MS                     30000
-#define SM_NOTIFICATION_SCRIPT_TIMER_SKEW_IN_MS                  60000
 #define SM_NOTIFICATION_SCRIPT_SUCCESS                               0
 #define SM_NOTIFICATION_SCRIPT_TIMEOUT                          -65534
 #define SM_NOTIFICATION_SCRIPT_FAILURE                          -65535
@@ -711,14 +709,6 @@ SmErrorT sm_service_group_notification_notify( SmServiceGroupT* service_group,
     // Create timer for notification completion.
     snprintf( timer_name, sizeof(timer_name), "%s %s notification ",
               service_group->name, notification_str );
-
-    if( sm_utils_watchdog_delayed( SM_NOTIFICATION_SCRIPT_MAX_DELAY_IN_SECS ) )
-    {
-        DPRINTFI( "Notification timeout %d secs increased by %d ms, "
-                  "sm-watchdog delayed.", timeout_in_ms,
-                  SM_NOTIFICATION_SCRIPT_TIMER_SKEW_IN_MS );
-        timeout_in_ms += SM_NOTIFICATION_SCRIPT_TIMER_SKEW_IN_MS;
-    }
 
     error = sm_timer_register( timer_name, timeout_in_ms,
                                sm_service_group_notification_timeout,

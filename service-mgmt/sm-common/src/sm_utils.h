@@ -50,18 +50,6 @@ extern SmErrorT sm_utils_indicate_degraded( void );
 extern SmErrorT sm_utils_clear_degraded( void );
 // ****************************************************************************
 
-// ****************************************************************************
-// Utils - Watchdog Heartbeat
-// ==========================
-extern void sm_utils_watchdog_heartbeat( void );
-// ****************************************************************************
-
-// ****************************************************************************
-// Utils - Watchdog Delayed
-// =========================
-extern bool sm_utils_watchdog_delayed( int max_delay_secs );
-// ****************************************************************************
-
 #ifdef __cplusplus
 }
 #endif

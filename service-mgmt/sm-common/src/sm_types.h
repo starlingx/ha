@@ -77,14 +77,11 @@ extern "C" {
 
 #define SM_PROCESS_PID_FILENAME                      "/var/run/sm.pid"
 #define SM_TRAP_PROCESS_PID_FILENAME                 "/var/run/sm-trap.pid"
-#define SM_WATCHDOG_PROCESS_PID_FILENAME             "/var/run/sm-watchdog.pid"
 #define SM_ERU_PROCESS_PID_FILENAME                  "/var/run/sm-eru.pid"
 
 #define SM_BOOT_COMPLETE_FILENAME                    "/var/run/sm_boot_complete"
 
 #define SM_INDICATE_DEGRADED_FILENAME                "/var/run/.sm_degraded"
-
-#define SM_WATCHDOG_HEARTBEAT_FILENAME               "/var/run/.sm_watchdog_heartbeat"
 
 #define SM_DUMP_DATA_FILE                            "/tmp/sm_data_dump.txt"
 

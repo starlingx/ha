@@ -91,9 +91,6 @@ MAJOR=`echo $VER | awk -F . '{print $1}'`
 MINOR=`echo $VER | awk -F . '{print $2}'`
 make DEST_DIR=%{buildroot} BIN_DIR=%{_bindir} UNIT_DIR=%{_unitdir} LIB_DIR=%{_libdir} INC_DIR=%{_includedir} BUILDSUBDIR=%{_buildsubdir} VER=$VER VER_MJR=$MAJOR install
 
-%post
-/usr/bin/systemctl enable sm-watchdog.service >/dev/null 2>&1
-
 %post -n sm-eru
 /usr/bin/systemctl enable sm-eru.service >/dev/null 2>&1
 
@@ -101,10 +98,6 @@ make DEST_DIR=%{buildroot} BIN_DIR=%{_bindir} UNIT_DIR=%{_unitdir} LIB_DIR=%{_li
 %files
 %license LICENSE
 %defattr(-,root,root,-)
-/etc/init.d/sm-watchdog
-/etc/pmon.d/sm-watchdog.conf
-/usr/bin/sm-watchdog
-/usr/lib/systemd/system/sm-watchdog.service
 
 #%{_unitdir}/*
 #%{_bindir}/*
@@ -113,10 +106,6 @@ make DEST_DIR=%{buildroot} BIN_DIR=%{_bindir} UNIT_DIR=%{_unitdir} LIB_DIR=%{_li
 
 %files libs
 %{_libdir}/*.so.*
-%dir "/var/lib/sm"
-%dir "/var/lib/sm/watchdog"
-%dir "/var/lib/sm/watchdog/modules"
-/var/lib/sm/watchdog/modules/*.so.*
 
 %files -n sm-eru
 %defattr(-,root,root,-)
@@ -135,18 +124,14 @@ make DEST_DIR=%{buildroot} BIN_DIR=%{_bindir} UNIT_DIR=%{_unitdir} LIB_DIR=%{_li
 #"/usr/lib64/.debug/libsm_common.so.1.0.0"
 #%dir "/usr/bin/.debug"
 #"/usr/bin/.debug/sm-eru-dump"
-#"/usr/bin/.debug/sm-watchdog"
 #"/usr/bin/.debug/sm-eru"
 #%dir "/usr/src/debug/sm-common"
 #%dir "/usr/src/debug/sm-common/1.0.0-r7"
 #%dir "/usr/src/debug/sm-common/1.0.0-r7/src"
 #/usr/src/debug/sm-common/1.0.0-r7/src/*.h
 #/usr/src/debug/sm-common/1.0.0-r7/src/*.c
-#%dir "/var/lib/sm/watchdog/modules/.debug"
-#"/var/lib/sm/watchdog/modules/.debug/libsm_watchdog_nfs.so.1.0.0"
 
 %files dev
 %defattr(-,root,root,-)
 %{_includedir}/*
 %{_libdir}/*.so
-/var/lib/sm/watchdog/modules/libsm_watchdog_nfs.so

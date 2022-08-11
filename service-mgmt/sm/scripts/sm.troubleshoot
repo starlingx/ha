@@ -67,9 +67,6 @@ timeout --signal KILL 5s pmap -x `cat /var/run/sm-trap.pid`
 delimiter "pmap -x cat /var/run/sm-eru.pid"
 timeout --signal KILL 5s pmap -x `cat /var/run/sm-eru.pid`
 
-delimiter "pmap -x cat /var/run/sm-watchdog.pid"
-timeout --signal KILL 5s pmap -x `cat /var/run/sm-watchdog.pid`
-
 delimiter "top -b -n 1 -H -c"
 timeout --signal KILL 5s top -b -n 1 -H -c
 

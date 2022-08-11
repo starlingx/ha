@@ -19,14 +19,11 @@
 #include <sys/resource.h>
 
 #include "sm_types.h"
-#include "sm_utils.h"
 #include "sm_debug.h"
 #include "sm_sha512.h"
 #include "sm_service_action_table.h"
 #include "sm_service_action_result_table.h"
 
-#define SM_SERVICE_ACTION_MAX_DELAY_IN_SECS                     4
-#define SM_SERVICE_ACTION_TIMER_SKEW_IN_MS                  60000
 #define SM_SERVICE_ACTION_VALIDATE_TIMER_IN_MS              60000
 
 // ****************************************************************************
@@ -838,15 +835,6 @@ SmErrorT sm_service_action_run( char service_name[], char instance_name[],
         // Parent process.
         *process_id = (int) pid;
         *timeout_in_ms = action_data->timeout_in_secs * 1000;
-
-        if( sm_utils_watchdog_delayed( SM_SERVICE_ACTION_MAX_DELAY_IN_SECS ) )
-        {
-            DPRINTFI( "Service (%s) timeout %d secs increased by %d ms, "
-                      "sm-watchdog delayed.", action_data->service_name,
-                      action_data->timeout_in_secs,
-                      SM_SERVICE_ACTION_TIMER_SKEW_IN_MS );
-            *timeout_in_ms += SM_SERVICE_ACTION_TIMER_SKEW_IN_MS;
-        }
 
         DPRINTFD( "Child process (%i) created for service (%s).", *process_id,
                   action_data->service_name );
