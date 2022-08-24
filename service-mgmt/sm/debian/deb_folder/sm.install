@@ -1,10 +1,11 @@
-lib/systemd/system/*
-usr/bin/sm
-usr/local/sbin/sm-notify
-usr/local/sbin/sm-troubleshoot
-usr/local/sbin/sm-notification
+debian/systemd/00-sm.preset etc/systemd/system-preset
 etc/init.d/sm
 etc/init.d/sm-shutdown
-etc/pmon.d/sm.conf
 etc/logrotate.d/sm.logrotate
-debian/systemd/00-sm.preset etc/systemd/system-preset
+etc/pmon.d/sm.conf
+lib/systemd/system/*
+usr/bin/sm
+usr/local/sbin/sm-notification
+usr/local/sbin/sm-notify
+usr/local/sbin/sm-troubleshoot
+usr/share/starlingx/pmon.d/sm.conf

@@ -1,9 +1,11 @@
 #!/usr/bin/make -f
 
 export ROOT = $(CURDIR)/debian/tmp
+export PMONDIR = usr/share/starlingx/pmon.d
 
 export VER = $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' ')
 export VER_MJR = $(shell echo $(VER) | cut -d. -f1)
+
 
 %:
 	dh $@
@@ -19,6 +21,9 @@ override_dh_auto_install:
 		VER=${VER}  \
 		VER_MJR=${VER_MJR} \
 		install
+
+	install -m 750 -d $(ROOT)/$(PMONDIR)
+	install -m 640 -p -D scripts/sm-eru.conf $(ROOT)/$(PMONDIR)
 
 # Prevents dh_fixperms from changing the permissions defined in the makefiles
 override_dh_fixperms:

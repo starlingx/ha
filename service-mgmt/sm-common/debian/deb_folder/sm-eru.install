@@ -1,6 +1,7 @@
+debian/systemd/00-sm-eru.preset etc/systemd/system-preset
 etc/init.d/sm-eru
 etc/pmon.d/sm-eru.conf
+lib/systemd/system/sm-eru.service
 usr/bin/sm-eru
 usr/bin/sm-eru-dump
-lib/systemd/system/sm-eru.service
-debian/systemd/00-sm-eru.preset etc/systemd/system-preset
+usr/share/starlingx/pmon.d/sm-eru.conf

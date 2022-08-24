@@ -1,9 +1,9 @@
-etc/sm-api/policy.json
-usr/bin/sm-api
+debian/systemd/00-sm-api.preset etc/systemd/system-preset
 etc/init.d/sm-api
 etc/pmon.d/sm-api.conf
 etc/sm/sm_api.ini
+etc/sm-api/policy.json
 lib/systemd/system/*
+usr/bin/sm-api
 usr/lib/python3*
-debian/systemd/00-sm-api.preset etc/systemd/system-preset
-
+usr/share/starlingx/pmon.d/sm-api.conf

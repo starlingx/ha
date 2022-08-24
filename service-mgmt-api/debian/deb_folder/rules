@@ -3,6 +3,7 @@
 export PYBUILD_NAME=sm-api
 
 ROOT := debian/tmp
+PMONDIR := usr/share/starlingx/pmon.d
 
 %:
 	dh $@ --with python3 --buildsystem=pybuild
@@ -22,11 +23,13 @@ override_dh_install:
 	install -d $(ROOT)/etc/sm
 	install -d $(ROOT)/etc/init.d
 	install -d $(ROOT)/etc/pmon.d
+	install -d $(ROOT)/$(PMONDIR)
 	install -d $(ROOT)/lib/systemd/system/
-	install -m 644 -p -D scripts/sm_api.ini $(ROOT)/etc/sm
 	install -m 755 -p -D scripts/sm-api $(ROOT)/etc/init.d
-	install -m 644 -p -D scripts/sm-api.service $(ROOT)/lib/systemd/system/
+	install -m 644 -p -D scripts/sm_api.ini $(ROOT)/etc/sm
+	install -m 644 -p -D scripts/sm-api.conf $(ROOT)/$(PMONDIR)
 	install -m 644 -p -D scripts/sm-api.conf $(ROOT)/etc/pmon.d
+	install -m 644 -p -D scripts/sm-api.service $(ROOT)/lib/systemd/system/
 
 	dh_install
 
