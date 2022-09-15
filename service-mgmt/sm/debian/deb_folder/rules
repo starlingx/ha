@@ -1,7 +1,8 @@
 #!/usr/bin/make -f
 
 ROOT := $(CURDIR)/debian/tmp
-PMONDIR := usr/share/starlingx/pmon.d
+PMONDIR := /usr/share/starlingx/pmon.d
+UNIT_DIR := /lib/systemd/system
 
 %:
 	dh $@
@@ -12,11 +13,9 @@ override_dh_usrlocal:
 
 override_dh_auto_install:
 	$(MAKE) DEST_DIR=${ROOT} \
-		UNIT_DIR=/lib/systemd/system \
+		PMONDIR=${PMONDIR} \
+		UNIT_DIR=${UNIT_DIR} \
 		install
-
-	install -d ${ROOT}/$(PMONDIR)
-	install -m 644 scripts/sm.conf ${ROOT}/$(PMONDIR)
 
 	dh_install
 

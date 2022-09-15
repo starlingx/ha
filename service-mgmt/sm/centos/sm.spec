@@ -50,6 +50,8 @@ Service Managment
 #Service Managment  This package contains ELF symbols and related sources
 #for debugging purposes.
 
+%define pmondir /etc/pmon.d
+
 %prep
 %autosetup
 
@@ -62,7 +64,7 @@ make -j"%(nproc)"
 rm -rf %{buildroot}
 VER=%{version}
 MAJOR=`echo $VER | awk -F . '{print $1}'`
-make DEST_DIR=%{buildroot} UNIT_DIR=%{_unitdir} install
+make DEST_DIR=%{buildroot} PMONDIR=%{pmondir} UNIT_DIR=%{_unitdir} install
 
 %post
 /usr/bin/systemctl enable sm.service >/dev/null 2>&1
@@ -79,5 +81,5 @@ make DEST_DIR=%{buildroot} UNIT_DIR=%{_unitdir} install
 "/usr/local/sbin/sm-notification"
 "/etc/init.d/sm"
 "/etc/init.d/sm-shutdown"
-"/etc/pmon.d/sm.conf"
+"%{pmondir}/sm.conf"
 "/etc/logrotate.d/sm.logrotate"
