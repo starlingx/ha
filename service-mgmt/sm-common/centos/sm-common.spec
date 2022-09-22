@@ -106,6 +106,7 @@ make DEST_DIR=%{buildroot} BIN_DIR=%{_bindir} UNIT_DIR=%{_unitdir} LIB_DIR=%{_li
 
 %files libs
 %{_libdir}/*.so.*
+%dir "/var/lib/sm"
 
 %files -n sm-eru
 %defattr(-,root,root,-)

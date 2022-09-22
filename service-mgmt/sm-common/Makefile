@@ -14,6 +14,7 @@ install:
 	@(cd scripts; make DEST_DIR=$(DEST_DIR) UNIT_DIR=$(UNIT_DIR) install)
 	install -m 750 -d $(DEST_DIR)/usr
 	install -m 750 -d $(DEST_DIR)/usr/bin
+	install -m 750 -d $(DEST_DIR)/var/lib/sm
 	install -m 750 -p -D $(BUILDSUBDIR)/src/sm_eru $(DEST_DIR)/$(BIN_DIR)/sm-eru
 	install -m 750 -p -D $(BUILDSUBDIR)/src/sm_eru_dump $(DEST_DIR)/$(BIN_DIR)/sm-eru-dump
 	install -m 644 -p -D $(BUILDSUBDIR)/scripts/sm-eru.service $(DEST_DIR)/$(UNIT_DIR)/sm-eru.service
