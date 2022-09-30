@@ -1,7 +1,6 @@
 etc/init.d/sm
 etc/init.d/sm-shutdown
 etc/logrotate.d/sm.logrotate
-etc/pmon.d/sm.conf
 lib/systemd/system/*
 usr/bin/sm
 usr/local/sbin/sm-notification

@@ -7,6 +7,6 @@ install:
 	install -m 644 *.service $(DEST_DIR)$(UNIT_DIR) 
 	install -d $(DEST_DIR)/etc/init.d
 	install sm-eru $(DEST_DIR)/etc/init.d
-	install -d $(DEST_DIR)/etc/pmon.d
-	install *.conf $(DEST_DIR)/etc/pmon.d
+	install -d $(DEST_DIR)$(PMONDIR)
+	install *.conf $(DEST_DIR)$(PMONDIR)
 

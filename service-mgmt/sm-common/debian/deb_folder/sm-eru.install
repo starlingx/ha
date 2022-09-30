@@ -1,5 +1,4 @@
 etc/init.d/sm-eru
-etc/pmon.d/sm-eru.conf
 lib/systemd/system/sm-eru.service
 usr/bin/sm-eru
 usr/bin/sm-eru-dump

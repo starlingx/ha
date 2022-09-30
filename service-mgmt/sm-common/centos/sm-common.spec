@@ -84,12 +84,14 @@ make  VER=${VER} VER_MJR=$MAJOR %{?_smp_mflags}
 
 %global _buildsubdir %{_builddir}/%{name}-%{version}
 
+%define pmondir /etc/pmon.d
+
 %install
 rm -rf %{buildroot}
 VER=%{version}
 MAJOR=`echo $VER | awk -F . '{print $1}'`
 MINOR=`echo $VER | awk -F . '{print $2}'`
-make DEST_DIR=%{buildroot} BIN_DIR=%{_bindir} UNIT_DIR=%{_unitdir} LIB_DIR=%{_libdir} INC_DIR=%{_includedir} BUILDSUBDIR=%{_buildsubdir} VER=$VER VER_MJR=$MAJOR install
+make DEST_DIR=%{buildroot} BIN_DIR=%{_bindir} PMONDIR=%{pmondir} UNIT_DIR=%{_unitdir} LIB_DIR=%{_libdir} INC_DIR=%{_includedir} BUILDSUBDIR=%{_buildsubdir} VER=$VER VER_MJR=$MAJOR install
 
 %post -n sm-eru
 /usr/bin/systemctl enable sm-eru.service >/dev/null 2>&1
@@ -111,7 +113,7 @@ make DEST_DIR=%{buildroot} BIN_DIR=%{_bindir} UNIT_DIR=%{_unitdir} LIB_DIR=%{_li
 %files -n sm-eru
 %defattr(-,root,root,-)
 /etc/init.d/sm-eru
-/etc/pmon.d/sm-eru.conf
+%{pmondir}/sm-eru.conf
 /usr/bin/sm-eru
 /usr/bin/sm-eru-dump
 /usr/lib/systemd/system/sm-eru.service

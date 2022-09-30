@@ -1,5 +1,4 @@
 etc/init.d/sm-api
-etc/pmon.d/sm-api.conf
 etc/sm/sm_api.ini
 etc/sm-api/policy.json
 lib/systemd/system/*
