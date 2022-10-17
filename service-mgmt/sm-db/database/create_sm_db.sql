@@ -45,7 +45,6 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(11,'yes','controller-services','platf
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(12,'yes','controller-services','postgres','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(13,'yes','controller-services','rabbit','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(15,'yes','controller-services','platform-export-fs','critical');
-INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(17,'yes','controller-services','platform-nfs-ip','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(18,'yes','controller-services','sysinv-inv','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(19,'yes','controller-services','sysinv-conductor','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(20,'yes','controller-services','mtc-agent','critical');
@@ -110,7 +109,6 @@ INSERT INTO "SERVICES" VALUES(11,'yes','platform-fs','initial','initial','none',
 INSERT INTO "SERVICES" VALUES(12,'yes','postgres','initial','initial','none','none',2,1,90000,4,16,'/var/run/postmaster.pid');
 INSERT INTO "SERVICES" VALUES(13,'yes','rabbit','initial','initial','none','none',2,1,90000,4,16,'/var/run/rabbitmq/rabbitmq.pid');
 INSERT INTO "SERVICES" VALUES(15,'yes','platform-export-fs','initial','initial','none','none',2,1,90000,4,16,'');
-INSERT INTO "SERVICES" VALUES(17,'yes','platform-nfs-ip','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(18,'yes','sysinv-inv','initial','initial','none','none',2,1,90000,4,16,'/var/run/sysinv-api.pid');
 INSERT INTO "SERVICES" VALUES(19,'yes','sysinv-conductor','initial','initial','none','none',2,1,90000,4,16,'/var/run/sysinv-conductor.pid');
 INSERT INTO "SERVICES" VALUES(20,'yes','mtc-agent','initial','initial','none','none',2,1,90000,4,16,'/var/run/mtcAgent.pid');
@@ -179,10 +177,10 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','en
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','enable','rabbit-fs','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-export-fs','not-applicable','enable','platform-fs','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','extension-export-fs','not-applicable','enable','extension-fs','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-nfs-ip','not-applicable','enable','platform-export-fs','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-export-fs','not-applicable','enable','management-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applicable','enable','postgres','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applicable','enable','rabbit','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applicable','enable','platform-nfs-ip','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applicable','enable','management-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-inv','not-applicable','enable','sysinv-conductor','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','mtc-agent','not-applicable','enable','sysinv-inv','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','hw-mon','not-applicable','enable','mtc-agent','enabled-active');
@@ -195,7 +193,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','fm-mgr','not-applicable','enab
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd','not-applicable','enable','etcd-fs','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','enable','postgres','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','enable','rabbit','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','enable','platform-nfs-ip','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','enable','management-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','horizon','not-applicable','enable','lighttpd','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-manager','not-applicable','enable','mgr-restful-plugin','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cinder','not-applicable','go-active','management-ip','enabled-active');
@@ -218,15 +216,15 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','pg-fs','not-applicable','disab
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit-fs','not-applicable','disable','rabbit','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','nfs-mgmt','not-applicable','disable','platform-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','extension-fs','not-applicable','disable','extension-export-fs','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-nfs-ip','not-applicable','disable','keystone','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','disable','keystone','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-fs','not-applicable','disable','platform-export-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','fm-mgr','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','keystone','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','sysinv-conductor','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','keystone','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','sysinv-conductor','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-export-fs','not-applicable','disable','platform-nfs-ip','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-nfs-ip','not-applicable','disable','sysinv-conductor','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','disable','platform-export-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','disable','sysinv-conductor','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applicable','disable','sysinv-inv','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-inv','not-applicable','disable','mtc-agent','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applicable','disable','dnsmasq','disabled');
@@ -393,10 +391,6 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('extension-export-fs','enable','ocf-script'
 INSERT INTO "SERVICE_ACTIONS" VALUES('extension-export-fs','disable','ocf-script','heartbeat','exportfs','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('extension-export-fs','audit-enabled','ocf-script','heartbeat','exportfs','monitor','',2,2,2,20,30);
 INSERT INTO "SERVICE_ACTIONS" VALUES('extension-export-fs','audit-disabled','ocf-script','heartbeat','exportfs','monitor','',0,0,0,20,30);
-INSERT INTO "SERVICE_ACTIONS" VALUES('platform-nfs-ip','enable','ocf-script','heartbeat','IPaddr2','start','',2,2,2,20,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('platform-nfs-ip','disable','ocf-script','heartbeat','IPaddr2','stop','',1,1,1,20,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('platform-nfs-ip','audit-enabled','ocf-script','heartbeat','IPaddr2','monitor','',2,2,2,20,5);
-INSERT INTO "SERVICE_ACTIONS" VALUES('platform-nfs-ip','audit-disabled','ocf-script','heartbeat','IPaddr2','monitor','',0,0,0,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-inv','enable','ocf-script','platform','sysinv-api','start','',2,2,2,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-inv','disable','ocf-script','platform','sysinv-api','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-inv','audit-enabled','ocf-script','platform','sysinv-api','monitor','',2,2,2,40,90);
