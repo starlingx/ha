@@ -391,8 +391,8 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('extension-export-fs','enable','ocf-script'
 INSERT INTO "SERVICE_ACTIONS" VALUES('extension-export-fs','disable','ocf-script','heartbeat','exportfs','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('extension-export-fs','audit-enabled','ocf-script','heartbeat','exportfs','monitor','',2,2,2,20,30);
 INSERT INTO "SERVICE_ACTIONS" VALUES('extension-export-fs','audit-disabled','ocf-script','heartbeat','exportfs','monitor','',0,0,0,20,30);
-INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-inv','enable','ocf-script','platform','sysinv-api','start','',2,2,2,15,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-inv','disable','ocf-script','platform','sysinv-api','stop','',1,1,1,15,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-inv','enable','ocf-script','platform','sysinv-api','start','',2,2,2,30,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-inv','disable','ocf-script','platform','sysinv-api','stop','',1,1,1,30,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-inv','audit-enabled','ocf-script','platform','sysinv-api','monitor','',2,2,2,40,90);
 INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-inv','audit-disabled','ocf-script','platform','sysinv-api','monitor','',0,0,0,40,90);
 INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-conductor','enable','ocf-script','platform','sysinv-conductor','start','',2,2,2,30,'');
