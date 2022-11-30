@@ -379,7 +379,7 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('postgres','enable','ocf-script','heartbeat
 INSERT INTO "SERVICE_ACTIONS" VALUES('postgres','disable','ocf-script','heartbeat','pgsql','stop','',1,1,1,60,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('postgres','audit-enabled','ocf-script','heartbeat','pgsql','monitor','',2,2,2,60,30);
 INSERT INTO "SERVICE_ACTIONS" VALUES('postgres','audit-disabled','ocf-script','heartbeat','pgsql','monitor','',0,0,0,60,30);
-INSERT INTO "SERVICE_ACTIONS" VALUES('rabbit','enable','ocf-script','rabbitmq','stx.rabbitmq-server','start','',2,2,2,60,20);
+INSERT INTO "SERVICE_ACTIONS" VALUES('rabbit','enable','ocf-script','rabbitmq','stx.rabbitmq-server','start','',2,2,2,90,20);
 INSERT INTO "SERVICE_ACTIONS" VALUES('rabbit','disable','ocf-script','rabbitmq','stx.rabbitmq-server','stop','',1,1,1,60,20);
 INSERT INTO "SERVICE_ACTIONS" VALUES('rabbit','audit-enabled','ocf-script','rabbitmq','stx.rabbitmq-server','monitor','',2,2,2,30,20);
 INSERT INTO "SERVICE_ACTIONS" VALUES('rabbit','audit-disabled','ocf-script','rabbitmq','stx.rabbitmq-server','monitor','',0,0,0,15,20);
