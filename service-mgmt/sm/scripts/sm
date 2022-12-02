@@ -55,19 +55,52 @@ case "$1" in
         fi
 
         echo -n "Starting ${SM_NAME}: "
-        if [ -n "`pidof ${SM}`" ]
-        then
-           # PMOND might have restarted SM already.
-           RETVAL=0
-        else
+        c=0
+        p=$(pidof ${SM})
+        # pidof /usr/bin/sm return 2 pids. When SM main process is killed
+        # subprocess id is returned until the subprocess goes away.
+        # calling start-stop-daemon --start too early will fail
+        #
+        # Add a loop below to wait up to 10 seconds for sub process to finish.
+        # Sub process terminates in around 5 seconds by itself, try killing it.
+        # A slight longer wait time to see main process goes away is not a concern,
+        # as if the SM is actually running  (possibly started by pmon or systemd),
+        # sm is already functioning.
+        c=0
+        p=$(pidof ${SM})
+        while [[ $c -lt 10 && ${p} ]]
+        do
+           logger "SM waiting ${p}"
+           if [[ $(echo ${p} | grep "^[0-9]*$") ]]; then
+              # only subprocess running, try killing it
+              kill -9 ${p}
+           fi
+           sleep 1
+           c=$(( ${c} + 1 ))
+           p=$(pidof ${SM})
+        done
+
+        running=0
+        if [[ "${c}" == "10" ]]; then
+           if [[ $(echo ${p} | grep "^[0-9]*$") ]]; then
+              kill -9 ${p}
+           elif [[ $(echo ${p} | grep "^[0-9]* [0-9]*$") ]]; then
+              running=1
+              logger "pidof ${SM} still  running."
+              RETVAL=0
+           fi
+        fi
+
+        if [[ "${running}" == "0" ]]; then
            start-stop-daemon --start -b -x ${SM} -- ${sm_args}
            RETVAL=$?
         fi
+
         if [ ${RETVAL} -eq 0 ]
         then
            echo "OK"
         else
-           echo "FAIL"
+           echo "FAIL ${RETVAL}"
            RETVAL=1
         fi
         ;;
