@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014-2015 Wind River Systems, Inc.
+# Copyright (c) 2014-2023 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -15,9 +15,12 @@ cpe_duplex = "duplex"
 cpe_duplex_direct = "duplex-direct"
 mgmt_if = 'management-interface'
 cluster_host_if = 'cluster-host-interface'
+admin_if = 'admin-interface'
+admin_ip = 'admin-ip'
 tor_connect = 'tor'
 dc_connect = 'dc'
 database_name = "/var/lib/sm/sm.db"
+runtime_db_name = "/var/run/sm/sm.db"
 
 
 def main():
@@ -41,6 +44,10 @@ def main():
         if_parser.add_argument('network_peer_port', help='network peer port')
         if_parser.add_argument('network_peer_heartbeat_port',
                                help='network peer heartbeat port')
+        if_parser.add_argument('--apply',
+                               help='Apply the new configuration '
+                                    'immediately',
+                               action='store_true')
 
         si_parser = subparsers.add_parser('service_instance',
                                           help='Service Instance '
@@ -49,6 +56,10 @@ def main():
         si_parser.add_argument('service', help='service name')
         si_parser.add_argument('instance', help='instance name')
         si_parser.add_argument('parameters', help='instance parameters')
+        si_parser.add_argument('--apply',
+                               help='Apply the new configuration '
+                                    'immediately',
+                               action='store_true')
 
         sys_parser = subparsers.add_parser('system',
                                            help='system Configuration')
@@ -110,6 +121,10 @@ def main():
                     print("Invalid sm_process_priority value. "
                           "Must be between -2 to -20")
                     sys.exit(-1)
+        elif args.which == 'interface':
+            _configure_interface(args)
+        elif args.which == 'service_instance':
+            _configure_service_instance(args)
         else:
             database = sqlite3.connect(database_name)
             _dispatch_config_action(args, database)
@@ -231,6 +246,37 @@ def _dispatch_config_action(args, database):
                               ))
 
         database.commit()
+
+
+def _configure_interface(args):
+    database = sqlite3.connect(database_name)
+    _dispatch_config_action(args, database)
+    database.close()
+
+    if args.apply:
+        if args.service_domain_interface == admin_if:
+            database = sqlite3.connect(runtime_db_name)
+            _dispatch_config_action(args, database)
+            database.close()
+        else:
+            print("Apply operation on service "
+                  "domain interface %s is unsupported." %
+                  (args.service_domain_interface))
+
+
+def _configure_service_instance(args):
+    database = sqlite3.connect(database_name)
+    _dispatch_config_action(args, database)
+    database.close()
+    if args.apply:
+        if args.service == admin_ip:
+            database = sqlite3.connect(runtime_db_name)
+            _dispatch_config_action(args, database)
+            database.close()
+        else:
+            print("Apply operation on service "
+                  "instance %s is unsupported." %
+                  (args.service))
 
 
 def configure_cpe_duplex():

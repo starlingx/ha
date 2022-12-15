@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2019 Wind River Systems, Inc.
+// Copyright (c) 2014-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -253,6 +253,26 @@ static void sm_main_event_handler_api_deprovision_service_callback(
 }
 
 // ****************************************************************************
+// Main Event Handler - Provision Service Domain Interface API Event Callback
+// ======================================================
+static void sm_main_event_handler_api_provision_service_domain_interface_callback(
+    char service_domain_name[], char interface_name[], int seqno )
+{
+    sm_provision_service_domain_interface(service_domain_name, interface_name);
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Main Event Handler - Provision Service Domain Interface API Event Callback
+// ======================================================
+static void sm_main_event_handler_api_deprovision_service_domain_interface_callback(
+    char service_domain_name[], char interface_name[], int seqno )
+{
+    sm_deprovision_service_domain_interface(service_domain_name, interface_name);
+}
+// ****************************************************************************
+
+// ****************************************************************************
 // Main Event Handler - Notify API Service Event Callback
 // ======================================================
 static void sm_main_event_handler_notify_api_service_event_callback(
@@ -382,6 +402,10 @@ SmErrorT sm_main_event_handler_initialize( void )
         = sm_main_event_handler_api_provision_service_callback;
     _api_callbacks.deprovision_service
         = sm_main_event_handler_api_deprovision_service_callback;
+    _api_callbacks.provision_service_domain_interface
+        = sm_main_event_handler_api_provision_service_domain_interface_callback;
+    _api_callbacks.deprovision_service_domain_interface
+        = sm_main_event_handler_api_deprovision_service_domain_interface_callback;
 
     error = sm_api_register_callbacks( &_api_callbacks );
     if( SM_OKAY != error )

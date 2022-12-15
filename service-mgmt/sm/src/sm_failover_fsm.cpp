@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018 Wind River Systems, Inc.
+// Copyright (c) 2018-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -36,6 +36,9 @@ void SmIFStateChangedEventData::set_interface_state(
         case SM_INTERFACE_CLUSTER_HOST:
             _cluster_host_state = interface_state;
             break;
+        case SM_INTERFACE_ADMIN:
+            _admin_state = interface_state;
+            break;
         default:
             DPRINTFE("Runtime error: invalid interface type %d", interface_type);
     }
@@ -51,6 +54,8 @@ SmFailoverInterfaceStateT SmIFStateChangedEventData::get_interface_state(SmInter
             return _mgmt_state;
         case SM_INTERFACE_CLUSTER_HOST:
             return _cluster_host_state;
+        case SM_INTERFACE_ADMIN:
+            return _admin_state;
         default:
             DPRINTFE("Runtime error: invalid interface type %d", interface_type);
             return SM_FAILOVER_INTERFACE_UNKNOWN;

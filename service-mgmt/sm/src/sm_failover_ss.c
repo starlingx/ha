@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018 Wind River Systems, Inc.
+// Copyright (c) 2018-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -268,10 +268,12 @@ SmErrorT _get_system_status(SmSystemStatusT& sys_status, char host_name[], char 
     sys_status.host_status.mgmt_state = sm_failover_get_interface_info(SM_INTERFACE_MGMT);
     sys_status.host_status.cluster_host_state = sm_failover_get_interface_info(SM_INTERFACE_CLUSTER_HOST);
     sys_status.host_status.oam_state = sm_failover_get_interface_info(SM_INTERFACE_OAM);
+    sys_status.host_status.admin_state = sm_failover_get_interface_info(SM_INTERFACE_ADMIN);
 
     if(SM_FAILOVER_INTERFACE_OK == sys_status.host_status.mgmt_state ||
        SM_FAILOVER_INTERFACE_OK == sys_status.host_status.oam_state ||
-       SM_FAILOVER_INTERFACE_OK == sys_status.host_status.cluster_host_state)
+       SM_FAILOVER_INTERFACE_OK == sys_status.host_status.cluster_host_state ||
+       SM_FAILOVER_INTERFACE_OK == sys_status.host_status.admin_state)
     {
         sys_status.heartbeat_state = SM_HEARTBEAT_OK;
     }else
@@ -545,7 +547,9 @@ SmErrorT _get_survivor_dc(const SmSystemStatusT& system_status, SmSystemFailover
     {
         if(system_status.host_status.mgmt_state == SM_FAILOVER_INTERFACE_DOWN &&
             (system_status.host_status.cluster_host_state == SM_FAILOVER_INTERFACE_DOWN ||
-            system_status.host_status.cluster_host_state == SM_FAILOVER_INTERFACE_UNKNOWN))
+            system_status.host_status.cluster_host_state == SM_FAILOVER_INTERFACE_UNKNOWN) &&
+            (system_status.host_status.admin_state == SM_FAILOVER_INTERFACE_DOWN ||
+            system_status.host_status.admin_state == SM_FAILOVER_INTERFACE_UNKNOWN))
         {
             if(SM_FAILOVER_INTERFACE_DOWN == system_status.host_status.oam_state)
             {

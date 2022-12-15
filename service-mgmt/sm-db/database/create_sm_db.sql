@@ -6,6 +6,7 @@ CREATE TABLE SERVICE_DOMAIN_INTERFACES ( ID INTEGER PRIMARY KEY AUTOINCREMENT, P
 INSERT INTO "SERVICE_DOMAIN_INTERFACES" VALUES(1,'yes','controller','management-interface','secondary','none','','','','','','','','','','','','tor');
 INSERT INTO "SERVICE_DOMAIN_INTERFACES" VALUES(2,'yes','controller','oam-interface','secondary','hmac-sha512','titanium-server','','','','','','','','','','','tor');
 INSERT INTO "SERVICE_DOMAIN_INTERFACES" VALUES(3,'yes','controller','cluster-host-interface','secondary','none','','','','','','','','','','','','tor');
+INSERT INTO "SERVICE_DOMAIN_INTERFACES" VALUES(4,'no','controller','admin-interface','secondary','none','','','','','','','','','','','','tor');
 CREATE TABLE SERVICE_DOMAINS ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), ORCHESTRATION CHAR(32), DESIGNATION CHAR(32), PREEMPT CHAR(32), PRIORITY INT, HELLO_INTERVAL INT, DEAD_INTERVAL INT, WAIT_INTERVAL INT, EXCHANGE_INTERVAL INT, STATE CHAR(32), SPLIT_BRAIN_RECOVERY CHAR(32), LEADER CHAR(32), GENERATION INT);
 INSERT INTO "SERVICE_DOMAINS" VALUES(1,'yes','controller','regional','unknown','no',230,200,800,5000,2000,'initial','select-best-active','',1);
 CREATE TABLE SERVICE_DOMAIN_MEMBERS ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), SERVICE_GROUP_NAME CHAR(32), REDUNDANCY_MODEL CHAR(32), N_ACTIVE INT, M_STANDBY INT, SERVICE_GROUP_AGGREGATE CHAR(32), ACTIVE_ONLY_IF_ACTIVE CHAR(32) );
@@ -19,6 +20,7 @@ INSERT INTO "SERVICE_DOMAIN_MEMBERS" VALUES(7,'yes','controller','web-services',
 INSERT INTO "SERVICE_DOMAIN_MEMBERS" VALUES(8,'no','controller','storage-services','N',2,0,'','');
 INSERT INTO "SERVICE_DOMAIN_MEMBERS" VALUES(9,'no','controller','storage-monitoring-services','N + M',1,1,'','');
 INSERT INTO "SERVICE_DOMAIN_MEMBERS" VALUES(10,'no','controller','distributed-cloud-services','N + M',1,1,'controller-aggregate','');
+INSERT INTO "SERVICE_DOMAIN_MEMBERS" VALUES(11,'no','controller','admin-services','N + M',1,1,'controller-aggregate','directory-services');
 CREATE TABLE SERVICE_DOMAIN_NEIGHBORS ( ID INTEGER PRIMARY KEY AUTOINCREMENT, NAME CHAR(32), SERVICE_DOMAIN CHAR(32), ORCHESTRATION CHAR(32), DESIGNATION CHAR(32), PRIORITY INT, HELLO_INTERVAL INT, DEAD_INTERVAL INT, WAIT_INTERVAL INT, EXCHANGE_INTERVAL INT, STATE CHAR(32), GENERATION INT);
 CREATE TABLE SERVICE_DOMAIN_ASSIGNMENTS ( ID INTEGER PRIMARY KEY AUTOINCREMENT, UUID CHAR(42), NAME CHAR(32), NODE_NAME CHAR(32), SERVICE_GROUP_NAME CHAR(32), DESIRED_STATE CHAR(32), STATE CHAR(32), STATUS CHAR(32), CONDITION CHAR(32) );
 CREATE TABLE SERVICE_GROUPS ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), AUTO_RECOVER CHAR(32), CORE CHAR(32), DESIRED_STATE CHAR(32), STATE CHAR(32), STATUS CHAR(32), CONDITION CHAR(32), FAILURE_DEBOUNCE INT, FATAL_ERROR_REBOOT CHAR(32) );
@@ -32,6 +34,7 @@ INSERT INTO "SERVICE_GROUPS" VALUES(7,'no','storage-services','no','no','initial
 INSERT INTO "SERVICE_GROUPS" VALUES(8,'no','storage-monitoring-services','no','no','initial','initial','','',120000,'no');
 INSERT INTO "SERVICE_GROUPS" VALUES(9,'yes','vim-services','no','no','initial','initial','','',300000,'yes');
 INSERT INTO "SERVICE_GROUPS" VALUES(10,'no','distributed-cloud-services','no','no','initial','initial','','',300000,'yes');
+INSERT INTO "SERVICE_GROUPS" VALUES(11,'no','admin-services','no','no','initial','initial','','',300000,'no');
 CREATE TABLE SERVICE_GROUP_MEMBERS ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), SERVICE_NAME CHAR(32), SERVICE_FAILURE_IMPACT CHAR(32));
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(1,'yes','oam-services','oam-ip','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(2,'yes','controller-services','management-ip','critical');
@@ -95,6 +98,7 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-s
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcmanager-orchestrator','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcmanager-audit-worker','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcmanager-state','major' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','admin-services','admin-ip','critical' FROM "SERVICE_GROUP_MEMBERS";
 CREATE TABLE SERVICES ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), DESIRED_STATE CHAR(32), STATE CHAR(32), STATUS CHAR(32), CONDITION CHAR(32), MAX_FAILURES INT, FAIL_COUNTDOWN INT, FAIL_COUNTDOWN_INTERVAL INT, MAX_ACTION_FAILURES INT, MAX_TRANSITION_FAILURES INT, PID_FILE CHAR(256) );
 INSERT INTO "SERVICES" VALUES(1,'yes','oam-ip','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(2,'yes','management-ip','initial','initial','none','none',2,1,90000,4,16,'');
@@ -158,6 +162,7 @@ INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcdbsync-openstack-api','initial
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcmanager-orchestrator','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcmanager-orchestrator.pid' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcmanager-audit-worker','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcmanager-audit-worker.pid' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcmanager-state','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcmanager-state.pid' FROM "SERVICES";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','admin-ip','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 CREATE TABLE SERVICE_HEARTBEAT ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), TYPE CHAR(32), SRC_ADDRESS CHAR(108), SRC_PORT INT, DST_ADDRESS CHAR(108), DST_PORT INT, MESSAGE CHAR(256), INTERVAL_IN_MS INT, MISSED_WARN INT, MISSED_DEGRADE INT, MISSED_FAIL INT, STATE CHAR(32), MISSED INT, HEARTBEAT_TIMER_ID INT, HEARTBEAT_SOCKET INT );
 CREATE TABLE SERVICE_DEPENDENCY ( DEPENDENCY_TYPE CHAR(32), SERVICE_NAME CHAR(32), STATE CHAR(32), ACTION CHAR(32), DEPENDENT CHAR(32), DEPENDENT_STATE CHAR(32), PRIMARY KEY (DEPENDENCY_TYPE, SERVICE_NAME, STATE, ACTION, DEPENDENT));
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','oam-ip','not-applicable','enable','management-ip','enabled-active');
@@ -576,6 +581,10 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-state','enable','ocf-script','op
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-state','disable','ocf-script','openstack','dcmanager-state','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-state','audit-enabled','ocf-script','openstack','dcmanager-state','monitor','',2,2,2,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-state','audit-disabled','ocf-script','openstack','dcmanager-state','monitor','',0,0,0,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('admin-ip','enable','ocf-script','heartbeat','IPaddr2','start','',2,2,2,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('admin-ip','disable','ocf-script','heartbeat','IPaddr2','stop','',1,1,1,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('admin-ip','audit-enabled','ocf-script','heartbeat','IPaddr2','monitor','',2,2,2,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('admin-ip','audit-disabled','ocf-script','heartbeat','IPaddr2','monitor','',0,0,0,20,5);
 CREATE TABLE SERVICE_ACTION_RESULTS ( PLUGIN_TYPE CHAR(32), PLUGIN_NAME CHAR(80), PLUGIN_COMMAND CHAR(80), PLUGIN_EXIT_CODE CHAR(32), ACTION_RESULT CHAR(32), SERVICE_STATE CHAR(32), SERVICE_STATUS CHAR(32), SERVICE_CONDITION CHAR(32), PRIMARY KEY (PLUGIN_TYPE, PLUGIN_NAME, PLUGIN_COMMAND, PLUGIN_EXIT_CODE));
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('lsb-script','default','status','0','success','enabled-active','unknown','unknown');
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('lsb-script','default','status','1','success','disabled','unknown','unknown');

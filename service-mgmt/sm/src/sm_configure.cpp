@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2019 Wind River Systems, Inc.
+// Copyright (c) 2019-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -20,6 +20,10 @@
 #include "sm_service_domain_assignment_table.h"
 #include "sm_timer.h"
 #include "sm_service_fsm.h"
+#include "sm_service_domain_interface_api.h"
+#include "sm_service_domain_interface_table.h"
+#include "sm_heartbeat.h"
+#include "sm_msg.h"
 
 
 // The behavior of a service is configured in multiple (>1) service groups has
@@ -184,3 +188,82 @@ SmErrorT sm_deprovision_service( char service_group_name[], char service_name[] 
     return SM_OKAY;
 }
 // ****************************************************************************
+
+// ****************************************************************************
+// sm configure: provision service domain interface
+// ================================
+extern SmErrorT sm_provision_service_domain_interface( char service_domain_name[], char interface_name[] )
+{
+    SmErrorT error;
+
+    DPRINTFI("Start provisioning service domain interface %s:%s...", service_domain_name, interface_name);
+
+    error = sm_service_domain_interface_table_load();
+    if(SM_OKAY != error)
+    {
+        DPRINTFE("Failed to reload domain interface table");
+        return error;
+    }
+
+    SmServiceDomainInterfaceT* interface = sm_service_domain_interface_table_read(service_domain_name, interface_name);
+    if(NULL == interface)
+    {
+        DPRINTFI("Service domain interface %s not found", interface_name);
+        return SM_NOT_FOUND;
+    }
+
+    error = sm_service_domain_interface_api_provisioned(interface);
+    if(SM_OKAY != error)
+    {
+        DPRINTFE("Failed to provision service domain interface %s:%s", service_domain_name, interface_name);
+        return error;
+    }
+
+    error = sm_service_domain_interface_table_load();
+    if(SM_OKAY != error)
+    {
+        DPRINTFE("Failed to reload domain interface table");
+        return error;
+    }
+
+    error = sm_service_domain_interface_api_audit();
+    if(SM_OKAY != error)
+    {
+        DPRINTFE( "Failed to audit interfaces, error=%s.",
+                  sm_error_str( error ) );
+    }
+
+    DPRINTFI("%s:%s is provisioned successfully", service_domain_name, interface_name);
+    return SM_OKAY;
+
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// sm configure: deprovision service domain interface
+// ===============================
+SmErrorT sm_deprovision_service_domain_interface( char service_domain_name[], char interface_name[] )
+{
+    SmErrorT error;
+    DPRINTFI("Start deprovisioning service domain interface %s:%s ...", service_domain_name, interface_name);
+
+    SmServiceDomainInterfaceT* interface = sm_service_domain_interface_table_read(service_domain_name, interface_name);
+    if(NULL == interface)
+    {
+        DPRINTFI("Service domain interface %s not found", interface_name);
+        return SM_NOT_FOUND;
+    }
+
+    error = sm_service_domain_interface_api_deprovisioned(interface);
+    if(SM_OKAY != error)
+    {
+        DPRINTFE("Failed to deprovision service domain interface %s:%s", service_domain_name, interface_name);
+        return error;
+    }
+
+    DPRINTFI("%s:%s is deprovisioned successfully", service_domain_name, interface_name);
+
+    return SM_OKAY;
+}
+// ****************************************************************************
+

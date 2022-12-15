@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014,2020 Wind River Systems, Inc.
+// Copyright (c) 2014,2020-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -48,6 +48,12 @@ extern SmErrorT sm_node_utils_get_oam_interface( char interface_name[] );
 // Node Utilities - Get Cluster Host Interface
 // ===========================================
 extern SmErrorT sm_node_utils_get_cluster_host_interface( char interface_name[] );
+// ****************************************************************************
+
+// ****************************************************************************
+// Node Utilities - Get Admin Interface
+// ===========================================
+extern SmErrorT sm_node_utils_get_admin_interface( char interface_name[] );
 // ****************************************************************************
 
 // ****************************************************************************

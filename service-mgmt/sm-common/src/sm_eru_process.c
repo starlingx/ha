@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2017 Wind River Systems, Inc.
+// Copyright (c) 2014-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -113,6 +113,13 @@ void sm_eru_process_load_interfaces( void )
     if(( SM_OKAY != error )&&( SM_NOT_FOUND != error ))
     {
         DPRINTFE( "Failed to look up cluster-host interface, error=%s.",
+                  sm_error_str(error) );
+    }
+
+    error = sm_node_utils_get_admin_interface( &(_interfaces[3][0]) );
+    if(( SM_OKAY != error )&&( SM_NOT_FOUND != error ))
+    {
+        DPRINTFE( "Failed to look up admin interface, error=%s.",
                   sm_error_str(error) );
     }
 }

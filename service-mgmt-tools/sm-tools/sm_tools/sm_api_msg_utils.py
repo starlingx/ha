@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2016 Wind River Systems, Inc.
+# Copyright (c) 2016-2023 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -23,6 +23,9 @@ SM_API_MSG_SKIP_DEP_CHECK = "skip-dep"
 SM_API_MSG_TYPE_PROVISION_SERVICE = "PROVISION_SERVICE"
 SM_API_MSG_TYPE_DEPROVISION_SERVICE = "DEPROVISION_SERVICE"
 
+SM_API_MSG_TYPE_PROVISION_SERVICE_DOMAIN_INTERFACE = "PROVISION_SERVICE_DOMAIN_INTERFACE"
+SM_API_MSG_TYPE_DEPROVISION_SERVICE_DOMAIN_INTERFACE = "DEPROVISION_SERVICE_DOMAIN_INTERFACE"
+
 SM_API_MSG_TYPE_RELOAD_DATA = "RELOAD_DATA"
 
 SM_API_MSG_TYPE_SDI_SET_STATE = "SERVICE_DOMAIN_INTERFACE_SET_STATE"
@@ -34,6 +37,10 @@ SM_API_MSG_SEQNO_FIELD = 2
 SM_API_MSG_TYPE_FIELD = 3
 SM_API_MSG_ORIGIN_FIELD = 4
 SM_API_MSG_SERVICE_NAME_FIELD = 5
+# For provisioning a service domain interface, the SM API
+# message expects the service domain name at the same offset
+# as the service name field (used for provisioning a service)
+SM_API_MSG_SERVICE_DOMAIN_NAME_FIELD = 5
 SM_API_MSG_PARAM = 6
 
 
@@ -97,4 +104,36 @@ def deprovision_service(service_name, service_group_name):
                   % (SM_API_MSG_VERSION, SM_API_MSG_REVISION, 1,
                      SM_API_MSG_TYPE_DEPROVISION_SERVICE, "sm-action",
                      service_name, service_group_name))
+    _send_msg_to_sm(sm_api_msg)
+
+
+def provision_service_domain_interface(service_domain,
+                                       service_domain_interface_name):
+    """
+
+    :param service_domain:
+    :param service_domain_interface_name:
+    :return:
+    """
+    sm_api_msg = ("%s,%s,%i,%s,%s,%s,%s"
+                  % (SM_API_MSG_VERSION, SM_API_MSG_REVISION, 1,
+                     SM_API_MSG_TYPE_PROVISION_SERVICE_DOMAIN_INTERFACE,
+                     "sm-action", service_domain,
+                     service_domain_interface_name))
+    _send_msg_to_sm(sm_api_msg)
+
+
+def deprovision_service_domain_interface(service_domain,
+                                         service_domain_interface_name):
+    """
+
+    :param service_domain:
+    :param service_domain_interface_name:
+    :return:
+    """
+    sm_api_msg = ("%s,%s,%i,%s,%s,%s,%s"
+                  % (SM_API_MSG_VERSION, SM_API_MSG_REVISION, 1,
+                     SM_API_MSG_TYPE_DEPROVISION_SERVICE_DOMAIN_INTERFACE,
+                     "sm-action", service_domain,
+                     service_domain_interface_name))
     _send_msg_to_sm(sm_api_msg)

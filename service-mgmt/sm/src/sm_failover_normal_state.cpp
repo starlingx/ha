@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018 Wind River Systems, Inc.
+// Copyright (c) 2018-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -25,13 +25,15 @@ SmErrorT SmFailoverNormalState::event_handler(SmFailoverEventT event, const ISmF
             {
                 const SmIFStateChangedEventData* data = (const SmIFStateChangedEventData*) event_data;
 
-                SmFailoverInterfaceStateT oam_state, mgmt_state, cluster_host_state;
+                SmFailoverInterfaceStateT oam_state, mgmt_state, cluster_host_state, admin_state;
                 oam_state = data->get_interface_state(SM_INTERFACE_OAM);
                 mgmt_state = data->get_interface_state(SM_INTERFACE_MGMT);
                 cluster_host_state = data->get_interface_state(SM_INTERFACE_CLUSTER_HOST);
+                admin_state = data->get_interface_state(SM_INTERFACE_ADMIN);
                 if(oam_state != SM_FAILOVER_INTERFACE_OK ||
                    mgmt_state != SM_FAILOVER_INTERFACE_OK ||
-                   (cluster_host_state != SM_FAILOVER_INTERFACE_OK && cluster_host_state != SM_FAILOVER_INTERFACE_UNKNOWN))
+                   (cluster_host_state != SM_FAILOVER_INTERFACE_OK && cluster_host_state != SM_FAILOVER_INTERFACE_UNKNOWN) ||
+                   (admin_state != SM_FAILOVER_INTERFACE_OK && admin_state != SM_FAILOVER_INTERFACE_UNKNOWN))
                 {
                     this->fsm.set_state(SM_FAILOVER_STATE_FAIL_PENDING);
                 }

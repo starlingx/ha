@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2018 Wind River Systems, Inc.
+// Copyright (c) 2014-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -85,7 +85,24 @@ static void sm_service_domain_interface_api_get_hw_interface(
                       sm_error_str(error) );
             return;
         }
-    }  
+    } else if( 0 == strcmp( SM_SERVICE_DOMAIN_ADMIN_INTERFACE,
+                            interface->service_domain_interface ) )
+    {
+        error = sm_node_utils_get_admin_interface( interface->interface_name );
+        if( SM_OKAY == error )
+        {
+            DPRINTFI( "Network address (%s) maps to %s interface from config, "
+                      "type=%s.", net_addr_str, interface->interface_name,
+                      interface->service_domain_interface );
+            goto PERSIST;
+        }
+        else if( SM_NOT_FOUND != error )
+        {
+            DPRINTFE( "Failed to look up admin interface, error=%s.",
+                      sm_error_str(error) );
+            return;
+        }
+    }
 
     error = sm_hw_get_if_by_network_address( &(interface->network_address),
                                              interface->interface_name );
@@ -225,6 +242,46 @@ SmErrorT sm_service_domain_interface_api_node_disabled( void )
 
     sm_service_domain_interface_table_foreach( user_data,
                                 sm_service_domain_interface_api_send_event );
+
+    return( SM_OKAY );
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Service Domain Interface API - Interface Provisioned
+// ============================================
+SmErrorT sm_service_domain_interface_api_provisioned( SmServiceDomainInterfaceT* interface )
+{
+    char reason_text[SM_LOG_REASON_TEXT_MAX_CHAR];
+    SmServiceDomainInterfaceEventT event;
+    void* user_data[] = { &event, reason_text };
+
+    event = SM_SERVICE_DOMAIN_INTERFACE_EVENT_UNKNOWN;
+
+    snprintf( reason_text, sizeof(reason_text), "%s interface is enabled",
+              interface->service_domain_interface );
+
+    sm_service_domain_interface_api_send_event( user_data, interface );
+
+    return( SM_OKAY );
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Service Domain Interface API - Interface Deprovisioned
+// ============================================
+SmErrorT sm_service_domain_interface_api_deprovisioned( SmServiceDomainInterfaceT* interface )
+{
+    char reason_text[SM_LOG_REASON_TEXT_MAX_CHAR];
+    SmServiceDomainInterfaceEventT event;
+    void* user_data[] = { &event, reason_text };
+
+    event = SM_SERVICE_DOMAIN_INTERFACE_EVENT_NOT_IN_USE;
+
+    snprintf( reason_text, sizeof(reason_text), "%s interface is disabled",
+              interface->service_domain_interface );
+
+    sm_service_domain_interface_api_send_event( user_data, interface );
 
     return( SM_OKAY );
 }

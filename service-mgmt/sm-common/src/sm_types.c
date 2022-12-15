@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2020 Wind River Systems, Inc.
+// Copyright (c) 2014-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -1872,6 +1872,9 @@ SmInterfaceTypeT sm_get_interface_type( const char* domain_interface )
     } else if ( 0 == strcmp ( SM_SERVICE_DOMAIN_CLUSTER_HOST_INTERFACE, domain_interface ) )
     {
         return SM_INTERFACE_CLUSTER_HOST;
+    } else if ( 0 == strcmp ( SM_SERVICE_DOMAIN_ADMIN_INTERFACE, domain_interface ) )
+    {
+        return SM_INTERFACE_ADMIN;
     }
 
     return SM_INTERFACE_UNKNOWN;

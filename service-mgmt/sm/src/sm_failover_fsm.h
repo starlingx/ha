@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018 Wind River Systems, Inc.
+// Copyright (c) 2018-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -73,6 +73,7 @@ class SmIFStateChangedEventData: public ISmFSMEventData
         SmFailoverInterfaceStateT _mgmt_state;
         SmFailoverInterfaceStateT _cluster_host_state;
         SmFailoverInterfaceStateT _oam_state;
+        SmFailoverInterfaceStateT _admin_state;
 };
 
 #endif //__SM_FAILOVER_FSM_H__

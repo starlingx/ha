@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017 Wind River Systems, Inc.
+// Copyright (c) 2017-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -137,6 +137,7 @@ static unsigned int _total_interfaces;
 static SmFailoverInterfaceInfo* _oam_interface_info = NULL;
 static SmFailoverInterfaceInfo* _mgmt_interface_info = NULL;
 static SmFailoverInterfaceInfo* _cluster_host_interface_info = NULL;
+static SmFailoverInterfaceInfo* _admin_interface_info = NULL;
 static SmFailoverInterfaceInfo _peer_if_list[SM_INTERFACE_MAX];
 static pthread_mutex_t _mutex;
 static SmDbHandleT* _sm_db_handle = NULL;
@@ -191,6 +192,19 @@ static void sm_failover_interface_check( void* user_data[],
             } else if (SM_NOT_FOUND != error )
             {
                 DPRINTFE( "Failed to look up cluster-host interface, error=%s.",
+                      sm_error_str(error) );
+            }
+        }else if( 0 == strcmp(SM_SERVICE_DOMAIN_ADMIN_INTERFACE, interface->service_domain_interface ))
+        {
+            SmErrorT error = sm_node_utils_get_admin_interface(interface->interface_name);
+            if(SM_OKAY == error)
+            {
+                _my_if_list[*count].set_interface(interface);
+                _admin_interface_info = _my_if_list + (*count);
+                (*count) ++;
+            } else if (SM_NOT_FOUND != error )
+            {
+                DPRINTFE( "Failed to look up admin interface, error=%s.",
                       sm_error_str(error) );
             }
         }else
@@ -484,6 +498,21 @@ bool is_cluster_host_interface_configured()
 // ****************************************************************************
 
 // ****************************************************************************
+// Failover - is admin interface configured
+// ===============================================
+bool is_admin_interface_configured()
+{
+    if (NULL == _admin_interface_info ||
+        _admin_interface_info->get_interface()->service_domain_interface[0] == '\0' )
+    {
+        return false;
+    }
+
+    return true;
+}
+// ****************************************************************************
+
+// ****************************************************************************
 // Failover - get interface state
 // ==================
 int sm_failover_get_if_state()
@@ -491,6 +520,7 @@ int sm_failover_get_if_state()
     SmFailoverInterfaceStateT mgmt_state = _mgmt_interface_info->get_state();
     SmFailoverInterfaceStateT oam_state = _oam_interface_info->get_state();
     SmFailoverInterfaceStateT cluster_host_state;
+    SmFailoverInterfaceStateT admin_state;
     int if_state_flag  = 0;
     if ( is_cluster_host_interface_configured() )
     {
@@ -502,6 +532,19 @@ int sm_failover_get_if_state()
         else if ( SM_FAILOVER_INTERFACE_DOWN == cluster_host_state )
         {
             if_state_flag |= SM_FAILOVER_CLUSTER_HOST_DOWN;
+        }
+    }
+
+    if ( is_admin_interface_configured() )
+    {
+        admin_state = _admin_interface_info->get_state();
+        if( SM_FAILOVER_INTERFACE_OK == admin_state )
+        {
+            if_state_flag |= SM_FAILOVER_HEARTBEAT_ALIVE;
+        }
+        else if ( SM_FAILOVER_INTERFACE_DOWN == admin_state )
+        {
+            if_state_flag |= SM_FAILOVER_ADMIN_DOWN;
         }
     }
 
@@ -1018,6 +1061,13 @@ void sm_failover_audit()
         {
             event_data.set_interface_state(SM_INTERFACE_CLUSTER_HOST, SM_FAILOVER_INTERFACE_UNKNOWN);
         }
+        if( NULL != _admin_interface_info)
+        {
+            event_data.set_interface_state(SM_INTERFACE_ADMIN, _admin_interface_info->get_state());
+        }else
+        {
+            event_data.set_interface_state(SM_INTERFACE_ADMIN, SM_FAILOVER_INTERFACE_UNKNOWN);
+        }
         SmFailoverFSM::get_fsm().send_event(SM_FAILOVER_EVENT_IF_STATE_CHANGED, &event_data);
         _if_state_changed = false;
     }
@@ -1185,6 +1235,9 @@ SmFailoverInterfaceStateT sm_failover_get_interface_info(SmInterfaceTypeT interf
             break;
         case SM_INTERFACE_OAM:
             res = _oam_interface_info;
+            break;
+        case SM_INTERFACE_ADMIN:
+            res = _admin_interface_info;
             break;
         case SM_INTERFACE_UNKNOWN:
             break;
@@ -1471,6 +1524,7 @@ void dump_interfaces_state(FILE* fp)
     dump_if_state(fp, _oam_interface_info,   "  OAM");
     dump_if_state(fp, _mgmt_interface_info,  " MGMT");
     dump_if_state(fp, _cluster_host_interface_info, "CLUSTER-HOST");
+    dump_if_state(fp, _cluster_host_interface_info, "ADMIN");
 }
 
 void dump_peer_if_state(FILE* fp)

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018 Wind River Systems, Inc.
+// Copyright (c) 2018-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -18,6 +18,7 @@ typedef struct
     SmFailoverInterfaceStateT mgmt_state;
     SmFailoverInterfaceStateT cluster_host_state;
     SmFailoverInterfaceStateT oam_state;
+    SmFailoverInterfaceStateT admin_state;
     SmNodeScheduleStateT current_schedule_state;
 }SmNodeStatusT;
 

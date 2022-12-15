@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017-2020 Wind River Systems, Inc.
+// Copyright (c) 2017-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -36,6 +36,7 @@ typedef enum
     SM_FAILOVER_OAM_DOWN = 4,
     SM_FAILOVER_HEARTBEAT_ALIVE = 8,
     SM_FAILOVER_HELLO_MSG_ALIVE = 16,
+    SM_FAILOVER_ADMIN_DOWN = 32,
     SM_FAILOVER_PEER_DISABLED = 0x4000,
 }SmFailoverCommFaultBitFlagT;
 

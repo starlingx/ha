@@ -7,6 +7,7 @@
 #define __SM_SERVICE_DOMAIN_INTERFACE_API_H__
 
 #include "sm_types.h"
+#include "sm_service_domain_interface_table.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,6 +29,18 @@ extern SmErrorT sm_service_domain_interface_api_node_disabled( void );
 // Service Domain Interface API - Audit
 // ====================================
 extern SmErrorT sm_service_domain_interface_api_audit( void );
+// ****************************************************************************
+
+// ****************************************************************************
+// Service Domain Interface API - Provision
+// ====================================
+extern SmErrorT sm_service_domain_interface_api_provisioned( SmServiceDomainInterfaceT* interface );
+// ****************************************************************************
+
+// ****************************************************************************
+// Service Domain Interface API - Deprovision
+// ====================================
+extern SmErrorT sm_service_domain_interface_api_deprovisioned( SmServiceDomainInterfaceT* interface );
 // ****************************************************************************
 
 // ****************************************************************************

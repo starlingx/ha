@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018-2021 Wind River Systems, Inc.
+// Copyright (c) 2018-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -28,6 +28,7 @@
 #include "sm_cluster_hbs_info_msg.h"
 
 extern bool is_cluster_host_interface_configured( void );
+extern bool is_admin_interface_configured( void );
 
 // Failover Failed Recovery Audit period = 5 seconds
 static const int FAILED_STATE_AUDIT_PERIOD = 5000;
@@ -147,9 +148,10 @@ static bool sm_failover_failed_recovery_criteria_met( void )
 {
     bool criteria_met = false ;
 
-    SmFailoverInterfaceStateT oam_state, mgmt_state, cluster_host_state;
+    SmFailoverInterfaceStateT oam_state, mgmt_state, cluster_host_state, admin_state;
     oam_state = sm_failover_get_interface_info(SM_INTERFACE_OAM);
     mgmt_state = sm_failover_get_interface_info(SM_INTERFACE_MGMT);
+    admin_state = sm_failover_get_interface_info(SM_INTERFACE_ADMIN);
 
     const SmClusterHbsStateT& cluster_hbs_state = SmClusterHbsInfoMsg::get_current_state();
     int peer_controller_index = SmClusterHbsInfoMsg::get_peer_controller_index();
@@ -172,12 +174,23 @@ static bool sm_failover_failed_recovery_criteria_met( void )
         {
             criteria_met = true ;
         }
+
+        if ( criteria_met && is_admin_interface_configured() )
+        {
+            criteria_met = false ;
+            admin_state = sm_failover_get_interface_info(SM_INTERFACE_ADMIN);
+            if (( admin_state == SM_FAILOVER_INTERFACE_OK ) || ( admin_state == SM_FAILOVER_INTERFACE_MISSING_HEARTBEAT ))
+            {
+                criteria_met = true;
+            }
+        }
     }
 
-    DPRINTFI("Oam:%s ; Mgmt:%s ; Cluster:%s ; recovery criteria met: %s",
+    DPRINTFI("Oam:%s ; Mgmt:%s ; Cluster:%s ; Admin:%s recovery criteria met: %s",
               sm_failover_interface_state_str(oam_state),
               sm_failover_interface_state_str(mgmt_state),
               sm_failover_interface_state_str(cluster_host_state),
+              sm_failover_interface_state_str(admin_state),
                criteria_met ? "Yes" : "No");
 
     return (criteria_met);
