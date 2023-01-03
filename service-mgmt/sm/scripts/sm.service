@@ -13,6 +13,7 @@ PIDFile=/var/run/sm.pid
 KillMode=process
 RestartSec=10
 Restart=on-failure
+LimitNOFILE=1024
 
 [Install]
 WantedBy=multi-user.target
