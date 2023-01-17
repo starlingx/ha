@@ -64,7 +64,6 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(57,'no','controller-services','iscsi'
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(59,'yes','vim-services','vim','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(60,'yes','vim-services','vim-api','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(61,'yes','vim-services','vim-webserver','minor');
-INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(62,'yes','controller-services','guest-agent','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(64,'yes','oam-services','haproxy','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(65,'no','controller-services','pxeboot-ip','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(67,'no','storage-monitoring-services','ceph-radosgw','minor');
@@ -128,7 +127,6 @@ INSERT INTO "SERVICES" VALUES(57,'no','iscsi','initial','initial','none','none',
 INSERT INTO "SERVICES" VALUES(59,'yes','vim','initial','initial','none','none',2,1,90000,4,16,'/var/run/nfv-vim.pid');
 INSERT INTO "SERVICES" VALUES(60,'yes','vim-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/nfv-vim-api.pid');
 INSERT INTO "SERVICES" VALUES(61,'yes','vim-webserver','initial','initial','none','none',2,1,90000,4,16,'/var/run/nfv-vim-webserver.pid');
-INSERT INTO "SERVICES" VALUES(62,'yes','guest-agent','initial','initial','none','none',2,1,90000,4,16,'/var/run/guestAgent.pid');
 INSERT INTO "SERVICES" VALUES(64,'yes','haproxy','initial','initial','none','none',2,1,90000,4,16,'/var/run/haproxy.pid');
 INSERT INTO "SERVICES" VALUES(65,'no','pxeboot-ip','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(67,'no','ceph-radosgw','initial','initial','none','none',2,1,90000,4,16,'');
@@ -184,7 +182,6 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applica
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-inv','not-applicable','enable','sysinv-conductor','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','mtc-agent','not-applicable','enable','sysinv-inv','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','hw-mon','not-applicable','enable','mtc-agent','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','guest-agent','not-applicable','enable','mtc-agent','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','vim','not-applicable','enable','mtc-agent','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','vim-api','not-applicable','enable','vim','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','vim-webserver','not-applicable','enable','vim','enabled-active');
@@ -229,7 +226,6 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applica
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-inv','not-applicable','disable','mtc-agent','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applicable','disable','dnsmasq','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','mtc-agent','not-applicable','disable','hw-mon','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','mtc-agent','not-applicable','disable','guest-agent','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','mtc-agent','not-applicable','disable','vim','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','hw-mon','not-applicable','disable','','');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','vim','not-applicable','disable','vim-api','disabled');
@@ -311,7 +307,6 @@ INSERT INTO "SERVICE_INSTANCES" VALUES(1,'lighttpd','lighttpd','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(2,'horizon','horizon','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(4,'patch-alarm-manager','patch-alarm-manager','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(5,'hw-mon','hw-mon','');
-INSERT INTO "SERVICE_INSTANCES" VALUES(6,'guest-agent','guest-agent','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(7,'vim','vim','config=/etc/nfv/vim/config.ini');
 INSERT INTO "SERVICE_INSTANCES" VALUES(8,'vim-api','vim-api','config=/etc/nfv/vim/config.ini');
 INSERT INTO "SERVICE_INSTANCES" VALUES(9,'vim-webserver','vim-webserver','config=/etc/nfv/vim/config.ini');
@@ -451,10 +446,6 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('vim-webserver','enable','ocf-script','nfv'
 INSERT INTO "SERVICE_ACTIONS" VALUES('vim-webserver','disable','ocf-script','nfv','vim-webserver','stop','',1,1,1,20,30);
 INSERT INTO "SERVICE_ACTIONS" VALUES('vim-webserver','audit-enabled','ocf-script','nfv','vim-webserver','monitor','',2,2,2,20,30);
 INSERT INTO "SERVICE_ACTIONS" VALUES('vim-webserver','audit-disabled','ocf-script','nfv','vim-webserver','monitor','',0,0,0,20,30);
-INSERT INTO "SERVICE_ACTIONS" VALUES('guest-agent','enable','ocf-script','platform','guestAgent','start','',2,2,2,20,30);
-INSERT INTO "SERVICE_ACTIONS" VALUES('guest-agent','disable','ocf-script','platform','guestAgent','stop','',1,1,1,20,30);
-INSERT INTO "SERVICE_ACTIONS" VALUES('guest-agent','audit-enabled','ocf-script','platform','guestAgent','monitor','',2,2,2,20,30);
-INSERT INTO "SERVICE_ACTIONS" VALUES('guest-agent','audit-disabled','ocf-script','platform','guestAgent','monitor','',0,0,0,20,30);
 INSERT INTO "SERVICE_ACTIONS" VALUES('haproxy','enable','lsb-script','','haproxy','start','',2,2,2,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('haproxy','disable','lsb-script','','haproxy','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('haproxy','audit-enabled','lsb-script','','haproxy','status','',2,2,2,15,40);
