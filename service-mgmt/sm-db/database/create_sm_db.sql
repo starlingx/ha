@@ -452,7 +452,7 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('haproxy','audit-enabled','lsb-script','','
 INSERT INTO "SERVICE_ACTIONS" VALUES('haproxy','audit-disabled','lsb-script','','haproxy','status','',0,0,0,15,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('mgr-restful-plugin','enable','lsb-script','','mgr-restful-plugin','start','',2,2,2,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('mgr-restful-plugin','disable','lsb-script','','mgr-restful-plugin','stop','',1,1,1,15,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('mgr-restful-plugin','audit-enabled','lsb-script','','mgr-restful-plugin','status','',2,2,2,15,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('mgr-restful-plugin','audit-enabled','lsb-script','','mgr-restful-plugin','status','',3,3,3,60,90);
 INSERT INTO "SERVICE_ACTIONS" VALUES('mgr-restful-plugin','audit-disabled','lsb-script','','mgr-restful-plugin','status','',0,0,0,15,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-manager','enable','lsb-script','','ceph-manager','start','',2,2,2,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-manager','disable','lsb-script','','ceph-manager','stop','',1,1,1,15,'');
