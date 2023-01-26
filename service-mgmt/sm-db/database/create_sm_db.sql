@@ -238,7 +238,6 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd-fs','not-applicable','dis
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cinder-lvm','not-applicable','disable','iscsi','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cinder','not-applicable','go-standby','cinder-lvm','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-cinder','not-applicable','disable','cinder-lvm','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-manager','not-applicable','disable','sysinv-conductor','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-engine','not-applicable','enable','rabbit','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-engine','not-applicable','enable','postgres','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-engine','not-applicable','enable','management-ip','enabled-active');
