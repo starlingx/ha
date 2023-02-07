@@ -20,49 +20,11 @@
         - stx-ha-upload-git-mirror
 
 - job:
-    name: flock-devstack-ha
-    parent: flock-devstack-base-min
-    required-projects:
-      - openstack/barbican
-      - openstack/python-barbicanclient
-      - starlingx/config
-      - starlingx/fault
-      - starlingx/integ
-      - starlingx/metal
-      - starlingx/nfv
-      - starlingx/update
-    vars:
-      tox_envlist: functional
-      devstack_services:
-        # StarlingX services
-        fm-common: true
-        fm-api: true
-        sm-common: true
-        sm-db: true
-        sm-daemon: true
-        sm-client: true
-        sm-tools: true
-        sm-api: true
-        sm-eru: true
-        mysql: false
-        postgresql: true
-        tls-proxy: false
-      devstack_plugins:
-        barbican: https://opendev.org/openstack/barbican
-        config: https://opendev.org/starlingx/config
-        fault: https://opendev.org/starlingx/fault
-        ha: https://opendev.org/starlingx/ha
-        integ: https://opendev.org/starlingx/integ
-        metal: https://opendev.org/starlingx/metal
-        nfv: https://opendev.org/starlingx/nfv
-        update: https://opendev.org/starlingx/update
-
-- job:
     name: ha-tox-pylint
     parent: tox
     description: |
-      Run pylint test for ha in python2.7
-    nodeset: ubuntu-bionic
+      Run pylint test for ha in python3
+    nodeset: debian-bullseye
     vars:
       tox_envlist: pylint
 - job:
