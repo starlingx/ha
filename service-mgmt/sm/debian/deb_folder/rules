@@ -4,12 +4,20 @@ ROOT := $(CURDIR)/debian/tmp
 PMONDIR := /usr/share/starlingx/pmon.d
 UNIT_DIR := /lib/systemd/system
 
+export DEB_HOST_ARCH = $(shell dpkg-architecture -qDEB_HOST_ARCH 2>/dev/null)
+
 %:
 	dh $@
 
 override_dh_usrlocal:
 	# dh_usrlocal complains about files being put in /usr/local
 	# this empty override causes dh_usrlocal to be skipped.
+
+override_dh_auto_build:
+ifeq ($(DEB_HOST_ARCH),arm64)
+	sed -i "s/x86_64/aarch64/" $(CURDIR)/src/Makefile
+endif
+	dh_auto_build
 
 override_dh_auto_install:
 	$(MAKE) DEST_DIR=${ROOT} \
