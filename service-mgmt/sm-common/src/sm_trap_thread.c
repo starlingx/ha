@@ -385,6 +385,11 @@ static void sm_trap_thread_log( SmTrapThreadMsgT* msg )
 #elif __PPC__
     fprintf( _trap_log, "NIP = %08lX (instruction-pointer)\n",
              (long) ucontext->uc_mcontext.regs->nip );
+
+#elif __aarch64__
+    fprintf( _trap_log, "PC = %08lX (instruction-pointer)\n",
+             (long) ucontext->uc_mcontext.pc );
+
 #endif
 
     fprintf( _trap_log, "traceback: \n" );
