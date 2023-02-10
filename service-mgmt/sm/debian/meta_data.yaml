@@ -8,4 +8,6 @@ src_files:
   - src
 revision:
   dist: $STX_DIST
-  PKG_GITREVCOUNT: true
+  GITREVCOUNT:
+    BASE_SRCREV: aaab4822a3419b9f00f3bbb110b72651c862d097
+    SRC_DIR: ${MY_REPO}/stx/ha/service-mgmt/sm
