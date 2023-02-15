@@ -5,3 +5,5 @@ src_path: sm-api
 revision:
   dist: $STX_DIST
   PKG_GITREVCOUNT: true
+  SRC_GITREVCOUNT:
+    SRC_BASE_SRCREV: f30223d172225880f5cc081d10eb30bc5a6c95dd

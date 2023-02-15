@@ -8,4 +8,6 @@ src_files:
   - Makefile
 revision:
   dist: $STX_DIST
-  PKG_GITREVCOUNT: true
+  GITREVCOUNT:
+    BASE_SRCREV: 670e486c48f9b0cd0c06d67ff36671eb65f112ea
+    SRC_DIR: ${MY_REPO}/stx/ha/service-mgmt/sm-common

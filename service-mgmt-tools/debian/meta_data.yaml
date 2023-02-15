@@ -5,3 +5,5 @@ src_path: sm-tools
 revision:
   dist: $STX_DIST
   PKG_GITREVCOUNT: true
+  SRC_GITREVCOUNT:
+    SRC_BASE_SRCREV: e905c2315b6afa2626452259fa24c7fa6cad98e8
