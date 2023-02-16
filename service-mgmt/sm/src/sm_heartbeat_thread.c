@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2017 Wind River Systems, Inc.
+// Copyright (c) 2014-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -225,7 +225,8 @@ SmErrorT sm_heartbeat_thread_add_interface( const SmServiceDomainInterfaceT& dom
         interface->multicast_socket = -1;
 
         interface->interface_type = sm_get_interface_type(domain_interface.service_domain_interface);
-        if ( SM_INTERFACE_OAM == interface->interface_type )
+        if (( SM_INTERFACE_OAM == interface->interface_type ) ||
+            ( SM_INTERFACE_ADMIN == interface->interface_type ))
         {
             interface->method = SEND_UNICAST;
         } else
@@ -490,6 +491,11 @@ static bool sm_heartbeat_peer_alarm_on_interface( SmTimerIdT timer_id,
                             interface->service_domain_interface ) )
     {
         snprintf( network_type, sizeof(network_type), SM_CLUSTER_HOST_INTERFACE_NAME );
+
+    } else if( 0 == strcmp( SM_SERVICE_DOMAIN_ADMIN_INTERFACE,
+                            interface->service_domain_interface ) )
+    {
+        snprintf( network_type, sizeof(network_type), SM_ADMIN_INTERFACE_NAME );
 
     } else {
         snprintf( network_type, sizeof(network_type), "unknown" );
@@ -829,7 +835,8 @@ static bool sm_heartbeat_alive_timer( SmTimerIdT timer_id, int64_t user_data )
                 continue;
             }
 
-            if  ( SM_INTERFACE_OAM == interface->interface_type )
+            if (( SM_INTERFACE_OAM == interface->interface_type ) ||
+                ( SM_INTERFACE_ADMIN == interface->interface_type ))
             {
                 error = sm_heartbeat_msg_close_sockets(
                                             &(interface->unicast_socket) );
@@ -847,7 +854,8 @@ static bool sm_heartbeat_alive_timer( SmTimerIdT timer_id, int64_t user_data )
                 continue;
             }
 
-            if  ( SM_INTERFACE_OAM == interface->interface_type )
+            if (( SM_INTERFACE_OAM == interface->interface_type ) ||
+                ( SM_INTERFACE_ADMIN == interface->interface_type ))
             {
                 error = sm_heartbeat_msg_open_sockets( interface->network_type,
                         &(interface->network_address),
@@ -906,7 +914,8 @@ static bool sm_heartbeat_alive_timer( SmTimerIdT timer_id, int64_t user_data )
             DPRINTFD( "Multicast not configured for interface %s", interface->interface_name );
         }
 
-        if  ( SM_INTERFACE_OAM == interface->interface_type )
+        if (( SM_INTERFACE_OAM == interface->interface_type ) ||
+            ( SM_INTERFACE_ADMIN == interface->interface_type ))
         {
             error = sm_heartbeat_msg_send_alive( interface->network_type, _node_name,
                         &(interface->network_address), &(interface->network_peer_address),

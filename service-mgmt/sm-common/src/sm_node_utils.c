@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2020 Wind River Systems, Inc.
+// Copyright (c) 2014-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -217,6 +217,17 @@ SmErrorT sm_node_utils_get_oam_interface( char interface_name[] )
 SmErrorT sm_node_utils_get_cluster_host_interface( char interface_name[] )
 {
     return( sm_node_utils_read_platform_config( "cluster_host_interface",
+                                                interface_name,
+                                                SM_INTERFACE_NAME_MAX_CHAR ) );
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Node Utilities - Get Admin Interface
+// ===========================================
+SmErrorT sm_node_utils_get_admin_interface( char interface_name[] )
+{
+    return( sm_node_utils_read_platform_config( "admin_interface",
                                                 interface_name,
                                                 SM_INTERFACE_NAME_MAX_CHAR ) );
 }

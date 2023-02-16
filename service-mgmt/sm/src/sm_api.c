@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2019 Wind River Systems, Inc.
+// Copyright (c) 2014-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -32,7 +32,8 @@
 #define SM_API_MSG_SKIP_DEP_CHECK                   "skip-dep"
 #define SM_API_MSG_TYPE_PROVISION_SERVICE           "PROVISION_SERVICE"
 #define SM_API_MSG_TYPE_DEPROVISION_SERVICE         "DEPROVISION_SERVICE"
-
+#define SM_API_MSG_TYPE_PROVISION_SERVICE_DOMAIN_INTERFACE "PROVISION_SERVICE_DOMAIN_INTERFACE"
+#define SM_API_MSG_TYPE_DEPROVISION_SERVICE_DOMAIN_INTERFACE "DEPROVISION_SERVICE_DOMAIN_INTERFACE"
 
 #define SM_API_MSG_NODE_ACTION_UNKNOWN              "unknown"
 #define SM_API_MSG_NODE_ACTION_LOCK                 "lock"
@@ -67,6 +68,9 @@
 #define SM_API_MSG_NODE_AVAIL_FIELD                 9
 
 #define SM_API_MSG_SERVICE_NAME_FIELD               5
+// The service domain interface provision / deprovision msg is at the same
+// message offset as the service name field.
+#define SM_API_MSG_SERVICE_DOMAIN_NAME_FIELD        5
 #define SM_API_MSG_PARAM                            6
 
 #define SM_API_MAX_MSG_SIZE                         2048
@@ -379,6 +383,8 @@ static void sm_api_dispatch( int selobj, int64_t user_data )
     char* node_name;
     char* service_name;
     char* service_group_name;
+    char* service_domain;
+    char* service_domain_interface;
     gchar** params;
     int bytes_read;
     SmNodeSetActionT action;
@@ -445,7 +451,7 @@ static void sm_api_dispatch( int selobj, int64_t user_data )
         DPRINTFE( "Missing message-type field in received message." );
         goto ERROR;
     }
-    
+
     if( 0 == strcmp( SM_API_MSG_TYPE_SET_NODE, params[SM_API_MSG_TYPE_FIELD] ) )
     {
         if( params[SM_API_MSG_ORIGIN_FIELD] == NULL )
@@ -597,6 +603,72 @@ static void sm_api_dispatch( int selobj, int64_t user_data )
         if( NULL != _callbacks.deprovision_service )
         {
             _callbacks.deprovision_service( service_group_name, service_name, seqno);
+        }
+    }
+    else if( 0 == strcmp( SM_API_MSG_TYPE_PROVISION_SERVICE_DOMAIN_INTERFACE,
+                          params[SM_API_MSG_TYPE_FIELD] ) )
+    {
+        if( params[SM_API_MSG_ORIGIN_FIELD] == NULL )
+        {
+            DPRINTFE( "Missing origin field in received message." );
+            goto ERROR;
+        }
+
+        if( params[SM_API_MSG_SERVICE_DOMAIN_NAME_FIELD] == NULL )
+        {
+            DPRINTFE( "Missing service-domain field in received message." );
+            goto ERROR;
+        }
+        service_domain  = (char*) params[SM_API_MSG_SERVICE_DOMAIN_NAME_FIELD];
+
+        service_domain_interface = (char*) params[SM_API_MSG_PARAM];
+        if ( NULL == service_domain_interface )
+        {
+            DPRINTFE( "Missing service domain interface parameter." );
+            goto ERROR;
+        }
+        else
+        {
+            DPRINTFI( "Provision service domain interface %s:%s",
+                      service_domain, service_domain_interface);
+        }
+
+        if( NULL != _callbacks.provision_service_domain_interface )
+        {
+            _callbacks.provision_service_domain_interface( service_domain, service_domain_interface, seqno);
+        }
+    }
+    else if( 0 == strcmp( SM_API_MSG_TYPE_DEPROVISION_SERVICE_DOMAIN_INTERFACE,
+                          params[SM_API_MSG_TYPE_FIELD] ) )
+    {
+        if( params[SM_API_MSG_ORIGIN_FIELD] == NULL )
+        {
+            DPRINTFE( "Missing origin field in received message." );
+            goto ERROR;
+        }
+
+        if( params[SM_API_MSG_SERVICE_DOMAIN_NAME_FIELD] == NULL )
+        {
+            DPRINTFE( "Missing service-domain field in received message." );
+            goto ERROR;
+        }
+        service_domain  = (char*) params[SM_API_MSG_SERVICE_DOMAIN_NAME_FIELD];
+
+        service_domain_interface = (char*) params[SM_API_MSG_PARAM];
+        if ( NULL == service_domain_interface )
+        {
+            DPRINTFE( "Missing service domain interface parameter." );
+            goto ERROR;
+        }
+        else
+        {
+            DPRINTFI( "Deprovision service domain interface %s:%s",
+                      service_domain, service_domain_interface);
+        }
+
+        if( NULL != _callbacks.deprovision_service_domain_interface )
+        {
+            _callbacks.deprovision_service_domain_interface( service_domain, service_domain_interface, seqno);
         }
     } else {
         DPRINTFE( "Unknown/unsupported message-type (%s) received.",

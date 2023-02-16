@@ -11,6 +11,8 @@ import argparse
 import sqlite3
 from sm_tools.sm_api_msg_utils import provision_service
 from sm_tools.sm_api_msg_utils import deprovision_service
+from sm_tools.sm_api_msg_utils import provision_service_domain_interface
+from sm_tools.sm_api_msg_utils import deprovision_service_domain_interface
 
 database_name = "/var/lib/sm/sm.db"
 runtime_db_name = "/var/run/sm/sm.db"
@@ -64,6 +66,10 @@ def main():
                                       help='service domain name')
         sd_member_parser.add_argument('service_domain_interface',
                                       help='service domain interface name')
+        sd_member_parser.add_argument("--apply",
+                                      help="Apply the new configuration "
+                                           "immediately",
+                                      action="store_true")
 
         # Service-Group
         sg = subparsers.add_parser('service-group',
@@ -120,18 +126,25 @@ def main():
             database.close()
 
         elif args.which == 'service_domain_interface':
-            database = sqlite3.connect(database_name)
+            sql_update = "UPDATE SERVICE_DOMAIN_INTERFACES SET " \
+                         "PROVISIONED = '%s' WHERE SERVICE_DOMAIN = '%s' and " \
+                         "SERVICE_DOMAIN_INTERFACE = '%s';" \
+                         % (provision_str, args.service_domain,
+                            args.service_domain_interface)
+            sqls = [sql_update]
+            update_db(database_name, sqls)
 
-            cursor = database.cursor()
+            if args.apply and os.path.isfile(runtime_db_name):
+                # update runtime configuration
+                update_db(runtime_db_name, sqls)
 
-            cursor.execute("UPDATE SERVICE_DOMAIN_INTERFACES SET "
-                           "PROVISIONED = '%s' WHERE SERVICE_DOMAIN = '%s' and "
-                           "SERVICE_DOMAIN_INTERFACE = '%s';"
-                           % (provision_str, args.service_domain,
-                              args.service_domain_interface))
-
-            database.commit()
-            database.close()
+                # tell SM to apply changes
+                if "yes" == provision_str:
+                    provision_service_domain_interface(args.service_domain,
+                                                       args.service_domain_interface)
+                elif "no" == provision_str:
+                    deprovision_service_domain_interface(args.service_domain,
+                                                         args.service_domain_interface)
 
         elif args.which == 'service_group':
             database = sqlite3.connect(database_name)

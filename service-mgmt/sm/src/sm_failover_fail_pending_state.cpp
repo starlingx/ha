@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018 Wind River Systems, Inc.
+// Copyright (c) 2018-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -235,6 +235,7 @@ SmErrorT SmFailoverFailPendingState::event_handler(SmFailoverEventT event, const
                 {
                     interfaces_to_check[0] = SM_INTERFACE_MGMT;
                     interfaces_to_check[1] = SM_INTERFACE_CLUSTER_HOST;
+                    interfaces_to_check[2] = SM_INTERFACE_ADMIN;
                 }
                 for(int i = 0; interfaces_to_check[i] != SM_INTERFACE_UNKNOWN; i ++)
                 {

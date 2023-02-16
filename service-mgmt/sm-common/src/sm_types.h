@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2020 Wind River Systems, Inc.
+// Copyright (c) 2014-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -96,10 +96,12 @@ extern "C" {
 #define SM_SERVICE_DOMAIN_MGMT_INTERFACE             "management-interface"
 #define SM_SERVICE_DOMAIN_OAM_INTERFACE              "oam-interface"
 #define SM_SERVICE_DOMAIN_CLUSTER_HOST_INTERFACE     "cluster-host-interface"
+#define SM_SERVICE_DOMAIN_ADMIN_INTERFACE            "admin-interface"
 
 #define SM_MGMT_INTERFACE_NAME                       "mgmt"
 #define SM_OAM_INTERFACE_NAME                        "oam"
 #define SM_CLUSTER_HOST_INTERFACE_NAME               "cluster-host"
+#define SM_ADMIN_INTERFACE_NAME                      "admin"
 #define SM_MAX_IF_NAME_LEN                           5
 
 #define SM_NODE_CONTROLLER_0_NAME                    "controller-0"
@@ -201,7 +203,8 @@ typedef enum
     SM_INTERFACE_UNKNOWN,
     SM_INTERFACE_MGMT,
     SM_INTERFACE_CLUSTER_HOST,
-    SM_INTERFACE_OAM
+    SM_INTERFACE_OAM,
+    SM_INTERFACE_ADMIN
 }SmInterfaceTypeT;
 
 typedef enum
