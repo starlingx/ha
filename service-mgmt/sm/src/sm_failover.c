@@ -139,7 +139,7 @@ static SmFailoverInterfaceInfo* _mgmt_interface_info = NULL;
 static SmFailoverInterfaceInfo* _cluster_host_interface_info = NULL;
 static SmFailoverInterfaceInfo* _admin_interface_info = NULL;
 static SmFailoverInterfaceInfo _peer_if_list[SM_INTERFACE_MAX];
-static pthread_mutex_t _mutex;
+static pthread_mutex_t sm_failover_mutex;
 static SmDbHandleT* _sm_db_handle = NULL;
 
 static SmNodeScheduleStateT _host_state;
@@ -159,6 +159,16 @@ static bool _if_state_changed = false;
 SmErrorT sm_exec_json_command(const char* cmd, char result_buf[], int result_len);
 SmErrorT sm_failover_get_node_oper_state(char* node_name, SmNodeOperationalStateT *state);
 void _log_nodes_state();
+
+SmErrorT sm_failover_mutex_initialize ( void )
+{
+    return sm_mutex_initialize(&sm_failover_mutex, true);
+}
+
+SmErrorT sm_failover_mutex_finalize ( void )
+{
+    return sm_mutex_finalize(&sm_failover_mutex);
+}
 
 // ****************************************************************************
 // Failover - interface check
@@ -254,7 +264,7 @@ static SmFailoverInterfaceInfo* find_interface_info( SmFailoverInterfaceT* inter
 // ==================
 void sm_failover_lost_hello_msg()
 {
-    mutex_holder holder(&_mutex);
+    mutex_holder holder(&sm_failover_mutex);
 
     if(_hello_msg_alive)
     {
@@ -268,7 +278,7 @@ void sm_failover_lost_hello_msg()
 // ==================
 void sm_failover_hello_msg_restore()
 {
-    mutex_holder holder(&_mutex);
+    mutex_holder holder(&sm_failover_mutex);
 
     SmFailoverInterfaceInfo* iter;
     for(iter = _my_if_list; iter < _end_of_list; iter ++)
@@ -287,7 +297,7 @@ void sm_failover_hello_msg_restore()
 // ==================
 void sm_failover_lost_heartbeat( SmFailoverInterfaceT* interface )
 {
-    mutex_holder holder(&_mutex);
+    mutex_holder holder(&sm_failover_mutex);
 
     SmFailoverInterfaceInfo* if_info = find_interface_info( interface );
     if ( NULL == if_info )
@@ -319,7 +329,7 @@ void sm_failover_lost_heartbeat( SmFailoverInterfaceT* interface )
 // ==================
 void sm_failover_heartbeat_restore( SmFailoverInterfaceT* interface )
 {
-    mutex_holder holder(&_mutex);
+    mutex_holder holder(&sm_failover_mutex);
 
     SmFailoverInterfaceInfo* if_info = find_interface_info( interface );
     if ( NULL == if_info )
@@ -364,7 +374,7 @@ void sm_failover_heartbeat_restore( SmFailoverInterfaceT* interface )
 // ==================
 void sm_failover_interface_down( const char* const interface_name )
 {
-    mutex_holder holder(&_mutex);
+    mutex_holder holder(&sm_failover_mutex);
 
     SmFailoverInterfaceInfo* iter;
     int impacted = 0;
@@ -398,7 +408,7 @@ void sm_failover_interface_down( const char* const interface_name )
 // ==================
 void sm_failover_interface_up( const char* const interface_name )
 {
-    mutex_holder holder(&_mutex);
+    mutex_holder holder(&sm_failover_mutex);
 
     SmFailoverInterfaceInfo* iter;
     int impacted = 0;
@@ -468,7 +478,7 @@ void sm_failover_if_state_update(const char node_name[], SmHeartbeatMsgIfStateT 
 {
     if( 0 == strcmp(node_name, _peer_name) )
     {
-        mutex_holder holder(&_mutex);
+        mutex_holder holder(&sm_failover_mutex);
 
         if( _peer_if_state != if_state )
         {
@@ -575,7 +585,7 @@ int sm_failover_get_if_state()
 // ==================
 SmHeartbeatMsgIfStateT sm_failover_if_state_get()
 {
-    mutex_holder holder(&_mutex);
+    mutex_holder holder(&sm_failover_mutex);
     int if_state_flag = sm_failover_get_if_state();
     return (if_state_flag & 0b0111); //the lower 3 bits i/f state flag
 }
@@ -586,7 +596,7 @@ SmHeartbeatMsgIfStateT sm_failover_if_state_get()
 // ==================
 SmHeartbeatMsgIfStateT sm_failover_get_peer_if_state()
 {
-    mutex_holder holder(&_mutex);
+    mutex_holder holder(&sm_failover_mutex);
 
     return (_peer_if_state & 0b0111); //the lower 3 bits i/f state flag
 }
@@ -993,7 +1003,7 @@ SmErrorT sm_failover_set_system(const SmSystemFailoverStatus& failover_status)
 // =======================
 void sm_failover_audit()
 {
-    mutex_holder holder(&_mutex);
+    mutex_holder holder(&sm_failover_mutex);
 
     timespec now;
     time_t now_ms;
@@ -1291,17 +1301,6 @@ SmErrorT sm_failover_initialize( void )
     bool enabled;
     SmErrorT error;
 
-    pthread_mutexattr_t attr;
-
-    pthread_mutexattr_init(&attr);
-    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-    int res = pthread_mutex_init(&_mutex, &attr);
-    if( 0 != res )
-    {
-        DPRINTFE("Failed to initialize mutex, error %d", res);
-        return SM_FAILED;
-    }
-
     error = SmFailoverFSM::initialize();
     if( SM_OKAY != error )
     {
@@ -1460,7 +1459,6 @@ SmErrorT sm_failover_finalize( void )
         DPRINTFE( "Failed to finalize failover FSM, error %s.", sm_error_str( error ) );
     }
 
-    pthread_mutex_destroy(&_mutex);
     return SM_OKAY;
 }
 // ****************************************************************************

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014,2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -17,6 +17,18 @@ extern "C" {
 #endif
 
 typedef void (*SmSelObjCallbackT) (int selobj, int64_t user_data);
+
+// ****************************************************************************
+// initialize mutex
+// ==============
+extern SmErrorT sm_selobj_mutex_initialize ( void );
+// ****************************************************************************
+
+// ****************************************************************************
+// destroy mutex
+// ==============
+extern SmErrorT sm_selobj_mutex_finalize ( void );
+// ****************************************************************************
 
 // ****************************************************************************
 // Selection Object - Register

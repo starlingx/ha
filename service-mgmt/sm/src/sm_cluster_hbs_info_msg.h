@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018 Wind River Systems, Inc.
+// Copyright (c) 2018,2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -86,7 +86,7 @@ class SmClusterHbsInfoMsg
     private:
         static int _sock;
         static unsigned short _last_reqid;
-        static pthread_mutex_t _mutex;
+        static pthread_mutex_t sm_cluster_hbs_mutex;
         static SmClusterHbsStateT _cluster_hbs_state_current;
         static SmClusterHbsStateT _cluster_hbs_state_previous;
         static hbs_query_respond_callback _callbacks;

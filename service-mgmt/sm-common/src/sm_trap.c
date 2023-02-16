@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014,2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -25,6 +25,7 @@
 #include "sm_types.h"
 #include "sm_debug.h"
 #include "sm_trap_thread.h"
+#include "sm_util_types.h"
 
 typedef struct
 {
@@ -37,7 +38,7 @@ static int _trap_fd = -1;
 static int _process_id;
 static char _process_name[SM_PROCESS_NAME_MAX_CHAR];
 static SmTrapThreadInfoT _threads[SM_THREADS_MAX];
-static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t trap_mutex;
 static pthread_spinlock_t _thread_spinlock;
 
 // ***************************************************************************
@@ -158,12 +159,12 @@ void sm_trap_set_thread_info( void )
     int thread_id;
     SmTrapThreadInfoT* info;
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &trap_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return;
     }
-    
+
     thread_id = (int) syscall( SYS_gettid );
 
     info = sm_trap_find_thread_info( thread_id );
@@ -185,7 +186,7 @@ void sm_trap_set_thread_info( void )
         }
     }
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &trap_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         return;
@@ -206,6 +207,8 @@ SmErrorT sm_trap_initialize( const char process_name[] )
     void* dummy_trace[1];
     int dummy_trace_count;
     SmErrorT error = SM_FAILED;
+
+    sm_mutex_initialize(&trap_mutex, false);
 
     _process_id = (int) getpid();
     snprintf( _process_name, sizeof(_process_name), "%s", process_name );
@@ -258,9 +261,9 @@ SmErrorT sm_trap_initialize( const char process_name[] )
             printf( "Failed to set flags, error=%s.\n", strerror( errno ) );
             error = SM_FAILED;
             goto ERROR;
-        }            
+        }
     }
-    
+
     error = sm_trap_thread_start( trap_fds[0] );
     if( SM_OKAY != error )
     {
@@ -312,9 +315,7 @@ ERROR:
 // ===============
 SmErrorT sm_trap_finalize( void )
 {
-    SmErrorT error;
-
-    error = sm_trap_thread_stop();
+    SmErrorT error = sm_trap_thread_stop();
     if( SM_OKAY != error )
     {
         printf( "Failed to stop trap thread, error=%s.\n",
@@ -326,6 +327,8 @@ SmErrorT sm_trap_finalize( void )
         close( _trap_fd );
         _trap_fd = -1;
     }
+
+    sm_mutex_finalize(&trap_mutex);
 
     return( SM_OKAY );
 }

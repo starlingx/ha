@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014,2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -19,6 +19,7 @@
 #include "sm_list.h"
 #include "sm_selobj.h"
 #include "sm_timer.h"
+#include "sm_util_types.h"
 
 typedef enum
 {
@@ -79,15 +80,25 @@ typedef struct
 static int _sm_heartbeat_api_server_fd = -1;
 static int _sm_heartbeat_api_client_fd = -1;
 static SmListT* _callbacks = NULL;
-static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t heartbeat_callback_mutex;
+
+SmErrorT sm_service_heartbeat_api_mutex_initialize ( void )
+{
+    return sm_mutex_initialize(&heartbeat_callback_mutex, true); // PTHREAD_MUTEX_RECURSIVE
+}
+
+SmErrorT sm_service_heartbeat_api_mutex_finalize ( void )
+{
+    return sm_mutex_finalize(&heartbeat_callback_mutex);
+}
 
 // ****************************************************************************
 // Service Heartbeat API - Register Callbacks
 // ==========================================
-SmErrorT sm_service_heartbeat_api_register_callbacks( 
+SmErrorT sm_service_heartbeat_api_register_callbacks(
     SmServiceHeartbeatCallbacksT* callbacks )
 {
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &heartbeat_callback_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( SM_FAILED );
@@ -95,7 +106,7 @@ SmErrorT sm_service_heartbeat_api_register_callbacks(
 
     SM_LIST_PREPEND( _callbacks, (SmListEntryDataPtrT) callbacks );
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &heartbeat_callback_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
     }
@@ -110,7 +121,7 @@ SmErrorT sm_service_heartbeat_api_register_callbacks(
 SmErrorT sm_service_heartbeat_api_deregister_callbacks(
     SmServiceHeartbeatCallbacksT* callbacks )
 {
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &heartbeat_callback_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( SM_FAILED );
@@ -118,11 +129,11 @@ SmErrorT sm_service_heartbeat_api_deregister_callbacks(
 
     SM_LIST_REMOVE( _callbacks, (SmListEntryDataPtrT) callbacks );
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &heartbeat_callback_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
     }
-    
+
     return( SM_OKAY );
 }
 // ****************************************************************************
@@ -296,7 +307,7 @@ static void sm_service_heartbeat_api_dispatch( int selobj, int64_t user_data )
             break;
 
         } else if( 0 == bytes_read ) {
-            // For connection oriented sockets, this indicates that the peer 
+            // For connection oriented sockets, this indicates that the peer
             // has performed an orderly shutdown.
             return;
 
@@ -317,7 +328,7 @@ static void sm_service_heartbeat_api_dispatch( int selobj, int64_t user_data )
         return;
     }
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &heartbeat_callback_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return;
@@ -372,13 +383,13 @@ static void sm_service_heartbeat_api_dispatch( int selobj, int64_t user_data )
             break;
 
             default:
-                DPRINTFE( "Unknown message type (%i) received.", 
+                DPRINTFE( "Unknown message type (%i) received.",
                           msg.msg_type );
             break;
         }
     }
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &heartbeat_callback_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
     }
@@ -421,7 +432,7 @@ SmErrorT sm_service_heartbeat_api_initialize( bool main_process )
             if( 0 > result )
             {
                 DPRINTFE( "Failed to set service heartbeat socket (%i) to "
-                          "non-blocking, error=%s.", socket_i, 
+                          "non-blocking, error=%s.", socket_i,
                           strerror( errno ) );
                 return( SM_FAILED );
             }
@@ -430,7 +441,7 @@ SmErrorT sm_service_heartbeat_api_initialize( bool main_process )
         _sm_heartbeat_api_server_fd = sockets[0];
         _sm_heartbeat_api_client_fd = sockets[1];
 
-        error = sm_selobj_register( _sm_heartbeat_api_client_fd, 
+        error = sm_selobj_register( _sm_heartbeat_api_client_fd,
                                     sm_service_heartbeat_api_dispatch, 0 );
         if( SM_OKAY != error )
         {
@@ -439,7 +450,7 @@ SmErrorT sm_service_heartbeat_api_initialize( bool main_process )
             return( error );
         }
     } else {
-        error = sm_selobj_register( _sm_heartbeat_api_server_fd, 
+        error = sm_selobj_register( _sm_heartbeat_api_server_fd,
                                     sm_service_heartbeat_api_dispatch, 0 );
         if( SM_OKAY != error )
         {

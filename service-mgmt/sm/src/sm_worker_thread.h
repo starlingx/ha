@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018 Wind River Systems, Inc.
+// Copyright (c) 2018,2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -66,7 +66,7 @@ class SmWorkerThread
         static SmErrorT finalize();
 
     private:
-        pthread_mutex_t _mutex;
+        pthread_mutex_t sm_action_mutex;
         SmActionQueueT _priority_queue;
         SmActionQueueT _regular_queue;
         sem_t _sem;

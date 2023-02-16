@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014,2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -18,11 +18,23 @@
 extern "C" {
 #endif
 
-#define SM_TIMER_ID_INVALID -1 
+#define SM_TIMER_ID_INVALID -1
 
 typedef int64_t SmTimerIdT;
 
 typedef bool (*SmTimerCallbackT) (SmTimerIdT timer_id, int64_t user_data );
+
+// ****************************************************************************
+// initialize mutex
+// ==============
+extern SmErrorT sm_timer_mutex_initialize ( void );
+// ****************************************************************************
+
+// ****************************************************************************
+// destroy mutex
+// ==============
+extern SmErrorT sm_timer_mutex_finalize ( void );
+// ****************************************************************************
 
 // ****************************************************************************
 // Timer - Register

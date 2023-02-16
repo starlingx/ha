@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014,2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -23,6 +23,7 @@
 #include "sm_time.h"
 #include "sm_debug.h"
 #include "sm_selobj.h"
+#include "sm_util_types.h"
 
 #define SM_TIMER_ENTRY_INUSE                        0xFDFDFDFD
 #define SM_MAX_TIMERS                                      512
@@ -70,8 +71,18 @@ typedef struct
 
 static SmTimerIdT _next_timer_id = 1;
 
-static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t timer_mutex;
 static SmTimerThreadInfoT _threads[SM_THREADS_MAX];
+
+SmErrorT sm_timer_mutex_initialize ( void )
+{
+    return sm_mutex_initialize(&timer_mutex, false);
+}
+
+SmErrorT sm_timer_mutex_finalize ( void )
+{
+    return sm_mutex_finalize(&timer_mutex);
+}
 
 // ****************************************************************************
 // Timer - Find Thread Info
@@ -225,7 +236,7 @@ static SmErrorT sm_timer_schedule( SmTimerThreadInfoT* thread_info )
     for( timer_i=0; SM_MAX_TIMERS > timer_i; ++timer_i )
     {
         timer_entry = &(thread_info->timers[timer_i]);
-    
+
         if( SM_TIMER_ENTRY_INUSE == timer_entry->inuse )
         {
             ms_expired = sm_time_get_elapsed_ms( &timer_entry->arm_timestamp );
@@ -307,7 +318,7 @@ static void sm_timer_dispatch( int selobj, int64_t user_data )
         DPRINTFE( "Failed to find thread information." );
         return;
     }
-    
+
     ms_expired = sm_time_get_elapsed_ms( &thread_info->sched_timestamp );
     if( ms_expired >= (thread_info->tick_interval_in_ms*SM_MAX_TICK_INTERVALS) )
     {
@@ -342,13 +353,13 @@ static void sm_timer_dispatch( int selobj, int64_t user_data )
         if( SM_TIMER_ENTRY_INUSE == timer_entry->inuse )
         {
             ms_expired = sm_time_get_elapsed_ms( &timer_entry->arm_timestamp );
- 
+
             if( ms_expired >= timer_entry->ms_interval )
             {
                 bool rearm;
                 uint64_t timer_instance = timer_entry->timer_instance;
                 SmTimerHistoryEntryT* history_entry;
-                
+
                 history_entry = &(history[total_timers_fired]);
 
                 history_entry->inuse = SM_TIMER_ENTRY_INUSE;
@@ -542,7 +553,7 @@ SmErrorT sm_timer_initialize( unsigned int tick_interval_in_ms )
     SmTimerThreadInfoT* thread_info = NULL;
     SmErrorT error;
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &timer_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( SM_FAILED );
@@ -577,7 +588,7 @@ SmErrorT sm_timer_initialize( unsigned int tick_interval_in_ms )
 
     if( 0 > thread_info->tick_timer_fd )
     {
-        DPRINTFE( "Failed to create tick timer, error=%s.", 
+        DPRINTFE( "Failed to create tick timer, error=%s.",
                   strerror( errno ) );
         goto ERROR;
     }
@@ -610,7 +621,7 @@ SmErrorT sm_timer_initialize( unsigned int tick_interval_in_ms )
         goto ERROR;
     }
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &timer_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         return( SM_FAILED );
@@ -619,7 +630,7 @@ SmErrorT sm_timer_initialize( unsigned int tick_interval_in_ms )
     return( SM_OKAY );
 
 ERROR:
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &timer_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         return( SM_FAILED );
@@ -637,7 +648,7 @@ SmErrorT sm_timer_finalize( void )
     SmTimerThreadInfoT* thread_info;
     SmErrorT error;
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &timer_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( SM_FAILED );
@@ -665,7 +676,7 @@ SmErrorT sm_timer_finalize( void )
     }
 
 DONE:
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &timer_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
     }

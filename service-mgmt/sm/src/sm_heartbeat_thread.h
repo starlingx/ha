@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2017 Wind River Systems, Inc.
+// Copyright (c) 2014-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -15,6 +15,18 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+// ****************************************************************************
+// initialize mutex
+// ==============
+extern SmErrorT sm_heartbeat_thread_mutex_initialize ( void );
+// ****************************************************************************
+
+// ****************************************************************************
+// destroy mutex
+// ==============
+extern SmErrorT sm_heartbeat_thread_mutex_finalize ( void );
+// ****************************************************************************
 
 // ****************************************************************************
 // Heartbeat Thread - Disable heartbeat
@@ -50,7 +62,7 @@ extern SmErrorT sm_heartbeat_thread_delete_interface( int64_t id );
 // ****************************************************************************
 
 // ****************************************************************************
-// Heartbeat Thread - Add Peer Interface 
+// Heartbeat Thread - Add Peer Interface
 // =====================================
 extern SmErrorT sm_heartbeat_thread_add_peer_interface( int64_t id,
     char interface_name[], SmNetworkAddressT* network_address,
@@ -58,7 +70,7 @@ extern SmErrorT sm_heartbeat_thread_add_peer_interface( int64_t id,
 // ****************************************************************************
 
 // ****************************************************************************
-// Heartbeat Thread - Delete Peer Interface 
+// Heartbeat Thread - Delete Peer Interface
 // ========================================
 extern SmErrorT sm_heartbeat_thread_delete_peer_interface(
     char interface_name[], SmNetworkAddressT* network_address,

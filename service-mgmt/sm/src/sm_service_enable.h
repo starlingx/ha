@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014,2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -12,6 +12,18 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+// ****************************************************************************
+// initialize mutex
+// ==============
+extern SmErrorT sm_service_enable_mutex_initialize ( void );
+// ****************************************************************************
+
+// ****************************************************************************
+// destroy mutex
+// ==============
+extern SmErrorT sm_service_enable_mutex_finalize ( void );
+// ****************************************************************************
 
 // ****************************************************************************
 // add more cores for enabling service

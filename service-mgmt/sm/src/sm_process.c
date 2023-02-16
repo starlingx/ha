@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014,2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -43,6 +43,7 @@
 #include "sm_service_group_api.h"
 #include "sm_service_api.h"
 #include "sm_service_action.h"
+#include "sm_service_enable.h"
 #include "sm_service_heartbeat_api.h"
 #include "sm_service_heartbeat_thread.h"
 #include "sm_service_domain_scheduler.h"
@@ -55,6 +56,8 @@
 #include "sm_worker_thread.h"
 #include "sm_configuration_table.h"
 #include "sm_cluster_hbs_info_msg.h"
+#include "fm_api_wrapper.h"
+#include "sm_swact_state.h"
 
 #define SM_PROCESS_DB_CHECKPOINT_INTERVAL_IN_MS         30000
 #define SM_PROCESS_TICK_INTERVAL_IN_MS                    200
@@ -169,6 +172,18 @@ static void sm_process_setup_signal_handler( void )
 static SmErrorT sm_process_initialize( void )
 {
     SmErrorT error;
+
+    // mutexes
+    fm_mutex_initialize();
+    sm_failover_mutex_initialize();
+    sm_service_enable_mutex_initialize();
+    sm_swact_state_mutex_initialize();
+    sm_service_heartbeat_api_mutex_initialize();
+    sm_heartbeat_thread_mutex_initialize();
+    sm_thread_health_mutex_initialize();
+    sm_selobj_mutex_initialize();
+    sm_timer_mutex_initialize();
+    sm_hw_mutex_initialize();
 
     error = sm_selobj_initialize();
     if( SM_OKAY != error )
@@ -537,6 +552,18 @@ static SmErrorT sm_process_finalize( void )
         DPRINTFE( "Failed to finalize log module, error=%s.",
                   sm_error_str( error ) );
     }
+
+    // mutexes
+    fm_mutex_finalize();
+    sm_failover_mutex_finalize();
+    sm_service_enable_mutex_finalize();
+    sm_swact_state_mutex_finalize();
+    sm_service_heartbeat_api_mutex_finalize();
+    sm_heartbeat_thread_mutex_finalize();
+    sm_thread_health_mutex_finalize();
+    sm_selobj_mutex_finalize();
+    sm_timer_mutex_finalize();
+    sm_hw_mutex_finalize();
 
     return( SM_OKAY );
 }

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014,2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -8,6 +8,7 @@
 
 
 #include <fmAPI.h>
+#include "sm_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,7 +18,7 @@ extern "C" {
 // The following functions are wrapped to guarantee thread safety of the
 // FM API library.
 //
-extern EFmErrorT fm_set_fault_wrapper( const SFmAlarmDataT* alarm, 
+extern EFmErrorT fm_set_fault_wrapper( const SFmAlarmDataT* alarm,
     fm_uuid_t* uuid);
 
 extern EFmErrorT fm_clear_fault_wrapper( AlarmFilter *filter );
@@ -27,10 +28,14 @@ extern EFmErrorT fm_clear_all_wrapper( fm_ent_inst_t *inst_id );
 extern EFmErrorT fm_get_fault_wrapper( AlarmFilter *filter,
     SFmAlarmDataT* alarm );
 
+extern SmErrorT fm_mutex_initialize ( void );
+
+extern SmErrorT fm_mutex_finalize ( void );
+
 EFmErrorT fm_get_faults_wrapper( fm_ent_inst_t *inst_id,
     SFmAlarmDataT *alarm, unsigned int* max_alarms_to_get );
 
-EFmErrorT fm_get_faults_by_id_wrapper( fm_alarm_id* alarm_id, 
+EFmErrorT fm_get_faults_by_id_wrapper( fm_alarm_id* alarm_id,
         SFmAlarmDataT* alarm, unsigned int* max_alarms_to_get );
 
 #ifdef __cplusplus

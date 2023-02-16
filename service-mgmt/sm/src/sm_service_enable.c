@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014,2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -29,7 +29,7 @@
 #define EXTRA_CORES_STORAGE "/etc/platform/.task_affining_incomplete"
 #define PLATFORM_CORES_FILE "/var/run/sm/.platform_cores"
 
-static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t sm_service_enable_mutex;
 static sem_t sem;
 static int num_initial_cores = 0;
 static sem_t sem_more_cores;
@@ -37,13 +37,22 @@ static bool check_more_cores_available = false;
 static bool more_cores_available = false;
 static int  num_extra_cores = 0;
 
+SmErrorT sm_service_enable_mutex_initialize ( void )
+{
+    return sm_mutex_initialize(&sm_service_enable_mutex, false);
+}
+
+SmErrorT sm_service_enable_mutex_finalize ( void )
+{
+    return sm_mutex_finalize(&sm_service_enable_mutex);
+}
 
 // ****************************************************************************
 // add more cores for enabling service
 // ==============
 void sm_service_enable_throttle_add_cores( bool additional_cores )
 {
-    mutex_holder holder(&_mutex);
+    mutex_holder holder(&sm_service_enable_mutex);
 
     check_more_cores_available = additional_cores;
     if (!additional_cores)
@@ -187,7 +196,7 @@ REPORT:
 static bool sm_service_enable_timeout( SmTimerIdT timer_id, int64_t user_data )
 {
     int64_t id = user_data;
-    SmServiceT* service;    
+    SmServiceT* service;
     SmServiceActionT action_running;
     SmServiceActionResultT action_result;
     SmServiceStateT service_state;
@@ -236,7 +245,7 @@ static bool sm_service_enable_timeout( SmTimerIdT timer_id, int64_t user_data )
 
     DPRINTFI( "Action (%s) timeout with result (%s), state (%s), "
               "status (%s), and condition (%s) for service (%s), "
-              "reason_text=%s, exit_code=%i.", 
+              "reason_text=%s, exit_code=%i.",
               sm_service_action_str( action_running ),
               sm_service_action_result_str( action_result ),
               sm_service_state_str( service_state ),
@@ -276,7 +285,7 @@ static bool sm_service_enable_timeout( SmTimerIdT timer_id, int64_t user_data )
 static void sm_service_enable_complete( pid_t pid, int exit_code,
     int64_t user_data )
 {
-    SmServiceT* service;    
+    SmServiceT* service;
     SmServiceActionT action_running;
     SmServiceActionResultT action_result;
     SmServiceStateT service_state;
@@ -297,7 +306,7 @@ static void sm_service_enable_complete( pid_t pid, int exit_code,
                   (int) pid, sm_error_str(SM_NOT_FOUND) );
         return;
     }
-    
+
     sm_service_enable_throttle_uncheck();
 
     if( SM_SERVICE_ACTION_ENABLE != service->action_running )
@@ -319,7 +328,7 @@ static void sm_service_enable_complete( pid_t pid, int exit_code,
                       "service (%s), error=%s.",
                       sm_service_action_str( service->action_running ),
                       service->name, sm_error_str( error ) );
-        } 
+        }
     }
 
     action_running = service->action_running;
@@ -335,7 +344,7 @@ static void sm_service_enable_complete( pid_t pid, int exit_code,
         service_condition = SM_SERVICE_CONDITION_UNKNOWN;
 
     } else {
-        error = sm_service_action_result( exit_code, service->name, 
+        error = sm_service_action_result( exit_code, service->name,
                                           service->action_running,
                                           &action_result, &service_state,
                                           &service_status, &service_condition,
@@ -354,7 +363,7 @@ static void sm_service_enable_complete( pid_t pid, int exit_code,
 
     DPRINTFI( "Action (%s) completed with result (%s), state (%s), "
               "status (%s), and condition (%s) for service (%s), "
-              "reason_text=%s, exit_code=%i.", 
+              "reason_text=%s, exit_code=%i.",
               sm_service_action_str( action_running ),
               sm_service_action_result_str( action_result ),
               sm_service_state_str( service_state ),
@@ -412,7 +421,7 @@ SmErrorT sm_service_enable( SmServiceT* service )
     // Run action.
     error = sm_service_action_run( service->name,
                                    service->instance_name,
-                                   service->instance_params,            
+                                   service->instance_params,
                                    SM_SERVICE_ACTION_ENABLE,
                                    &process_id, &timeout );
     if( SM_OKAY != error )
@@ -421,7 +430,7 @@ SmErrorT sm_service_enable( SmServiceT* service )
                   "error=%s.", service->name, sm_error_str( error ) );
         return( error );
     }
-   
+
     // Register for action script exit notification.
     error = sm_process_death_register( process_id, true,
                                        sm_service_enable_complete, 0 );
@@ -661,7 +670,7 @@ bool sm_service_enable_throttle_check( void )
         return true;
     } else if( EAGAIN == errno )
     {
-        mutex_holder holder(&_mutex);
+        mutex_holder holder(&sm_service_enable_mutex);
         if(check_more_cores_available)
         {
             int new_num_platform_cores = get_extra_cores();

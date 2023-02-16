@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018 Wind River Systems, Inc.
+// Copyright (c) 2018,2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -73,7 +73,7 @@ SmErrorT SmWorkerThread::finalize()
 // ****************************************************************************
 SmWorkerThread::SmWorkerThread() : _priority_queue(), _regular_queue()
 {
-    this->_mutex = PTHREAD_MUTEX_INITIALIZER;
+    sm_mutex_initialize(&this->sm_action_mutex, false);
     this->_goon = true;
     this->_thread_created = false;
 }
@@ -85,6 +85,7 @@ SmWorkerThread::SmWorkerThread() : _priority_queue(), _regular_queue()
 SmWorkerThread::~SmWorkerThread()
 {
     sem_destroy(&this->_sem);
+    sm_mutex_finalize(&this->sm_action_mutex);
 }
 // ****************************************************************************
 
@@ -157,7 +158,7 @@ SmErrorT SmWorkerThread::stop()
 // ****************************************************************************
 void SmWorkerThread::add_action(SmAction* action)
 {
-    mutex_holder(&this->_mutex);
+    mutex_holder(&this->sm_action_mutex);
     this->_regular_queue.push(action);
     int res = sem_post(&_sem);
     if(0 != res)
@@ -174,7 +175,7 @@ void SmWorkerThread::add_action(SmAction* action)
 // ****************************************************************************
 void SmWorkerThread::add_priority_action(SmAction* action)
 {
-    mutex_holder(&this->_mutex);
+    mutex_holder(&this->sm_action_mutex);
     this->_priority_queue.push(action);
     int res = sem_post(&_sem);
     if(0 != res)

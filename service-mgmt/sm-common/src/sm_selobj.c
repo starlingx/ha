@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014,2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -20,10 +20,11 @@
 #include "sm_types.h"
 #include "sm_debug.h"
 #include "sm_list.h"
+#include "sm_util_types.h"
 
 #define SM_SEL_OBJ_ENTRY_VALID  0xFDFDFDFD
 
-typedef struct 
+typedef struct
 {
     uint32_t valid;
     int selobj;
@@ -40,8 +41,18 @@ typedef struct
     SmSelObjSelectEntryT selobjs[SM_THREAD_SELECT_OBJS_MAX];
 } SmSelObjThreadInfoT;
 
-static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t selobj_mutex;
 static SmSelObjThreadInfoT _threads[SM_THREADS_MAX];
+
+SmErrorT sm_selobj_mutex_initialize ( void )
+{
+    return sm_mutex_initialize(&selobj_mutex, false);
+}
+
+SmErrorT sm_selobj_mutex_finalize ( void )
+{
+    return sm_mutex_finalize(&selobj_mutex);
+}
 
 // ****************************************************************************
 // Selection Object - Find Thread Info
@@ -85,7 +96,7 @@ static SmSelObjSelectEntryT* sm_selobj_find( SmSelObjThreadInfoT* thread_info,
             }
         }
     }
-    
+
     return( NULL );
 }
 // ****************************************************************************
@@ -170,7 +181,7 @@ SmErrorT sm_selobj_deregister( int selobj )
                     thread_info->last_selobj = entry->selobj;
                 }
             }
-        }    
+        }
     }
 
     return( SM_OKAY );
@@ -198,11 +209,11 @@ SmErrorT sm_selobj_dispatch( unsigned int timeout_in_ms )
 
     num_fds = thread_info->last_selobj;
     fds = thread_info->selobjs_set;
-    
+
     tv.tv_sec = timeout_in_ms / 1000;
     tv.tv_usec = (timeout_in_ms % 1000) * 1000;
-        
-    result = select( num_fds+1, &fds, NULL, NULL, &tv ); 
+
+    result = select( num_fds+1, &fds, NULL, NULL, &tv );
     if( 0 > result )
     {
         if( errno == EINTR )
@@ -246,7 +257,7 @@ SmErrorT sm_selobj_initialize( void )
 {
     SmSelObjThreadInfoT* thread_info = NULL;
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &selobj_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( SM_FAILED );
@@ -260,21 +271,21 @@ SmErrorT sm_selobj_initialize( void )
             thread_info = &(_threads[thread_i]);
             break;
         }
-    }    
+    }
 
     if( NULL == thread_info )
     {
         DPRINTFE( "Failed to allocate thread information." );
         goto ERROR;
     }
-    
+
     memset( thread_info, 0, sizeof(SmSelObjThreadInfoT) );
 
     thread_info->inuse = true;
     thread_info->thread_id = pthread_self();
     FD_ZERO( &(thread_info->selobjs_set) );
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &selobj_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
     }
@@ -282,7 +293,7 @@ SmErrorT sm_selobj_initialize( void )
     return( SM_OKAY );
 
 ERROR:
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &selobj_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         return( SM_FAILED );
@@ -299,7 +310,7 @@ SmErrorT sm_selobj_finalize( void )
 {
     SmSelObjThreadInfoT* thread_info;
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &selobj_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( SM_FAILED );
@@ -315,7 +326,7 @@ SmErrorT sm_selobj_finalize( void )
     memset( thread_info, 0, sizeof(SmSelObjThreadInfoT) );
     FD_ZERO( &(thread_info->selobjs_set) );
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &selobj_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
     }

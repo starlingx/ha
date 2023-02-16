@@ -10,7 +10,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h> 
+#include <time.h>
 #include <unistd.h>
 #include <signal.h>
 #include <errno.h>
@@ -36,6 +36,7 @@
 #include "sm_log.h"
 #include "sm_failover.h"
 #include "sm_cluster_hbs_info_msg.h"
+#include "sm_util_types.h"
 
 #define SM_HEARTBEAT_THREAD_NAME                                    "sm_heartbeat"
 #define SM_HEARTBEAT_THREAD_TICK_INTERVAL_IN_MS                                100
@@ -96,7 +97,7 @@ typedef struct
 
 static sig_atomic_t _stay_on;
 static bool _thread_created = false;
-static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t heartbeat_mutex;
 static pthread_t _heartbeat_thread;
 static sig_atomic_t _messaging_enabled = 0;
 static sig_atomic_t _heartbeat_required = 1;
@@ -128,6 +129,17 @@ static bool operator != ( const SmNetworkAddressT& src, const SmNetworkAddressT&
     return !( src == dest );
 }
 // ****************************************************************************
+
+SmErrorT sm_heartbeat_thread_mutex_initialize ( void )
+{
+    return sm_mutex_initialize(&heartbeat_mutex, false);
+}
+
+SmErrorT sm_heartbeat_thread_mutex_finalize ( void )
+{
+    return sm_mutex_finalize(&heartbeat_mutex);
+}
+
 
 // ****************************************************************************
 // Heartbeat Thread - Disable heartbeat
@@ -200,7 +212,7 @@ SmErrorT sm_heartbeat_thread_add_interface( const SmServiceDomainInterfaceT& dom
     SmHeartbeatThreadInterfaceT* interface;
     SmErrorT error;
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( SM_FAILED );
@@ -248,7 +260,7 @@ SmErrorT sm_heartbeat_thread_add_interface( const SmServiceDomainInterfaceT& dom
            ( interface->network_peer_port != domain_interface.network_peer_heartbeat_port ))
         {
             // Same id, but not the same instance data.
-            error = sm_heartbeat_msg_close_sockets( 
+            error = sm_heartbeat_msg_close_sockets(
                                         &(interface->multicast_socket) );
             if( SM_OKAY != error )
             {
@@ -307,7 +319,7 @@ SmErrorT sm_heartbeat_thread_add_interface( const SmServiceDomainInterfaceT& dom
                   interface->interface_name );
     }
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         return( SM_FAILED );
@@ -316,7 +328,7 @@ SmErrorT sm_heartbeat_thread_add_interface( const SmServiceDomainInterfaceT& dom
     return( SM_OKAY );
 
 ERROR:
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         return( SM_FAILED );
@@ -333,7 +345,7 @@ SmErrorT sm_heartbeat_thread_delete_interface( int64_t id )
 {
     SmHeartbeatThreadInterfaceT* interface;
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( SM_FAILED );
@@ -347,7 +359,7 @@ SmErrorT sm_heartbeat_thread_delete_interface( int64_t id )
         free( interface );
     }
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         return( SM_FAILED );
@@ -442,7 +454,7 @@ static bool sm_heartbeat_peer_alarm_on_interface( SmTimerIdT timer_id,
         return( true );
     }
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( true );
@@ -579,7 +591,7 @@ static bool sm_heartbeat_peer_alarm_on_interface( SmTimerIdT timer_id,
         sm_log_communication_state_change( network_type, peer_interface->log_text );
     }
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
     }
@@ -587,19 +599,19 @@ static bool sm_heartbeat_peer_alarm_on_interface( SmTimerIdT timer_id,
     return( true );
 
 ERROR:
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
-    } 
+    }
 
     return( rearm );
 }
 // ****************************************************************************
 
 // ****************************************************************************
-// Heartbeat Thread - Add Peer Interface 
+// Heartbeat Thread - Add Peer Interface
 // =====================================
-SmErrorT sm_heartbeat_thread_add_peer_interface( int64_t id, 
+SmErrorT sm_heartbeat_thread_add_peer_interface( int64_t id,
     char interface_name[], SmNetworkAddressT* network_address,
     int network_port, int dead_interval )
 {
@@ -613,7 +625,7 @@ SmErrorT sm_heartbeat_thread_add_peer_interface( int64_t id,
         return( SM_OKAY );
     }
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( SM_FAILED );
@@ -664,7 +676,7 @@ SmErrorT sm_heartbeat_thread_add_peer_interface( int64_t id,
                          (SmListEntryDataPtrT) peer_interface );
     }
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         return( SM_FAILED );
@@ -673,7 +685,7 @@ SmErrorT sm_heartbeat_thread_add_peer_interface( int64_t id,
     return( SM_OKAY );
 
 ERROR:
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         return( SM_FAILED );
@@ -684,7 +696,7 @@ ERROR:
 // ****************************************************************************
 
 // ****************************************************************************
-// Heartbeat Thread - Delete Peer Interface 
+// Heartbeat Thread - Delete Peer Interface
 // ========================================
 SmErrorT sm_heartbeat_thread_delete_peer_interface( char interface_name[],
     SmNetworkAddressT* network_address, int network_port )
@@ -692,7 +704,7 @@ SmErrorT sm_heartbeat_thread_delete_peer_interface( char interface_name[],
     SmHeartbeatThreadPeerInterfaceT* peer_interface;
     SmErrorT error;
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( SM_FAILED );
@@ -722,7 +734,7 @@ SmErrorT sm_heartbeat_thread_delete_peer_interface( char interface_name[],
         free( peer_interface );
     }
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         return( SM_FAILED );
@@ -759,13 +771,13 @@ static SmHeartbeatThreadPeerNodeT* sm_heartbeat_thread_find_peer_node(
 // ****************************************************************************
 // Heartbeat Thread - Peer Alive In Period
 // =======================================
-bool sm_heartbeat_thread_peer_alive_in_period( char node_name[], 
+bool sm_heartbeat_thread_peer_alive_in_period( char node_name[],
     unsigned int period_in_ms )
 {
     bool peer_alive = false;
     SmHeartbeatThreadPeerNodeT* peer_node;
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( true );
@@ -781,7 +793,7 @@ bool sm_heartbeat_thread_peer_alive_in_period( char node_name[],
         peer_alive = ( period_in_ms >= ms_expired );
     }
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
     }
@@ -800,7 +812,7 @@ static bool sm_heartbeat_alive_timer( SmTimerIdT timer_id, int64_t user_data )
     SmHeartbeatThreadInterfaceT* interface;
     SmErrorT error;
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( true );
@@ -965,7 +977,7 @@ static bool sm_heartbeat_alive_timer( SmTimerIdT timer_id, int64_t user_data )
     }
 
 DONE:
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         return( true );
@@ -987,7 +999,7 @@ static bool sm_heartbeat_thread_auth_message( char interface_name[],
     SmHeartbeatThreadInterfaceT* interface;
     SmSha512HashT hash;
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( true );
@@ -1020,7 +1032,7 @@ static bool sm_heartbeat_thread_auth_message( char interface_name[],
 
 
 DONE:
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         return( true );
@@ -1041,7 +1053,7 @@ static void sm_heartbeat_thread_receive_alive_message( char node_name[],
 
     DPRINTFD( "Received alive message from node (%s).", node_name );
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return;
@@ -1095,7 +1107,7 @@ static void sm_heartbeat_thread_receive_alive_message( char node_name[],
     }
 
 DONE:
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &heartbeat_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         return;

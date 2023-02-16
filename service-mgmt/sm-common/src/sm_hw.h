@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014,2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -125,6 +125,18 @@ extern SmErrorT sm_hw_initialize( SmHwCallbacksT* callbacks );
 // ===================
 extern SmErrorT sm_hw_finalize( void );
 // ***************************************************************************
+
+// ****************************************************************************
+// initialize mutex
+// ==============
+extern SmErrorT sm_hw_mutex_initialize ( void );
+// ****************************************************************************
+
+// ****************************************************************************
+// destroy mutex
+// ==============
+extern SmErrorT sm_hw_mutex_finalize ( void );
+// ****************************************************************************
 
 #ifdef __cplusplus
 }

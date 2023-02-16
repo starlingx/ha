@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014,2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include <time.h> 
+#include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -26,6 +26,7 @@
 #include "sm_time.h"
 #include "sm_node_utils.h"
 #include "sm_alarm_thread.h"
+#include "sm_util_types.h"
 
 #define SM_ALARM_ENTRY_INUSE                                         0xA5A5A5A5
 
@@ -51,7 +52,7 @@ typedef struct
 
 static int _server_fd = -1;
 static int _client_fd = -1;
-static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t alarm_mutex;
 static SmAlarmEntryT _alarms[SM_ALARMS_MAX];
 
 // ****************************************************************************
@@ -77,7 +78,7 @@ static SmAlarmEntryT* sm_alarm_find_empty( void )
 // ****************************************************************************
 // Alarm - Find
 // ============
-static SmAlarmEntryT* sm_alarm_find( const SmAlarmT alarm, 
+static SmAlarmEntryT* sm_alarm_find( const SmAlarmT alarm,
     const SmAlarmNodeNameT node_name, const SmAlarmDomainNameT domain_name,
     const SmAlarmEntityNameT entity_name )
 {
@@ -112,7 +113,7 @@ static bool sm_alarm_throttle( const SmAlarmT alarm, SmAlarmStateT alarm_state,
     bool throttle = false;
     SmAlarmEntryT* entry;
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &alarm_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         abort();
@@ -129,7 +130,7 @@ static bool sm_alarm_throttle( const SmAlarmT alarm, SmAlarmStateT alarm_state,
         }
 
         memset( entry, 0, sizeof(SmAlarmEntryT) );
-    
+
         entry->inuse = SM_ALARM_ENTRY_INUSE;
         entry->alarm = alarm;
         snprintf( entry->alarm_node_name, sizeof(entry->alarm_node_name),
@@ -167,7 +168,7 @@ static bool sm_alarm_throttle( const SmAlarmT alarm, SmAlarmStateT alarm_state,
     }
 
 RELEASE_MUTEX:
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &alarm_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         abort();
@@ -210,7 +211,7 @@ bool sm_alarm_write_alarm_additional_text( const char data[],
 // ****************************************************************************
 // Alarm - Raise
 // =============
-static void sm_alarm_raise( const SmAlarmT alarm, 
+static void sm_alarm_raise( const SmAlarmT alarm,
     const SmAlarmNodeNameT node_name, const SmAlarmDomainNameT domain_name,
     const SmAlarmEntityNameT entity_name, SmAlarmDataT* data )
 {
@@ -251,7 +252,7 @@ static void sm_alarm_raise( const SmAlarmT alarm,
     if( 0 > result )
     {
         DPRINTFE( "Failed to raise alarm (%i) for domain (%s) entity (%s), "
-                  "error=%s.", alarm, domain_name, entity_name, 
+                  "error=%s.", alarm, domain_name, entity_name,
                   strerror( errno ) );
     }
 }
@@ -292,7 +293,7 @@ void sm_alarm_raise_state_alarm( const SmAlarmT alarm,
               "%s", entity_condition );
 
     data.threshold_info.applicable = false;
-    
+
     if( '\0' == proposed_repair_action[0] )
     {
         snprintf( data.proposed_repair_action,
@@ -554,7 +555,7 @@ void sm_alarm_clear( const SmAlarmT alarm, const SmAlarmNodeNameT node_name,
     if( 0 > result )
     {
         DPRINTFE( "Failed to clear alarm (%i) for domain (%s) entity (%s), "
-                  "error=%s.", alarm, domain_name, entity_name, 
+                  "error=%s.", alarm, domain_name, entity_name,
                   strerror( errno ) );
     }
 }
@@ -569,7 +570,7 @@ void sm_alarm_clear_all( const SmAlarmDomainNameT domain_name )
     SmAlarmThreadMsgClearAllAlarmsT* clear_all_alarms = &(msg.u.clear_all_alarms);
     int result;
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &alarm_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         abort();
@@ -577,7 +578,7 @@ void sm_alarm_clear_all( const SmAlarmDomainNameT domain_name )
 
     memset( _alarms, 0, sizeof(_alarms) );
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &alarm_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         abort();
@@ -647,7 +648,9 @@ SmErrorT sm_alarm_initialize( void )
     DPRINTFD( "Alarm message size is %i bytes.",
               (int) sizeof(SmAlarmThreadMsgT) );
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    sm_mutex_initialize(&alarm_mutex, false);
+
+    if( 0 != pthread_mutex_lock( &alarm_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         abort();
@@ -655,12 +658,12 @@ SmErrorT sm_alarm_initialize( void )
 
     memset( _alarms, 0, sizeof(_alarms) );
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &alarm_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         abort();
     }
- 
+
     result = socketpair( AF_UNIX, SOCK_DGRAM, 0, sockets );
     if( 0 > result )
     {
@@ -684,7 +687,7 @@ SmErrorT sm_alarm_initialize( void )
         if( 0 > result )
         {
             DPRINTFE( "Failed to set alarm communication socket (%i) to "
-                      "non-blocking, error=%s.", socket_i, 
+                      "non-blocking, error=%s.", socket_i,
                       strerror( errno ) );
             return( SM_FAILED );
         }
@@ -720,7 +723,7 @@ SmErrorT sm_alarm_initialize( void )
                   sm_error_str( error ) );
         return( error );
     }
-    
+
     return( SM_OKAY );
 }
 // ****************************************************************************
@@ -731,7 +734,7 @@ SmErrorT sm_alarm_initialize( void )
 SmErrorT sm_alarm_finalize( void )
 {
     SmErrorT error;
-    
+
     error = sm_alarm_thread_stop();
     if( SM_OKAY != error )
     {
@@ -751,7 +754,7 @@ SmErrorT sm_alarm_finalize( void )
         _client_fd = -1;
     }
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &alarm_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         abort();
@@ -759,12 +762,14 @@ SmErrorT sm_alarm_finalize( void )
 
     memset( _alarms, 0, sizeof(_alarms) );
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &alarm_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         abort();
     }
-    
+
+    sm_mutex_finalize(&alarm_mutex);
+
     return( SM_OKAY );
 }
 // ****************************************************************************

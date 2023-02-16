@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014,2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -25,6 +25,7 @@
 #include "sm_debug.h"
 #include "sm_selobj.h"
 #include "sm_netlink.h"
+#include "sm_util_types.h"
 
 typedef struct
 {
@@ -36,8 +37,18 @@ typedef struct
     SmHwCallbacksT callbacks;
 } SmHwThreadInfoT;
 
-static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t hw_mutex;
 static SmHwThreadInfoT _threads[SM_THREADS_MAX];
+
+SmErrorT sm_hw_mutex_initialize ( void )
+{
+    return sm_mutex_initialize(&hw_mutex, false);
+}
+
+SmErrorT sm_hw_mutex_finalize ( void )
+{
+    return sm_mutex_finalize(&hw_mutex);
+}
 
 // ****************************************************************************
 // Hardware - Find Thread Info
@@ -270,7 +281,7 @@ SmErrorT sm_hw_get_if_state( const char if_name[], bool* enabled )
 SmErrorT sm_hw_get_all_qdisc_async( void )
 {
     struct nlmsghdr hdr;
-    struct tcmsg tc;    
+    struct tcmsg tc;
     SmHwThreadInfoT* thread_info;
     SmErrorT error;
 
@@ -361,7 +372,7 @@ static void sm_hw_netlink_if_msg_dispatch( SmHwThreadInfoT* thread_info,
         return;
     }
 
-    snprintf( if_change_data.interface_name, 
+    snprintf( if_change_data.interface_name,
               sizeof(if_change_data.interface_name), "%s",
               (char*) RTA_DATA( if_msg_attr[IFLA_IFNAME] ) );
 
@@ -601,7 +612,7 @@ static void sm_hw_netlink_qdisc_msg_dispatch( SmHwThreadInfoT* thread_info,
 // ****************************************************************************
 // Hardware - Netlink Message Dispatch
 // ===================================
-static void sm_hw_netlink_msg_dispatch( int socket_fd, 
+static void sm_hw_netlink_msg_dispatch( int socket_fd,
     struct sockaddr_nl* address, struct nlmsghdr* payload,
     void* invocation_data )
 {
@@ -673,7 +684,7 @@ SmErrorT sm_hw_initialize( SmHwCallbacksT* callbacks )
     SmHwThreadInfoT* thread_info = NULL;
     SmErrorT error;
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &hw_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( SM_FAILED );
@@ -727,7 +738,7 @@ SmErrorT sm_hw_initialize( SmHwCallbacksT* callbacks )
     if( NULL != callbacks )
     {
         error = sm_netlink_open( &(thread_info->netlink_receive_socket),
-                                 RTMGRP_LINK | RTMGRP_IPV4_IFADDR | 
+                                 RTMGRP_LINK | RTMGRP_IPV4_IFADDR |
                                  RTMGRP_IPV6_IFADDR | RTMGRP_TC );
         if( SM_OKAY != error )
         {
@@ -757,7 +768,7 @@ SmErrorT sm_hw_initialize( SmHwCallbacksT* callbacks )
     thread_info->thread_id = pthread_self();
     thread_info->inuse = true;
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &hw_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         return( SM_FAILED );
@@ -766,7 +777,7 @@ SmErrorT sm_hw_initialize( SmHwCallbacksT* callbacks )
     return( SM_OKAY );
 
 ERROR:
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &hw_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         return( SM_FAILED );
@@ -784,7 +795,7 @@ SmErrorT sm_hw_finalize( void )
     SmHwThreadInfoT* thread_info;
     SmErrorT error;
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &hw_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( SM_FAILED );
@@ -817,7 +828,7 @@ SmErrorT sm_hw_finalize( void )
     }
 
 DONE:
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &hw_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
     }

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018 Wind River Systems, Inc.
+// Copyright (c) 2018,2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -23,6 +23,7 @@
 #include "sm_selobj.h"
 #include "sm_worker_thread.h"
 #include "sm_node_utils.h"
+#include "sm_util_types.h"
 
 // uncomment when debugging this module to enabled DPRINTFD output to log file
 // #define __DEBUG__MSG__
@@ -117,7 +118,7 @@ void log_cluster_hbs_state(const SmClusterHbsStateT& state)
     }
 }
 
-pthread_mutex_t SmClusterHbsInfoMsg::_mutex;
+pthread_mutex_t SmClusterHbsInfoMsg::sm_cluster_hbs_mutex;
 const unsigned short Invalid_Req_Id = 0;
 int SmClusterHbsInfoMsg::_sock = -1;
 SmClusterHbsStateT SmClusterHbsInfoMsg::_cluster_hbs_state_current;
@@ -228,7 +229,7 @@ bool SmClusterHbsInfoMsg::_process_cluster_hbs_history(mtce_hbs_cluster_history_
 void SmClusterHbsInfoMsg::_cluster_hbs_info_msg_received( int selobj, int64_t user_data )
 {
     mtce_hbs_cluster_type msg = {0};
-    mutex_holder holder(&_mutex);
+    mutex_holder holder(&sm_cluster_hbs_mutex);
     while(true)
     {
         int bytes_read = recv( selobj, &msg, sizeof(msg), MSG_NOSIGNAL | MSG_DONTWAIT );
@@ -349,7 +350,7 @@ bool SmClusterHbsInfoMsg::cluster_hbs_info_query(cluster_hbs_query_ready_callbac
     unsigned short reqid;
     struct timespec ts;
     {
-        mutex_holder holder(&_mutex);
+        mutex_holder holder(&sm_cluster_hbs_mutex);
         if(alive_pulse)
         {
             reqid = 0;
@@ -473,14 +474,10 @@ SmErrorT SmClusterHbsInfoMsg::open_socket()
 SmErrorT SmClusterHbsInfoMsg::initialize()
 {
     SmErrorT error;
-    pthread_mutexattr_t attr;
 
-    pthread_mutexattr_init(&attr);
-    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-    int res = pthread_mutex_init(&_mutex, &attr);
-    if( 0 != res )
+    error = sm_mutex_initialize(&sm_cluster_hbs_mutex, true);
+    if( error != SM_OKAY )
     {
-        DPRINTFE("Failed to initialize mutex, error %d", res);
         return SM_FAILED;
     }
 
@@ -530,13 +527,15 @@ SmErrorT SmClusterHbsInfoMsg::initialize()
 
 SmErrorT SmClusterHbsInfoMsg::finalize()
 {
-    mutex_holder holder(&_mutex);
-    if(_sock > 0)
     {
-        close(_sock);
-        _sock = -1;
+        mutex_holder holder(&sm_cluster_hbs_mutex);
+        if(_sock > 0)
+        {
+            close(_sock);
+            _sock = -1;
+        }
     }
-    pthread_mutex_destroy(&_mutex);
+    pthread_mutex_destroy(&sm_cluster_hbs_mutex);
     return SM_OKAY;
 }
 

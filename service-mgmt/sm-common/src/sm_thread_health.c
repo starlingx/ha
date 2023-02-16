@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014,2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -14,6 +14,7 @@
 #include "sm_types.h"
 #include "sm_debug.h"
 #include "sm_time.h"
+#include "sm_util_types.h"
 
 #define SM_THREAD_HEALTH_CHECK_INTERVAL_IN_MS   1000
 
@@ -23,11 +24,21 @@ typedef struct
     char thread_name[SM_THREAD_NAME_MAX_CHAR];
     long warn_after_elapsed_ms;
     long fail_after_elapsed_ms;
-    SmTimeT last_health_update; 
+    SmTimeT last_health_update;
 } SmThreadHealthT;
 
 static SmThreadHealthT _threads[SM_THREADS_MAX];
-static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t thread_health_mutex;
+
+SmErrorT sm_thread_health_mutex_initialize ( void )
+{
+    return sm_mutex_initialize(&thread_health_mutex, false);
+}
+
+SmErrorT sm_thread_health_mutex_finalize ( void)
+{
+    return sm_mutex_finalize(&thread_health_mutex);
+}
 
 // ****************************************************************************
 // Thread Health - Register
@@ -35,7 +46,7 @@ static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
 SmErrorT sm_thread_health_register( const char thread_name[],
     long warn_after_elapsed_ms, long fail_after_elapsed_ms )
 {
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &thread_health_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( SM_FAILED );
@@ -60,7 +71,7 @@ SmErrorT sm_thread_health_register( const char thread_name[],
         }
     }
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &thread_health_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         return( SM_FAILED );
@@ -75,7 +86,7 @@ SmErrorT sm_thread_health_register( const char thread_name[],
 // ==========================
 SmErrorT sm_thread_health_deregister( const char thread_name[] )
 {
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &thread_health_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( SM_FAILED );
@@ -98,7 +109,7 @@ SmErrorT sm_thread_health_deregister( const char thread_name[] )
         }
     }
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &thread_health_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         return( SM_FAILED );
@@ -113,7 +124,7 @@ SmErrorT sm_thread_health_deregister( const char thread_name[] )
 // ======================
 SmErrorT sm_thread_health_update( const char thread_name[] )
 {
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &thread_health_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( SM_FAILED );
@@ -136,7 +147,7 @@ SmErrorT sm_thread_health_update( const char thread_name[] )
         }
     }
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &thread_health_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         return( SM_FAILED );
@@ -168,7 +179,7 @@ SmErrorT sm_thread_health_check( bool* healthy )
 
     sm_time_get( &last_check );
 
-    if( 0 != pthread_mutex_lock( &_mutex ) )
+    if( 0 != pthread_mutex_lock( &thread_health_mutex ) )
     {
         DPRINTFE( "Failed to capture mutex." );
         return( SM_FAILED );
@@ -199,7 +210,7 @@ SmErrorT sm_thread_health_check( bool* healthy )
         }
     }
 
-    if( 0 != pthread_mutex_unlock( &_mutex ) )
+    if( 0 != pthread_mutex_unlock( &thread_health_mutex ) )
     {
         DPRINTFE( "Failed to release mutex." );
         return( SM_FAILED );

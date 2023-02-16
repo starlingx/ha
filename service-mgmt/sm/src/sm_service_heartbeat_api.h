@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014,2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -32,16 +32,28 @@ typedef struct
 } SmServiceHeartbeatCallbacksT;
 
 // ****************************************************************************
+// initialize mutex
+// ==============
+extern SmErrorT sm_service_heartbeat_api_mutex_initialize ( void );
+// ****************************************************************************
+
+// ****************************************************************************
+// destroy mutex
+// ==============
+extern SmErrorT sm_service_heartbeat_api_mutex_finalize ( void );
+// ****************************************************************************
+
+// ****************************************************************************
 // Service Heartbeat API - Register Callbacks
 // ==========================================
-extern SmErrorT sm_service_heartbeat_api_register_callbacks( 
+extern SmErrorT sm_service_heartbeat_api_register_callbacks(
     SmServiceHeartbeatCallbacksT* callbacks );
 // ****************************************************************************
 
 // ****************************************************************************
 // Service Heartbeat API - Deregister Callbacks
 // ============================================
-extern SmErrorT sm_service_heartbeat_api_deregister_callbacks( 
+extern SmErrorT sm_service_heartbeat_api_deregister_callbacks(
     SmServiceHeartbeatCallbacksT* callbacks );
 // ****************************************************************************
 
