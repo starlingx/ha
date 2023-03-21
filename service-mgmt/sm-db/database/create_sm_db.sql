@@ -48,6 +48,8 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(11,'yes','controller-services','platf
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(12,'yes','controller-services','postgres','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(13,'yes','controller-services','rabbit','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(15,'yes','controller-services','platform-export-fs','critical');
+--DEPRECATED: platform-nfs-ip is just necessary to allow an upgrade from StarlingX releases 6 or 7 to new releases.
+INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(17,'yes','controller-services','platform-nfs-ip','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(18,'yes','controller-services','sysinv-inv','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(19,'yes','controller-services','sysinv-conductor','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(20,'yes','controller-services','mtc-agent','critical');
@@ -111,6 +113,7 @@ INSERT INTO "SERVICES" VALUES(9,'yes','nfs-mgmt','initial','initial','none','non
 INSERT INTO "SERVICES" VALUES(11,'yes','platform-fs','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(12,'yes','postgres','initial','initial','none','none',2,1,90000,4,16,'/var/run/postmaster.pid');
 INSERT INTO "SERVICES" VALUES(13,'yes','rabbit','initial','initial','none','none',2,1,90000,4,16,'/var/run/rabbitmq/rabbitmq.pid');
+INSERT INTO "SERVICES" VALUES(17,'yes','platform-nfs-ip','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(15,'yes','platform-export-fs','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(18,'yes','sysinv-inv','initial','initial','none','none',2,1,90000,4,16,'/var/run/sysinv-api.pid');
 INSERT INTO "SERVICES" VALUES(19,'yes','sysinv-conductor','initial','initial','none','none',2,1,90000,4,16,'/var/run/sysinv-conductor.pid');
@@ -390,6 +393,10 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('extension-export-fs','enable','ocf-script'
 INSERT INTO "SERVICE_ACTIONS" VALUES('extension-export-fs','disable','ocf-script','heartbeat','exportfs','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('extension-export-fs','audit-enabled','ocf-script','heartbeat','exportfs','monitor','',2,2,2,20,30);
 INSERT INTO "SERVICE_ACTIONS" VALUES('extension-export-fs','audit-disabled','ocf-script','heartbeat','exportfs','monitor','',0,0,0,20,30);
+INSERT INTO "SERVICE_ACTIONS" VALUES('platform-nfs-ip','enable','ocf-script','heartbeat','IPaddr2','start','',2,2,2,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('platform-nfs-ip','disable','ocf-script','heartbeat','IPaddr2','stop','',1,1,1,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('platform-nfs-ip','audit-enabled','ocf-script','heartbeat','IPaddr2','monitor','',2,2,2,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('platform-nfs-ip','audit-disabled','ocf-script','heartbeat','IPaddr2','monitor','',0,0,0,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-inv','enable','ocf-script','platform','sysinv-api','start','',2,2,2,30,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-inv','disable','ocf-script','platform','sysinv-api','stop','',1,1,1,30,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-inv','audit-enabled','ocf-script','platform','sysinv-api','monitor','',2,2,2,40,90);
