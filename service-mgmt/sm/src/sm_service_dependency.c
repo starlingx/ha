@@ -93,7 +93,61 @@ static void sm_service_dependency_dependent_state_compare(
 // ****************************************************************************
 
 // ****************************************************************************
-// Service Dependency - Go-Active Met 
+// Service Dependency - Dependent State in
+// user_data = {service,             => pointer to service object
+//              &dependency_met,     => pointer to dependency met boolean variable
+//              &at_least_one,       => pointer to boolean variable indicates
+//                                      if at least one dependency found
+//              qualified_states     => an array of states that are qualified for
+//                                      depenedncy met condition of a dependency.
+//                                      array ends with SM_SERVICE_STATE_MAX
+//              };
+// service_dependency                => a service dependency record
+// ============================================
+static void sm_service_dependency_dependent_state_in(
+        void* user_data[], SmServiceDependencyT* service_dependency )
+{
+    SmServiceT* service = (SmServiceT*) user_data[0];
+    bool* met = (bool*) user_data[1];
+    bool* at_least_one = (bool*) user_data[2];
+    SmServiceStateT* qualified_states = (SmServiceStateT*) user_data[3];
+    SmServiceT* dependent_service;
+    bool matched = false;
+
+    if( '\0' == service_dependency->dependent[0] )
+    {
+        DPRINTFI( "Service (%s) has no dependencies.", service->name );
+        return;
+    }
+
+    dependent_service = sm_service_table_read( service_dependency->dependent );
+    if( NULL == dependent_service )
+    {
+        DPRINTFE( "Failed to read service (%s), error=%s.",
+                  service_dependency->service_name,
+                  sm_error_str(SM_NOT_FOUND) );
+        return;
+    }
+
+    *at_least_one = true;
+
+    for(SmServiceStateT* qs = qualified_states; *qs != SM_SERVICE_STATE_MAX; qs ++)
+    {
+        if(*qs == service_dependency->state)
+        {
+            matched = true;
+            break;
+        }
+    }
+    if (!matched)
+    {
+        *met = false;
+    }
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Service Dependency - Go-Active Met
 // ==================================
 SmErrorT sm_service_dependency_go_active_met( SmServiceT* service, bool* met )
 {
@@ -220,6 +274,7 @@ static void _sm_service_disable_dependency_met(
     }
 
     if( SM_SERVICE_STATE_DISABLED != dependent_service->state &&
+         SM_SERVICE_STATE_ENABLED_STANDBY != dependent_service->state &&
         SM_SERVICE_STATE_ENABLED_ACTIVE != dependent_service->desired_state)
     {
         *dependency_met = false;
@@ -283,15 +338,17 @@ SmErrorT sm_service_dependency_enabled_standby_state_met( SmServiceT* service,
 {
     bool at_least_one = false;
     bool dependency_met = true;
-    SmCompareOperatorT compare_operator = SM_COMPARE_OPERATOR_LE;
-    void* user_data[] = {service, &dependency_met, &compare_operator, 
-                         &at_least_one};
+    SmServiceStateT qualified_states[] = {SM_SERVICE_STATE_ENABLED_STANDBY,
+                                          SM_SERVICE_STATE_DISABLED,
+                                          SM_SERVICE_STATE_MAX};
+
+    void* user_data[] = {service, &dependency_met, &at_least_one, qualified_states};
 
     *met = false;
 
     sm_service_dependency_table_foreach( SM_SERVICE_DEPENDENCY_TYPE_STATE,
             service->name, SM_SERVICE_STATE_ENABLED_STANDBY, SM_SERVICE_ACTION_NA,
-            user_data, sm_service_dependency_dependent_state_compare );
+            user_data, sm_service_dependency_dependent_state_in );
 
 
     if( at_least_one )
