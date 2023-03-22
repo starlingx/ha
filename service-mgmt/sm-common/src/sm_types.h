@@ -271,7 +271,7 @@ typedef enum
     SM_SERVICE_DOMAIN_EVENT_MAX
 } SmServiceDomainEventT;
 
-typedef enum 
+typedef enum
 {
     SM_SERVICE_DOMAIN_EVENT_DATA_MSG_NODE_NAME,
     SM_SERVICE_DOMAIN_EVENT_DATA_MSG_GENERATION,
@@ -281,11 +281,11 @@ typedef enum
 } SmServiceDomainEventDataT;
 
 typedef enum{
-    SM_FAILOVER_STATE_INITIAL,
-    SM_FAILOVER_STATE_NORMAL,
-    SM_FAILOVER_STATE_FAIL_PENDING,
-    SM_FAILOVER_STATE_FAILED,
-    SM_FAILOVER_STATE_SURVIVED,
+    SM_FAILOVER_STATE_INITIAL = 0,
+    SM_FAILOVER_STATE_NORMAL = 1,
+    SM_FAILOVER_STATE_FAIL_PENDING = 2,
+    SM_FAILOVER_STATE_FAILED = 3,
+    SM_FAILOVER_STATE_SURVIVED = 4,
     SM_FAILOVER_STATE_MAX
 }SmFailoverStateT;
 
@@ -295,6 +295,7 @@ typedef enum{
     SM_FAILOVER_EVENT_FAIL_PENDING_TIMEOUT,
     SM_FAILOVER_EVENT_FAILED_RECOVERY_AUDIT,
     SM_FAILOVER_EVENT_NODE_ENABLED,
+    SM_FAILOVER_EVENT_PEER_IS_NORMAL,
     SM_FAILOVER_EVENT_MAX
 }SmFailoverEventT;
 
@@ -340,7 +341,7 @@ typedef enum
     SM_SERVICE_DOMAIN_NEIGHBOR_EVENT_MAX
 } SmServiceDomainNeighborEventT;
 
-typedef enum 
+typedef enum
 {
     SM_SERVICE_DOMAIN_NEIGHBOR_EVENT_DATA_MSG_EXCHANGE_SEQ,
     SM_SERVICE_DOMAIN_NEIGHBOR_EVENT_DATA_MSG_MORE_MEMBERS,
@@ -427,7 +428,7 @@ typedef enum
     SM_SERVICE_GROUP_EVENT_MAX,
 } SmServiceGroupEventT;
 
-typedef enum 
+typedef enum
 {
     SM_SERVICE_GROUP_EVENT_DATA_SERVICE_NAME,
     SM_SERVICE_GROUP_EVENT_DATA_SERVICE_STATE,
@@ -567,7 +568,7 @@ typedef enum
 //   action-failure:    a service action has failed.
 //   fatal-failure:     a fatal failure has occured.
 //   FD-limit-reached:  limit of open FD has reached.
-typedef enum 
+typedef enum
 {
     SM_SERVICE_CONDITION_NIL,
     SM_SERVICE_CONDITION_UNKNOWN,
@@ -706,7 +707,59 @@ typedef enum
     SM_ERROR_MAX
 } SmErrorT;
 
-typedef uint32_t SmHeartbeatMsgIfStateT;
+/**
+ * The SM_FAILOVER_STATE_MASK is used for the failover states
+ * lower bits 8 to 10 .
+ * The 'SmFailoverStateT' is stored directly in the 4 bits
+ * and can be accessed by right shifting >> 8
+ * stores upto 15 states or 0b1111 with 4 bits
+ *
+ * The SM_FAILOVER_IF_STATE_MASK is used for the state of the 4 interfaces
+ * If any of these interfaces is down ( assuming its configured) then the bit
+ * flag will be set
+ *  - cluster_host  0b0001
+ *  - management    0b0010
+ *  - oam           0b0100
+ *  - admin         0b1000
+ *
+ *  SM_FAILOVER_HEARTBEAT_ALIVE & SM_FAILOVER_HELLO_MSG_ALIVE are currently only used locally
+ *  and are not shared in the heartbeat message between controllers
+ *
+ *  SM_FAILOVER_NODE_INFO_MASK is combination mask that is used to specify the bits shared in
+ *  the heartbeat message shared between controllers
+ *
+ *  Example: 0x100 indicate all "configured" interfaces are up and failover state is 'normal'
+ *  Example: 0x130 is an example of a local message
+ *      - heartbeat and hello message alive and all "configured" interfaces up
+ *      - failover state is normal
+ */
+#define SM_FAILOVER_STATE_MASK          0x00000F00  // 4 bits in use for failover states
+#define SM_FAILOVER_IF_STATE_MASK       0x0000000F  // 4 bits in use for interface states
+#define SM_FAILOVER_NODE_INFO_MASK  (SM_FAILOVER_STATE_MASK | SM_FAILOVER_IF_STATE_MASK)
+
+/* Extract the failover state from the node info flags  */
+#define SM_FAILOVER_EXTRACT_STATE(x)    (SmFailoverStateT)((x & SM_FAILOVER_STATE_MASK) >> 8)
+
+typedef enum
+{
+    // --- interface status bits --
+    SM_FAILOVER_CLUSTER_HOST_DOWN   = (0x1 << 0), // 1
+    SM_FAILOVER_MGMT_DOWN           = (0x1 << 1), // 2
+    SM_FAILOVER_OAM_DOWN            = (0x1 << 2), // 4
+    SM_FAILOVER_ADMIN_DOWN          = (0x1 << 3), // 8
+    // ---- local status  bits   --
+    SM_FAILOVER_HEARTBEAT_ALIVE     = (0x1 << 4), // 16
+    SM_FAILOVER_HELLO_MSG_ALIVE     = (0x1 << 5), // 32
+    // ---- failover state bits  --
+    SM_FAILOVER_STATE_BIT0          = (0X1 << 8),
+    SM_FAILOVER_STATE_BIT1          = (0X1 << 9),
+    SM_FAILOVER_STATE_BIT2          = (0X1 << 10),
+    SM_FAILOVER_STATE_BIT3          = (0X1 << 11),
+    // ----------------------------
+    SM_FAILOVER_PEER_DISABLED       = (0x1 << 14) // 0x4000
+} SmFailoverNodeStateBitFlagT;
+
+typedef uint32_t SmHeartbeatMsgNodeInfoT;
 
 typedef enum
 {
@@ -862,7 +915,7 @@ extern const char* sm_auth_type_str( SmAuthTypeT auth_type );
 // ****************************************************************************
 // Types - Orchestration Type Value
 // ================================
-extern SmOrchestrationTypeT sm_orchestration_type_value( 
+extern SmOrchestrationTypeT sm_orchestration_type_value(
     const char* orchestration_type_str );
 // ****************************************************************************
 
@@ -876,14 +929,14 @@ extern const char* sm_orchestration_type_str(
 // ****************************************************************************
 // Types - Designation Type Value
 // ==============================
-extern SmDesignationTypeT sm_designation_type_value( 
+extern SmDesignationTypeT sm_designation_type_value(
     const char* designation_type_str );
 // ****************************************************************************
 
 // ****************************************************************************
 // Types - Designation Type String
 // ===============================
-extern const char* sm_designation_type_str( 
+extern const char* sm_designation_type_str(
     SmDesignationTypeT designation_type );
 // ****************************************************************************
 
@@ -1000,7 +1053,7 @@ extern const char* sm_service_domain_neighbor_event_str(
 // ****************************************************************************
 // Types - Service Domain Member Redundancy Model Value
 // ====================================================
-extern SmServiceDomainMemberRedundancyModelT 
+extern SmServiceDomainMemberRedundancyModelT
 sm_service_domain_member_redundancy_model_value(
     const char* model_str );
 // ****************************************************************************
@@ -1015,7 +1068,7 @@ extern const char* sm_service_domain_member_redundancy_model_str(
 // ****************************************************************************
 // Types - Service Domain Split Brain Recovery Value
 // =================================================
-extern SmServiceDomainSplitBrainRecoveryT 
+extern SmServiceDomainSplitBrainRecoveryT
 sm_service_domain_split_brain_recovery_value(
     const char* recovery_str );
 // ****************************************************************************
@@ -1030,7 +1083,7 @@ extern const char* sm_service_domain_split_brain_recovery_str(
 // ****************************************************************************
 // Types - Service Group Action Value
 // ==================================
-extern SmServiceGroupActionT sm_service_group_action_value( 
+extern SmServiceGroupActionT sm_service_group_action_value(
     const char* action_str );
 // ****************************************************************************
 
@@ -1075,7 +1128,7 @@ extern const char* sm_service_group_event_str( SmServiceGroupEventT event );
 // ****************************************************************************
 // Types - Service Group Status Value
 // ==================================
-extern SmServiceGroupStatusT sm_service_group_status_value( 
+extern SmServiceGroupStatusT sm_service_group_status_value(
     const char* status_str );
 // ****************************************************************************
 
@@ -1088,7 +1141,7 @@ extern const char* sm_service_group_status_str( SmServiceGroupStatusT status );
 // ****************************************************************************
 // Types - Service Group Condition Value
 // =====================================
-extern SmServiceGroupConditionT sm_service_group_condition_value( 
+extern SmServiceGroupConditionT sm_service_group_condition_value(
     const char* condition_str );
 // ****************************************************************************
 
@@ -1195,7 +1248,7 @@ extern const char* sm_service_severity_str( SmServiceSeverityT severity );
 // ****************************************************************************
 // Types - Service Heartbeat Type Value
 // ====================================
-extern SmServiceHeartbeatTypeT sm_service_heartbeat_type_value( 
+extern SmServiceHeartbeatTypeT sm_service_heartbeat_type_value(
     const char* heartbeat_type_str );
 // ****************************************************************************
 
@@ -1209,7 +1262,7 @@ extern const char* sm_service_heartbeat_type_str(
 // ****************************************************************************
 // Types - Service Heartbeat State Value
 // =====================================
-extern SmServiceHeartbeatStateT sm_service_heartbeat_state_value( 
+extern SmServiceHeartbeatStateT sm_service_heartbeat_state_value(
     const char* heartbeat_state_str );
 // ****************************************************************************
 

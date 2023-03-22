@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018 Wind River Systems, Inc.
+// Copyright (c) 2018-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -9,6 +9,7 @@
 #include "sm_debug.h"
 #include "sm_failover_fsm.h"
 #include "sm_failover_ss.h"
+#include "sm_failover.h"
 
 static void _audit_failover_state()
 {
@@ -43,6 +44,14 @@ SmErrorT SmFailoverSurvivedState::event_handler(SmFailoverEventT event, const IS
     switch (event)
     {
         case SM_FAILOVER_EVENT_IF_STATE_CHANGED:
+            break;
+        case SM_FAILOVER_EVENT_PEER_IS_NORMAL:
+            DPRINTFE("Peer is in %s(%d) failover state, Host will transition to %s(%d)",
+                sm_failover_state_str(SM_FAILOVER_STATE_NORMAL),
+                SM_FAILOVER_STATE_NORMAL,
+                sm_failover_state_str(SM_FAILOVER_STATE_NORMAL),
+                SM_FAILOVER_STATE_NORMAL);
+            SmFailoverFSM::get_fsm().set_state(SM_FAILOVER_STATE_NORMAL);
             break;
         case SM_FAILOVER_EVENT_NODE_ENABLED:
             _audit_failover_state();

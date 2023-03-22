@@ -6,6 +6,7 @@
 #ifndef __SM_FAILOVER_H__
 #define __SM_FAILOVER_H__
 #include <stdio.h>
+#include <stdint.h>
 #include "sm_types.h"
 #include "sm_service_domain_interface_table.h"
 #include "sm_db_nodes.h"
@@ -29,16 +30,6 @@ typedef enum
     SM_FAILOVER_DEGRADE_SOURCE_IF_DOWN = 2
 }SmFailoverDegradeSourceT;
 
-typedef enum
-{
-    SM_FAILOVER_CLUSTER_HOST_DOWN = 1,
-    SM_FAILOVER_MGMT_DOWN = 2,
-    SM_FAILOVER_OAM_DOWN = 4,
-    SM_FAILOVER_HEARTBEAT_ALIVE = 8,
-    SM_FAILOVER_HELLO_MSG_ALIVE = 16,
-    SM_FAILOVER_ADMIN_DOWN = 32,
-    SM_FAILOVER_PEER_DISABLED = 0x4000,
-}SmFailoverCommFaultBitFlagT;
 
 // ****************************************************************************
 // initialize mutex
@@ -105,14 +96,14 @@ extern void sm_failover_interface_up( const char* const interface_name );
 // ****************************************************************************
 
 // ****************************************************************************
-// Failover - interface state update for peer
-extern void sm_failover_if_state_update(const char node_name[],
-        SmHeartbeatMsgIfStateT if_state);
+// Failover - node info update for peer
+extern void sm_failover_node_info_update(const char node_name[],
+        SmHeartbeatMsgNodeInfoT node_info);
 // ****************************************************************************
 
 // ****************************************************************************
-// Failover - get local interface state
-extern SmHeartbeatMsgIfStateT sm_failover_if_state_get();
+// Failover - get local interface state flags
+extern SmHeartbeatMsgNodeInfoT sm_failover_get_host_node_info_flags();
 // ****************************************************************************
 
 // ****************************************************************************
@@ -147,9 +138,9 @@ SmFailoverInterfaceStateT sm_failover_get_interface_info(SmInterfaceTypeT interf
 
 
 // ****************************************************************************
-// Failover - get peer node interface state
+// Failover - get peer node info flags
 // ==================
-SmHeartbeatMsgIfStateT sm_failover_get_peer_if_state();
+SmHeartbeatMsgNodeInfoT sm_failover_get_peer_node_info_flags();
 // ****************************************************************************
 
 
@@ -177,10 +168,6 @@ SmErrorT sm_failover_disable_peer();
 bool sm_is_active_controller();
 // ****************************************************************************
 
-// ****************************************************************************
-// Failover - get interface state
-// ==================
-int sm_failover_get_if_state();
 // ****************************************************************************
 
 // ****************************************************************************

@@ -284,11 +284,11 @@ SmErrorT _get_system_status(SmSystemStatusT& sys_status, char host_name[], char 
     SmSystemFailoverStatus::get_status().set_heartbeat_state(sys_status.heartbeat_state);
 
     sys_status.host_status.node_name = host_name;
-    sys_status.host_status.interface_state = sm_failover_if_state_get();
+    sys_status.host_status.node_info_flags = sm_failover_get_host_node_info_flags();
     sys_status.host_status.current_schedule_state = host_state;
-    sys_status.peer_status.node_name = peer_name;
 
-    sys_status.peer_status.interface_state = sm_failover_get_peer_if_state();
+    sys_status.peer_status.node_name = peer_name;
+    sys_status.peer_status.node_info_flags = sm_failover_get_peer_node_info_flags();
     sys_status.peer_status.current_schedule_state = sm_get_controller_state(peer_name);
     return SM_OKAY;
 }
@@ -324,16 +324,18 @@ SmErrorT sm_failover_ss_get_survivor(const SmSystemStatusT& system_status, SmSys
     selection.set_peer_schedule_state(system_status.peer_status.current_schedule_state);
     if(SM_HEARTBEAT_OK == system_status.heartbeat_state)
     {
-        DPRINTFI("Heartbeat alive");
+        DPRINTFI("Heartbeat alive; host flags %#x, peer flags %#x",
+            system_status.host_status.node_info_flags,
+            system_status.peer_status.node_info_flags);
         int host_healthy_score, peer_healthy_score;
-        host_healthy_score = get_node_if_healthy_score(system_status.host_status.interface_state);
-        peer_healthy_score = get_node_if_healthy_score(system_status.peer_status.interface_state);
+        host_healthy_score = get_node_if_healthy_score(system_status.host_status.node_info_flags);
+        peer_healthy_score = get_node_if_healthy_score(system_status.peer_status.node_info_flags);
         if( peer_healthy_score < host_healthy_score )
         {
             //host is more healthy
             selection.set_host_schedule_state(SM_NODE_STATE_ACTIVE);
             selection.set_peer_schedule_state(SM_NODE_STATE_STANDBY);
-            if(system_status.peer_status.interface_state & SM_FAILOVER_MGMT_DOWN)
+            if(system_status.peer_status.node_info_flags & SM_FAILOVER_MGMT_DOWN)
             {
                 DPRINTFI("Disable peer, host go active");
                 selection.set_peer_schedule_state(SM_NODE_STATE_FAILED);
@@ -343,12 +345,18 @@ SmErrorT sm_failover_ss_get_survivor(const SmSystemStatusT& system_status, SmSys
             //peer is more healthy
             selection.set_host_schedule_state(SM_NODE_STATE_STANDBY);
             selection.set_peer_schedule_state(SM_NODE_STATE_ACTIVE);
-            if(system_status.host_status.interface_state & SM_FAILOVER_MGMT_DOWN)
+            if(system_status.host_status.node_info_flags & SM_FAILOVER_MGMT_DOWN)
             {
                 DPRINTFI("Disable host, peer go active");
                 selection.set_host_schedule_state(SM_NODE_STATE_FAILED);
             }
+        } else
+        {
+            // host and peer has equal healthy scores
+            DPRINTFI("host and peer have the same healthy score");
         }
+        DPRINTFI("host_healthy_score %d, peer_healthy_score %d",
+            host_healthy_score, peer_healthy_score);
     }else
     {
         DPRINTFI("Loss of heartbeat ALL");

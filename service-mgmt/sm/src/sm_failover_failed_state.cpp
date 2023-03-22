@@ -282,6 +282,8 @@ SmErrorT SmFailoverFailedState::event_handler(SmFailoverEventT event, const ISmF
             }
             break;
         }
+        case SM_FAILOVER_EVENT_PEER_IS_NORMAL:
+            break;
         default:
             DPRINTFE("Runtime error, unexpected event %s, at state %s",
                 sm_failover_event_str(event),

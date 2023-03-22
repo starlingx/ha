@@ -47,6 +47,8 @@
 #define SM_FAILOVER_RECOVERY_INTERVAL_IN_SEC 100
 #define SM_FAILOVER_INTERFACE_STATE_REPORT_INTERVAL_MS 20000
 
+#define SM_FAILOVER_PEER_IS_NORMAL_THRESHOLD 10
+
 const char* RESET_PEER_NOW = "/var/run/.sm_reset_peer";
 
 typedef enum
@@ -124,8 +126,8 @@ class SmFailoverInterfaceInfo
 SmTimerIdT failover_audit_timer_id;
 static char _host_name[SM_NODE_NAME_MAX_CHAR];
 static char _peer_name[SM_NODE_NAME_MAX_CHAR];
-static SmHeartbeatMsgIfStateT _peer_if_state = 0;
-static SmHeartbeatMsgIfStateT _peer_if_state_at_last_action = 0;
+static SmHeartbeatMsgNodeInfoT _peer_node_info = 0;
+static SmHeartbeatMsgNodeInfoT _peer_node_info_at_last_action = 0;
 static bool _retry = true;
 static bool _recheck = true;
 
@@ -145,7 +147,7 @@ static SmDbHandleT* _sm_db_handle = NULL;
 static SmNodeScheduleStateT _host_state;
 static SmNodeScheduleStateT _host_state_at_last_action; // host state when action was taken last time
 static int64_t _node_comm_state = -1;
-static int _prev_if_state_flag = -1;
+static int _prev_node_info_flag = -1;
 time_t _last_if_state_ms = 0;
 static SmNodeScheduleStateT _prev_host_state= SM_NODE_STATE_UNKNOWN;
 
@@ -472,22 +474,38 @@ SmErrorT sm_failover_degrade_clear(SmFailoverDegradeSourceT source)
 // ****************************************************************************
 
 // ****************************************************************************
-// Failover - peer interface state update
+// Failover - peer node info update
 // ==================
-void sm_failover_if_state_update(const char node_name[], SmHeartbeatMsgIfStateT if_state)
+void sm_failover_node_info_update(const char node_name[], SmHeartbeatMsgNodeInfoT node_info)
 {
+    static uint32_t num_of_peer_is_normal_events = 0;
     if( 0 == strcmp(node_name, _peer_name) )
     {
         mutex_holder holder(&sm_failover_mutex);
 
-        if( _peer_if_state != if_state )
+        SmFailoverStateT node_failover_state = SM_FAILOVER_EXTRACT_STATE(node_info);
+        if(node_failover_state == SM_FAILOVER_STATE_NORMAL)
         {
-            DPRINTFI("%s I/F state changed %d => %d", node_name, _peer_if_state, if_state);
-            _peer_if_state = if_state;
+            num_of_peer_is_normal_events++;
+            if(num_of_peer_is_normal_events > SM_FAILOVER_PEER_IS_NORMAL_THRESHOLD)
+            {
+                SmFailoverFSM::get_fsm().send_event(SM_FAILOVER_EVENT_PEER_IS_NORMAL, NULL);
+                num_of_peer_is_normal_events = 0; // reset count
+            }
         }
-    }else
+        else
+        {
+            num_of_peer_is_normal_events = 0; // reset count
+        }
+
+        if( _peer_node_info != node_info )
+        {
+            DPRINTFI("%s Node Info changed %#x => %#x", node_name, _peer_node_info, node_info);
+            _peer_node_info = node_info;
+        }
+    } else
     {
-        DPRINTFE("If state updated by unknown host %s", node_name);
+        DPRINTFE("Node Info (%#x) updated by unknown host %s", node_info, node_name);
     }
 }
 // ****************************************************************************
@@ -523,25 +541,25 @@ bool is_admin_interface_configured()
 // ****************************************************************************
 
 // ****************************************************************************
-// Failover - get interface state
+// Failover - get host interface state flags
 // ==================
-int sm_failover_get_if_state()
+static uint32_t sm_failover_get_host_if_state_flags()
 {
     SmFailoverInterfaceStateT mgmt_state = _mgmt_interface_info->get_state();
     SmFailoverInterfaceStateT oam_state = _oam_interface_info->get_state();
     SmFailoverInterfaceStateT cluster_host_state;
     SmFailoverInterfaceStateT admin_state;
-    int if_state_flag  = 0;
+    uint32_t if_state_flags  = 0;
     if ( is_cluster_host_interface_configured() )
     {
         cluster_host_state = _cluster_host_interface_info->get_state();
         if( SM_FAILOVER_INTERFACE_OK == cluster_host_state )
         {
-            if_state_flag |= SM_FAILOVER_HEARTBEAT_ALIVE;
+            if_state_flags |= SM_FAILOVER_HEARTBEAT_ALIVE;
         }
         else if ( SM_FAILOVER_INTERFACE_DOWN == cluster_host_state )
         {
-            if_state_flag |= SM_FAILOVER_CLUSTER_HOST_DOWN;
+            if_state_flags |= SM_FAILOVER_CLUSTER_HOST_DOWN;
         }
     }
 
@@ -550,55 +568,60 @@ int sm_failover_get_if_state()
         admin_state = _admin_interface_info->get_state();
         if( SM_FAILOVER_INTERFACE_OK == admin_state )
         {
-            if_state_flag |= SM_FAILOVER_HEARTBEAT_ALIVE;
+            if_state_flags |= SM_FAILOVER_HEARTBEAT_ALIVE;
         }
         else if ( SM_FAILOVER_INTERFACE_DOWN == admin_state )
         {
-            if_state_flag |= SM_FAILOVER_ADMIN_DOWN;
+            if_state_flags |= SM_FAILOVER_ADMIN_DOWN;
         }
     }
 
     if( SM_FAILOVER_INTERFACE_OK == mgmt_state )
     {
-        if_state_flag |= SM_FAILOVER_HEARTBEAT_ALIVE;
+        if_state_flags |= SM_FAILOVER_HEARTBEAT_ALIVE;
     }
     else if ( SM_FAILOVER_INTERFACE_DOWN == mgmt_state )
     {
-        if_state_flag |= SM_FAILOVER_MGMT_DOWN;
+        if_state_flags |= SM_FAILOVER_MGMT_DOWN;
     }
 
     if( SM_FAILOVER_INTERFACE_OK == oam_state )
     {
-        if_state_flag |= SM_FAILOVER_HEARTBEAT_ALIVE;
+        if_state_flags |= SM_FAILOVER_HEARTBEAT_ALIVE;
     }
     else if ( SM_FAILOVER_INTERFACE_DOWN == oam_state )
     {
-        if_state_flag |= SM_FAILOVER_OAM_DOWN;
+        if_state_flags |= SM_FAILOVER_OAM_DOWN;
     }
 
-    return if_state_flag;
+    return if_state_flags;
 }
 // ****************************************************************************
 
 // ****************************************************************************
-// Failover - get interface state
+// Failover - get host node info - bit flags
 // ==================
-SmHeartbeatMsgIfStateT sm_failover_if_state_get()
+SmHeartbeatMsgNodeInfoT sm_failover_get_host_node_info_flags()
 {
     mutex_holder holder(&sm_failover_mutex);
-    int if_state_flag = sm_failover_get_if_state();
-    return (if_state_flag & 0b0111); //the lower 3 bits i/f state flag
+
+    uint32_t failover_state_bits = ((uint32_t)SmFailoverFSM::get_fsm().get_state() << 8 );
+    failover_state_bits &= SM_FAILOVER_STATE_MASK;
+
+    uint32_t if_state_flags = sm_failover_get_host_if_state_flags();
+    if_state_flags &= SM_FAILOVER_IF_STATE_MASK;
+
+    return (failover_state_bits | if_state_flags);
 }
 // ****************************************************************************
 
 // ****************************************************************************
-// Failover - get peer node interface state
+// Failover - get peer node info - bit flags
 // ==================
-SmHeartbeatMsgIfStateT sm_failover_get_peer_if_state()
+SmHeartbeatMsgNodeInfoT sm_failover_get_peer_node_info_flags()
 {
     mutex_holder holder(&sm_failover_mutex);
-
-    return (_peer_if_state & 0b0111); //the lower 3 bits i/f state flag
+    return (_peer_node_info & SM_FAILOVER_NODE_INFO_MASK);
 }
 // ****************************************************************************
 
@@ -1015,7 +1038,9 @@ void sm_failover_audit()
     {
         if ( _prev_host_state != _host_state )
         {
-            DPRINTFD("Wait for scheduler to decided my role. host state = %d", _host_state);
+            DPRINTFD("Wait for scheduler to decided my role. host state = %s(%d)",
+                sm_node_schedule_state_str(_host_state),
+                _host_state);
             _prev_host_state = _host_state;
         }
         return;
@@ -1023,12 +1048,14 @@ void sm_failover_audit()
 
     if ( _prev_host_state != _host_state )
     {
-        DPRINTFI("host state is %d", _host_state);
+        DPRINTFI("host state is %s(%d)",
+            sm_node_schedule_state_str(_host_state),
+            _host_state);
         _prev_host_state = _host_state;
     }
 
-    int if_state_flag = sm_failover_get_if_state();
-    if(if_state_flag & SM_FAILOVER_HEARTBEAT_ALIVE)
+    int node_info_flags = (int)sm_failover_get_host_node_info_flags();
+    if(node_info_flags & SM_FAILOVER_HEARTBEAT_ALIVE)
     {
         _heartbeat_count ++;
     }
@@ -1036,12 +1063,14 @@ void sm_failover_audit()
     {
         _heartbeat_count = 0;
     }
-    if( _prev_if_state_flag != if_state_flag)
+    if( _prev_node_info_flag != node_info_flags)
     {
-        DPRINTFI("Interface state flag %d", if_state_flag);
+        DPRINTFI("Interface state flags changed : %#x -> %#x",
+            _prev_node_info_flag,
+            node_info_flags);
 
         _last_if_state_ms = now_ms;
-        _prev_if_state_flag = if_state_flag;
+        _prev_node_info_flag = node_info_flags;
     }
 
     if(!peer_controller_enabled())
@@ -1082,7 +1111,7 @@ void sm_failover_audit()
         _if_state_changed = false;
     }
 
-    int64_t curr_node_state = if_state_flag;
+    int64_t curr_node_state = node_info_flags;
 
     if( _hello_msg_alive )
     {
@@ -1092,7 +1121,7 @@ void sm_failover_audit()
     if( !_retry && !_recheck &&
          ( _node_comm_state == curr_node_state &&
             _host_state == _host_state_at_last_action &&
-            _peer_if_state == _peer_if_state_at_last_action ))
+            _peer_node_info == _peer_node_info_at_last_action ))
     {
         return;
     }
@@ -1102,7 +1131,7 @@ void sm_failover_audit()
 
     _node_comm_state = curr_node_state;
     _host_state_at_last_action = _host_state;
-    _peer_if_state_at_last_action = _peer_if_state;
+    _peer_node_info_at_last_action = _peer_node_info;
 
     _log_nodes_state();
 }
@@ -1195,10 +1224,14 @@ void _log_nodes_state()
             sm_node_avail_status_str(peer.avail_status)
         );
     }
-    DPRINTFI("Host state %d, I/F state %d, peer I/F state %d",
+    SmFailoverStateT peer_failover_state = SM_FAILOVER_EXTRACT_STATE(_peer_node_info);
+    DPRINTFI("Host state %s(%d), I/F state %#x, peer I/F state %#x, peer failover state %s(%d)",
+            sm_node_schedule_state_str(_host_state),
             _host_state,
             _node_comm_state,
-            _peer_if_state
+            _peer_node_info,
+            sm_failover_state_str(peer_failover_state),
+            peer_failover_state
         );
 }
 // ****************************************************************************
@@ -1527,13 +1560,20 @@ void dump_interfaces_state(FILE* fp)
 
 void dump_peer_if_state(FILE* fp)
 {
-    fprintf(fp, " Peer Interface state:   %d\n", _peer_if_state);
+    fprintf(fp, " Peer Node info:   %#x\n", _peer_node_info);
 }
 
 void dump_failover_fsm_state(FILE* fp)
 {
     SmFailoverStateT state = SmFailoverFSM::get_fsm().get_state();
     fprintf(fp, "   Failover FSM state:   %s\n", sm_failover_state_str(state));
+}
+
+void dump_peer_failover_fsm_state(FILE* fp)
+{
+    uint32_t peer_failover_bits = _peer_node_info & SM_FAILOVER_STATE_MASK;
+    SmFailoverStateT state = (SmFailoverStateT)( peer_failover_bits >> 8 );
+    fprintf(fp, "   Peer Failover FSM state:   %s\n", sm_failover_state_str(state));
 }
 
 // ****************************************************************************
@@ -1546,5 +1586,5 @@ void sm_failover_dump_state(FILE* fp)
     dump_failover_fsm_state(fp);
     dump_interfaces_state(fp);
     dump_peer_if_state(fp);
+    dump_peer_failover_fsm_state(fp);
 }
-// ****************************************************************************

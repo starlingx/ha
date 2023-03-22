@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2017 Wind River Systems, Inc.
+// Copyright (c) 2014-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -55,7 +55,7 @@ typedef struct
 typedef struct
 {
     uint16_t    msg_size;
-    uint32_t    if_state;
+    uint32_t    node_info;  /**< @see SmHeartbeatMsgNodeInfoT */
 } __attribute__ ((packed)) SmHeartbeatMsgAliveRev2T;
 
 typedef struct
@@ -64,10 +64,10 @@ typedef struct
 
     union
     {
-        SmHeartbeatMsgAliveT alive;
-        SmHeartbeatMsgAliveRev2T if_state_msg;
+        SmHeartbeatMsgAliveT alive_msg;
+        SmHeartbeatMsgAliveRev2T aliveRev2_msg;
         char raw_msg[SM_HEARTBEAT_MSG_MAX_SIZE-sizeof(SmHeartbeatMsgHeaderT)];
-    } u;
+    } msg;
 } __attribute__ ((packed)) SmHeartbeatMsgT;
 
 static char _tx_control_buffer[SM_HEARTBEAT_MSG_BUFFER_MAX_SIZE] __attribute__((aligned));
@@ -206,10 +206,10 @@ SmErrorT sm_heartbeat_msg_send_alive( SmNetworkTypeT network_type, char node_nam
     snprintf( heartbeat_msg.header.node_name,
               sizeof(heartbeat_msg.header.node_name), "%s", node_name );
 
-    heartbeat_msg.u.if_state_msg.msg_size = htons((uint16_t)sizeof(SmHeartbeatMsgAliveRev2T));
-    SmHeartbeatMsgIfStateT if_state;
-    if_state =  sm_failover_if_state_get();
-    heartbeat_msg.u.if_state_msg.if_state = htonl(if_state);
+    heartbeat_msg.msg.aliveRev2_msg.msg_size = htons((uint16_t)sizeof(SmHeartbeatMsgAliveRev2T));
+    SmHeartbeatMsgNodeInfoT node_info;
+    node_info =  sm_failover_get_host_node_info_flags();
+    heartbeat_msg.msg.aliveRev2_msg.node_info = htonl(node_info);
 
     if( SM_AUTH_TYPE_HMAC_SHA512 == auth_type )
     {
@@ -269,7 +269,7 @@ SmErrorT sm_heartbeat_msg_send_alive( SmNetworkTypeT network_type, char node_nam
 // ****************************************************************************
 
 // ****************************************************************************
-// Heartbeat Messaging - Get Ancillary Data 
+// Heartbeat Messaging - Get Ancillary Data
 // ========================================
 static void* sm_heartbeat_msg_get_ancillary_data( struct msghdr* msg_hdr,
     int cmsg_level, int cmsg_type )
@@ -341,14 +341,14 @@ static void sm_heartbeat_msg_dispatch_msg( SmHeartbeatMsgT* heartbeat_msg,
     }
 
     uint16_t                msg_size;
-    SmHeartbeatMsgIfStateT  if_state = 0;
+    SmHeartbeatMsgNodeInfoT  node_info = 0;
     bool        perform_if_exg = false;
     if(2 <= ntohs(heartbeat_msg->header.revision))
     {
-        msg_size = ntohs(heartbeat_msg->u.if_state_msg.msg_size);
+        msg_size = ntohs(heartbeat_msg->msg.aliveRev2_msg.msg_size);
         if(sizeof(SmHeartbeatMsgAliveRev2T) == msg_size )
         {
-            if_state = ntohl(heartbeat_msg->u.if_state_msg.if_state);
+            node_info = ntohl(heartbeat_msg->msg.aliveRev2_msg.node_info);
             perform_if_exg = true;
         }else
         {
@@ -377,14 +377,15 @@ static void sm_heartbeat_msg_dispatch_msg( SmHeartbeatMsgT* heartbeat_msg,
 
                 if(perform_if_exg)
                 {
-                    if(NULL != callbacks->if_state)
+                    if(NULL != callbacks->node_info)
                     {
-                        callbacks->if_state(heartbeat_msg->header.node_name,
-                                            if_state);
+                        callbacks->node_info(heartbeat_msg->header.node_name,
+                                            node_info);
                     }
                     else
                     {
-                        DPRINTFD("No handler for if state package");
+                        DPRINTFD("Missing callback for node info %s %#x", heartbeat_msg->header.node_name,
+                            node_info);
                     }
                 }
             }
@@ -434,7 +435,7 @@ static void sm_heartbeat_msg_dispatch_ipv4_udp( int selobj, int64_t unused )
             break;
 
         } else if( 0 == bytes_read ) {
-            // For connection oriented sockets, this indicates that the peer 
+            // For connection oriented sockets, this indicates that the peer
             // has performed an orderly shutdown.
             return;
 
@@ -453,7 +454,7 @@ static void sm_heartbeat_msg_dispatch_ipv4_udp( int selobj, int64_t unused )
         char network_address_str[SM_NETWORK_ADDRESS_MAX_CHAR];
         struct in_pktinfo* pkt_info;
 
-        pkt_info = (struct in_pktinfo*) 
+        pkt_info = (struct in_pktinfo*)
             sm_heartbeat_msg_get_ancillary_data( &msg_hdr, SOL_IP, IP_PKTINFO );
         if( NULL == pkt_info )
         {
@@ -666,7 +667,7 @@ static SmErrorT sm_heartbeat_msg_open_ipv4_udp_multicast_socket(
     // Bind socket to interface.
     memset(&ifr, 0, sizeof(ifr));
     snprintf( ifr.ifr_name, sizeof(ifr.ifr_name), "%s", interface_name );
-    
+
     result = setsockopt( sock, SOL_SOCKET, SO_BINDTODEVICE,
                          (void *)&ifr, sizeof(ifr) );
     if( 0 > result )

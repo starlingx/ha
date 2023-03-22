@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2017 Wind River Systems, Inc.
+// Copyright (c) 2014-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -23,14 +23,14 @@ typedef void (*SmHeartbeatMsgAliveCallbackT) (char node_name[],
         SmNetworkAddressT* network_address, int network_port, int version,
         int revision, char interface_name[]);
 
-typedef void (*SmHeartbeatMsgIfStateCallbackT) (const char node_name[],
-        SmHeartbeatMsgIfStateT if_state);
+typedef void (*SmHeartbeatMsgNodeInfoCallbackT) (const char node_name[],
+        SmHeartbeatMsgNodeInfoT if_state);
 
 typedef struct
 {
     SmHeartbeatMsgAuthCallbackT auth;
     SmHeartbeatMsgAliveCallbackT alive;
-    SmHeartbeatMsgIfStateCallbackT if_state;
+    SmHeartbeatMsgNodeInfoCallbackT node_info;
 } SmHeartbeatMsgCallbacksT;
 
 // ****************************************************************************

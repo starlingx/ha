@@ -21,7 +21,7 @@ typedef struct
     char str[SM_VALUE_STR_MAPPING_MAX_CHAR];
 } SmValueStrMappingT;
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_node_admin_state_mappings[SM_NODE_ADMIN_STATE_MAX] =
 {
     { SM_NODE_ADMIN_STATE_NIL,      "nil"      },
@@ -59,7 +59,7 @@ _sm_node_ready_state_mappings[SM_NODE_READY_STATE_MAX] =
     { SM_NODE_READY_STATE_DISABLED, "disabled" },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_node_event_mappings[SM_NODE_EVENT_MAX] =
 {
     { SM_NODE_EVENT_NIL,      "nil"      },
@@ -69,7 +69,7 @@ _sm_node_event_mappings[SM_NODE_EVENT_MAX] =
     { SM_NODE_EVENT_AUDIT,    "audit"    },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_interface_state_mappings[SM_INTERFACE_STATE_MAX] =
 {
     { SM_INTERFACE_STATE_NIL,           "nil"      },
@@ -79,7 +79,7 @@ _sm_interface_state_mappings[SM_INTERFACE_STATE_MAX] =
     { SM_INTERFACE_STATE_NOT_IN_USE,    "not-in-use"   }
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_network_type_mappings[SM_NETWORK_TYPE_MAX] =
 {
     { SM_NETWORK_TYPE_NIL,      "nil"      },
@@ -90,7 +90,7 @@ _sm_network_type_mappings[SM_NETWORK_TYPE_MAX] =
     { SM_NETWORK_TYPE_IPV6_UDP, "ipv6-udp" },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_path_type_mappings[SM_PATH_TYPE_MAX] =
 {
     { SM_PATH_TYPE_NIL,         "nil"         },
@@ -100,7 +100,7 @@ _sm_path_type_mappings[SM_PATH_TYPE_MAX] =
     { SM_PATH_TYPE_STATUS_ONLY, "status-only" },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_auth_type_mappings[SM_AUTH_TYPE_MAX] =
 {
     { SM_AUTH_TYPE_NIL,         "nil"         },
@@ -109,7 +109,7 @@ _sm_auth_type_mappings[SM_AUTH_TYPE_MAX] =
     { SM_AUTH_TYPE_HMAC_SHA512, "hmac-sha512" },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_orchestration_type_mappings[SM_ORCHESTRATION_TYPE_MAX] =
 {
     { SM_ORCHESTRATION_TYPE_NIL,          "nil"          },
@@ -119,7 +119,7 @@ _sm_orchestration_type_mappings[SM_ORCHESTRATION_TYPE_MAX] =
     { SM_ORCHESTRATION_TYPE_HYBRID,       "hybrid"       },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_designation_type_mappings[SM_DESIGNATION_TYPE_MAX] =
 {
     { SM_DESIGNATION_TYPE_NIL,     "nil"     },
@@ -129,7 +129,7 @@ _sm_designation_type_mappings[SM_DESIGNATION_TYPE_MAX] =
     { SM_DESIGNATION_TYPE_OTHER,   "other"   },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_domain_state_mappings[SM_SERVICE_DOMAIN_STATE_MAX] =
 {
     { SM_SERVICE_DOMAIN_STATE_NIL,     "nil"     },
@@ -141,7 +141,7 @@ _sm_service_domain_state_mappings[SM_SERVICE_DOMAIN_STATE_MAX] =
     { SM_SERVICE_DOMAIN_STATE_OTHER,   "other"   },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_domain_event_mappings[SM_SERVICE_DOMAIN_EVENT_MAX] =
 {
     { SM_SERVICE_DOMAIN_EVENT_NIL,                "nil"                },
@@ -154,7 +154,7 @@ _sm_service_domain_event_mappings[SM_SERVICE_DOMAIN_EVENT_MAX] =
     { SM_SERVICE_DOMAIN_EVENT_CHANGING_LEADER,    "change-leader"      },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_domain_interface_event_mappings[SM_SERVICE_DOMAIN_INTERFACE_EVENT_MAX] =
 {
     { SM_SERVICE_DOMAIN_INTERFACE_EVENT_NIL,           "nil"           },
@@ -174,7 +174,8 @@ _sm_failover_event_mappings[SM_FAILOVER_EVENT_MAX] =
     {SM_FAILOVER_EVENT_IF_STATE_CHANGED,        "interface-state-changed"},
     {SM_FAILOVER_EVENT_FAIL_PENDING_TIMEOUT,    "fail-pending-timeout"},
     {SM_FAILOVER_EVENT_FAILED_RECOVERY_AUDIT,   "failed-recovery-audit"},
-    {SM_FAILOVER_EVENT_NODE_ENABLED,            "node-enabled"}
+    {SM_FAILOVER_EVENT_NODE_ENABLED,            "node-enabled"},
+    {SM_FAILOVER_EVENT_PEER_IS_NORMAL,          "peer-is-normal"}
 };
 
 static SmValueStrMappingT
@@ -196,7 +197,7 @@ _sm_failover_interface_state_mappings[SM_FAILOVER_INTERFACE_STATE_MAX] =
     {SM_FAILOVER_INTERFACE_DOWN,                "down"}
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_domain_neighbor_state_mappings[SM_SERVICE_DOMAIN_NEIGHBOR_STATE_MAX] =
 {
     { SM_SERVICE_DOMAIN_NEIGHBOR_STATE_NIL,            "nil"            },
@@ -206,7 +207,7 @@ _sm_service_domain_neighbor_state_mappings[SM_SERVICE_DOMAIN_NEIGHBOR_STATE_MAX]
     { SM_SERVICE_DOMAIN_NEIGHBOR_STATE_FULL,           "full"           },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_domain_neighbor_event_mappings[SM_SERVICE_DOMAIN_NEIGHBOR_EVENT_MAX] =
 {
     { SM_SERVICE_DOMAIN_NEIGHBOR_EVENT_NIL,                  "nil"                    },
@@ -219,7 +220,7 @@ _sm_service_domain_neighbor_event_mappings[SM_SERVICE_DOMAIN_NEIGHBOR_EVENT_MAX]
     { SM_SERVICE_DOMAIN_NEIGHBOR_EVENT_DOWN,                 "down"                   },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_domain_member_redundancy_model_mappings[SM_SERVICE_DOMAIN_MEMBER_REDUNDANCY_MODEL_MAX] =
 {
     { SM_SERVICE_DOMAIN_MEMBER_REDUNDANCY_MODEL_NIL,      "nil"     },
@@ -231,7 +232,7 @@ _sm_service_domain_member_redundancy_model_mappings[SM_SERVICE_DOMAIN_MEMBER_RED
     { SM_SERVICE_DOMAIN_MEMBER_REDUNDANCY_MODEL_N_TO_N,   "N to N"  },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_domain_split_brain_recovery_mappings[SM_SERVICE_DOMAIN_SPLIT_BRAIN_RECOVERY_MAX] =
 {
     { SM_SERVICE_DOMAIN_SPLIT_BRAIN_RECOVERY_NIL,                "nil"                },
@@ -240,7 +241,7 @@ _sm_service_domain_split_brain_recovery_mappings[SM_SERVICE_DOMAIN_SPLIT_BRAIN_R
     { SM_SERVICE_DOMAIN_SPLIT_BRAIN_RECOVERY_SELECT_BEST_ACTIVE, "select-best-active" },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_group_action_mappings[SM_SERVICE_GROUP_ACTION_MAX] =
 {
     { SM_SERVICE_GROUP_ACTION_NIL,        "nil"        },
@@ -252,7 +253,7 @@ _sm_service_group_action_mappings[SM_SERVICE_GROUP_ACTION_MAX] =
     { SM_SERVICE_GROUP_ACTION_RECOVER,    "recover"    },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_group_state_mappings[SM_SERVICE_GROUP_STATE_MAX] =
 {
     { SM_SERVICE_GROUP_STATE_NIL,        "nil"            },
@@ -268,7 +269,7 @@ _sm_service_group_state_mappings[SM_SERVICE_GROUP_STATE_MAX] =
     { SM_SERVICE_GROUP_STATE_SHUTDOWN,   "shutdown"       },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_group_event_mappings[SM_SERVICE_GROUP_EVENT_MAX] =
 {
     { SM_SERVICE_GROUP_EVENT_NIL,                  "nil"                   },
@@ -284,7 +285,7 @@ _sm_service_group_event_mappings[SM_SERVICE_GROUP_EVENT_MAX] =
     { SM_SERVICE_GROUP_EVENT_NOTIFICATION_TIMEOUT, "notification-timeout"  },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_group_status_mappings[SM_SERVICE_GROUP_STATUS_MAX] =
 {
     { SM_SERVICE_GROUP_STATUS_NIL,      "nil"      },
@@ -295,7 +296,7 @@ _sm_service_group_status_mappings[SM_SERVICE_GROUP_STATUS_MAX] =
     { SM_SERVICE_GROUP_STATUS_FAILED,   "failed"   },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_group_condition_mappings[SM_SERVICE_GROUP_CONDITION_MAX] =
 {
     { SM_SERVICE_GROUP_CONDITION_NIL,               "nil"               },
@@ -312,7 +313,7 @@ _sm_service_group_condition_mappings[SM_SERVICE_GROUP_CONDITION_MAX] =
     { SM_SERVICE_GROUP_CONDITION_FD_LIMIT_REACHED,  "FD-limit-reached"  },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_group_notification_mappings[SM_SERVICE_GROUP_NOTIFICATION_MAX] =
 {
     { SM_SERVICE_GROUP_NOTIFICATION_NIL,        "nil"        },
@@ -335,7 +336,7 @@ _sm_service_admin_state_mappings[SM_SERVICE_ADMIN_STATE_MAX] =
     { SM_SERVICE_ADMIN_STATE_UNLOCKED, "unknown"        },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_state_mappings[SM_SERVICE_STATE_MAX] =
 {
     { SM_SERVICE_STATE_NIL,                "nil"                },
@@ -353,7 +354,7 @@ _sm_service_state_mappings[SM_SERVICE_STATE_MAX] =
     { SM_SERVICE_STATE_SHUTDOWN,           "shutdown"           },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_event_mappings[SM_SERVICE_EVENT_MAX] =
 {
     { SM_SERVICE_EVENT_NIL,                "nil"                },
@@ -388,7 +389,7 @@ _sm_service_event_mappings[SM_SERVICE_EVENT_MAX] =
     { SM_SERVICE_EVENT_SHUTDOWN,           "shutdown"           },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_status_mappings[SM_SERVICE_STATUS_MAX] =
 {
     { SM_SERVICE_STATUS_NIL,      "nil"      },
@@ -399,7 +400,7 @@ _sm_service_status_mappings[SM_SERVICE_STATUS_MAX] =
     { SM_SERVICE_STATUS_FAILED,   "failed"   },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_condition_mappings[SM_SERVICE_CONDITION_MAX] =
 {
     { SM_SERVICE_CONDITION_NIL,               "nil"               },
@@ -418,7 +419,7 @@ _sm_service_condition_mappings[SM_SERVICE_CONDITION_MAX] =
     { SM_SERVICE_CONDITION_FD_LIMIT_REACHED,  "FD-limit-reached"  },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_severity_mappings[SM_SERVICE_SEVERITY_MAX] =
 {
     { SM_SERVICE_SEVERITY_NIL,      "nil"      },
@@ -429,7 +430,7 @@ _sm_service_severity_mappings[SM_SERVICE_SEVERITY_MAX] =
     { SM_SERVICE_SEVERITY_CRITICAL, "critical" },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_heartbeat_type_mappings[SM_SERVICE_HEARTBEAT_TYPE_MAX] =
 {
     { SM_SERVICE_HEARTBEAT_TYPE_NIL,     "nil"     },
@@ -438,7 +439,7 @@ _sm_service_heartbeat_type_mappings[SM_SERVICE_HEARTBEAT_TYPE_MAX] =
     { SM_SERVICE_HEARTBEAT_TYPE_UDP,     "udp"     },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_heartbeat_state_mappings[SM_SERVICE_HEARTBEAT_STATE_MAX] =
 {
     { SM_SERVICE_HEARTBEAT_STATE_NIL,     "nil"     },
@@ -447,7 +448,7 @@ _sm_service_heartbeat_state_mappings[SM_SERVICE_HEARTBEAT_STATE_MAX] =
     { SM_SERVICE_HEARTBEAT_STATE_STOPPED, "stopped" },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_dependency_type_mappings[SM_SERVICE_DEPENDENCY_TYPE_MAX] =
 {
     { SM_SERVICE_DEPENDENCY_TYPE_NIL,     "nil"     },
@@ -456,7 +457,7 @@ _sm_service_dependency_type_mappings[SM_SERVICE_DEPENDENCY_TYPE_MAX] =
     { SM_SERVICE_DEPENDENCY_TYPE_STATE,   "state"   },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_action_mappings[SM_SERVICE_ACTION_MAX] =
 {
     { SM_SERVICE_ACTION_NIL,            "nil"            },
@@ -471,7 +472,7 @@ _sm_service_action_mappings[SM_SERVICE_ACTION_MAX] =
     { SM_SERVICE_ACTION_AUDIT_DISABLED, "audit-disabled" },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_action_result_mappings[SM_SERVICE_ACTION_RESULT_MAX] =
 {
     { SM_SERVICE_ACTION_RESULT_NIL,     "nil"     },
@@ -482,7 +483,7 @@ _sm_service_action_result_mappings[SM_SERVICE_ACTION_RESULT_MAX] =
     { SM_SERVICE_ACTION_RESULT_TIMEOUT, "timeout" },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_domain_scheduling_state_mappings[SM_SERVICE_DOMAIN_SCHEDULING_STATE_MAX] =
 {
     { SM_SERVICE_DOMAIN_SCHEDULING_STATE_NIL,             "nil"           },
@@ -494,7 +495,7 @@ _sm_service_domain_scheduling_state_mappings[SM_SERVICE_DOMAIN_SCHEDULING_STATE_
     { SM_SERVICE_DOMAIN_SCHEDULING_STATE_DISABLE_FORCE,   "disable-force" },
 };
 
-static SmValueStrMappingT 
+static SmValueStrMappingT
 _sm_service_domain_scheduling_list_mappings[] =
 {
     { SM_SERVICE_DOMAIN_SCHEDULING_LIST_NIL,         "nil"         },
@@ -525,7 +526,7 @@ typedef struct
     char str[SM_VALUE_STR_MAPPING_MAX_CHAR];
 } SmNodeStateStrMappingT;
 
-static SmNodeStateStrMappingT 
+static SmNodeStateStrMappingT
 _sm_node_state_mappings[SM_NODE_ADMIN_STATE_MAX*SM_NODE_READY_STATE_MAX] =
 {
     { SM_NODE_ADMIN_STATE_NIL,      SM_NODE_READY_STATE_NIL,      "nil-nil"           },
@@ -568,7 +569,7 @@ static SmValueStrMappingT
 // ****************************************************************************
 // Types - Mapping Get String
 // ==========================
-static const char* sm_mapping_get_str( SmValueStrMappingT mappings[], 
+static const char* sm_mapping_get_str( SmValueStrMappingT mappings[],
     unsigned int num_mappings, int value )
 {
     unsigned int map_i;
@@ -608,7 +609,7 @@ static int sm_mapping_get_value( SmValueStrMappingT mappings[],
 // =======================================
 SmNodeAdminStateT sm_node_admin_state_value( const char* state_str )
 {
-    return( (SmNodeAdminStateT) 
+    return( (SmNodeAdminStateT)
             sm_mapping_get_value( _sm_node_admin_state_mappings,
                                   SM_NODE_ADMIN_STATE_MAX,
                                   state_str ) );
@@ -620,7 +621,7 @@ SmNodeAdminStateT sm_node_admin_state_value( const char* state_str )
 // ========================================
 const char* sm_node_admin_state_str( SmNodeAdminStateT state )
 {
-    return( sm_mapping_get_str( _sm_node_admin_state_mappings, 
+    return( sm_mapping_get_str( _sm_node_admin_state_mappings,
                                 SM_NODE_ADMIN_STATE_MAX,
                                 state ) );
 }
@@ -631,7 +632,7 @@ const char* sm_node_admin_state_str( SmNodeAdminStateT state )
 // ====================================
 SmNodeOperationalStateT sm_node_oper_state_value( const char* state_str )
 {
-    return( (SmNodeOperationalStateT) 
+    return( (SmNodeOperationalStateT)
             sm_mapping_get_value( _sm_node_oper_state_mappings,
                                   SM_NODE_OPERATIONAL_STATE_MAX,
                                   state_str ) );
@@ -643,7 +644,7 @@ SmNodeOperationalStateT sm_node_oper_state_value( const char* state_str )
 // =====================================
 const char* sm_node_oper_state_str( SmNodeOperationalStateT state )
 {
-    return( sm_mapping_get_str( _sm_node_oper_state_mappings, 
+    return( sm_mapping_get_str( _sm_node_oper_state_mappings,
                                 SM_NODE_OPERATIONAL_STATE_MAX,
                                 state ) );
 }
@@ -654,7 +655,7 @@ const char* sm_node_oper_state_str( SmNodeOperationalStateT state )
 // ======================================
 SmNodeAvailStatusT sm_node_avail_status_value( const char* status_str )
 {
-    return( (SmNodeAvailStatusT) 
+    return( (SmNodeAvailStatusT)
             sm_mapping_get_value( _sm_node_avail_status_mappings,
                                   SM_NODE_AVAIL_STATUS_MAX,
                                   status_str ) );
@@ -666,7 +667,7 @@ SmNodeAvailStatusT sm_node_avail_status_value( const char* status_str )
 // =======================================
 const char* sm_node_avail_status_str( SmNodeAvailStatusT status )
 {
-    return( sm_mapping_get_str( _sm_node_avail_status_mappings, 
+    return( sm_mapping_get_str( _sm_node_avail_status_mappings,
                                 SM_NODE_AVAIL_STATUS_MAX,
                                 status ) );
 }
@@ -677,7 +678,7 @@ const char* sm_node_avail_status_str( SmNodeAvailStatusT status )
 // ==============================
 SmNodeReadyStateT sm_node_ready_state_value( const char* state_str )
 {
-    return( (SmNodeReadyStateT) 
+    return( (SmNodeReadyStateT)
             sm_mapping_get_value( _sm_node_ready_state_mappings,
                                   SM_NODE_READY_STATE_MAX,
                                   state_str ) );
@@ -689,7 +690,7 @@ SmNodeReadyStateT sm_node_ready_state_value( const char* state_str )
 // ===============================
 const char* sm_node_ready_state_str( SmNodeReadyStateT state )
 {
-    return( sm_mapping_get_str( _sm_node_ready_state_mappings, 
+    return( sm_mapping_get_str( _sm_node_ready_state_mappings,
                                 SM_NODE_READY_STATE_MAX,
                                 state ) );
 }
@@ -721,7 +722,7 @@ const char* sm_node_state_str( SmNodeAdminStateT admin_state,
 // ========================
 SmNodeEventT sm_node_event_value( const char* event_str )
 {
-    return( (SmNodeEventT) 
+    return( (SmNodeEventT)
             sm_mapping_get_value( _sm_node_event_mappings,
                                   SM_NODE_EVENT_MAX, event_str ) );
 }
@@ -742,7 +743,7 @@ const char* sm_node_event_str( SmNodeEventT event )
 // =============================
 SmInterfaceStateT sm_interface_state_value( const char* state_str )
 {
-    return( (SmInterfaceStateT) 
+    return( (SmInterfaceStateT)
             sm_mapping_get_value( _sm_interface_state_mappings,
                                   SM_INTERFACE_STATE_MAX, state_str ) );
 }
@@ -763,7 +764,7 @@ const char* sm_interface_state_str( SmInterfaceStateT state )
 // ==========================
 SmNetworkTypeT sm_network_type_value( const char* network_type_str )
 {
-    return( (SmNetworkTypeT) 
+    return( (SmNetworkTypeT)
             sm_mapping_get_value( _sm_network_type_mappings,
                                   SM_NETWORK_TYPE_MAX, network_type_str ) );
 }
@@ -784,7 +785,7 @@ const char* sm_network_type_str( SmNetworkTypeT network_type )
 // =======================
 SmPathTypeT sm_path_type_value( const char* path_type_str )
 {
-    return( (SmPathTypeT) 
+    return( (SmPathTypeT)
             sm_mapping_get_value( _sm_path_type_mappings,
                                   SM_PATH_TYPE_MAX, path_type_str ) );
 }
@@ -805,7 +806,7 @@ const char* sm_path_type_str( SmPathTypeT path_type )
 // =================================
 SmAuthTypeT sm_auth_type_value( const char* auth_type_str )
 {
-    return( (SmAuthTypeT) 
+    return( (SmAuthTypeT)
             sm_mapping_get_value( _sm_auth_type_mappings,
                                   SM_AUTH_TYPE_MAX, auth_type_str ) );
 }
@@ -824,12 +825,12 @@ const char* sm_auth_type_str( SmAuthTypeT auth_type )
 // ****************************************************************************
 // Types - Orchestration Type Value
 // ================================
-SmOrchestrationTypeT sm_orchestration_type_value( 
+SmOrchestrationTypeT sm_orchestration_type_value(
     const char* orchestration_type_str )
 {
-    return( (SmOrchestrationTypeT) 
+    return( (SmOrchestrationTypeT)
             sm_mapping_get_value( _sm_orchestration_type_mappings,
-                                  SM_ORCHESTRATION_TYPE_MAX, 
+                                  SM_ORCHESTRATION_TYPE_MAX,
                                   orchestration_type_str ) );
 }
 // ****************************************************************************
@@ -840,7 +841,7 @@ SmOrchestrationTypeT sm_orchestration_type_value(
 const char* sm_orchestration_type_str( SmOrchestrationTypeT orchestration_type )
 {
     return( sm_mapping_get_str( _sm_orchestration_type_mappings,
-                                SM_ORCHESTRATION_TYPE_MAX, 
+                                SM_ORCHESTRATION_TYPE_MAX,
                                 orchestration_type ) );
 }
 // ****************************************************************************
@@ -848,12 +849,12 @@ const char* sm_orchestration_type_str( SmOrchestrationTypeT orchestration_type )
 // ****************************************************************************
 // Types - Designation Type Value
 // ==============================
-SmDesignationTypeT sm_designation_type_value( 
+SmDesignationTypeT sm_designation_type_value(
     const char* designation_type_str )
 {
-    return( (SmDesignationTypeT) 
+    return( (SmDesignationTypeT)
             sm_mapping_get_value( _sm_designation_type_mappings,
-                                  SM_DESIGNATION_TYPE_MAX, 
+                                  SM_DESIGNATION_TYPE_MAX,
                                   designation_type_str ) );
 }
 // ****************************************************************************
@@ -873,7 +874,7 @@ const char* sm_designation_type_str( SmDesignationTypeT designation_type )
 // ==================================
 SmServiceDomainStateT sm_service_domain_state_value( const char* state_str )
 {
-    return( (SmServiceDomainStateT) 
+    return( (SmServiceDomainStateT)
             sm_mapping_get_value( _sm_service_domain_state_mappings,
                                   SM_SERVICE_DOMAIN_STATE_MAX, state_str ) );
 }
@@ -894,7 +895,7 @@ const char* sm_service_domain_state_str( SmServiceDomainStateT state )
 // ==================================
 SmServiceDomainEventT sm_service_domain_event_value( const char* event_str )
 {
-    return( (SmServiceDomainEventT) 
+    return( (SmServiceDomainEventT)
             sm_mapping_get_value( _sm_service_domain_event_mappings,
                                   SM_SERVICE_DOMAIN_EVENT_MAX, event_str ) );
 }
@@ -916,9 +917,9 @@ const char* sm_service_domain_event_str( SmServiceDomainEventT event )
 SmServiceDomainSchedulingStateT sm_service_domain_scheduling_state_value(
     const char* sched_state_str )
 {
-    return( (SmServiceDomainSchedulingStateT) 
+    return( (SmServiceDomainSchedulingStateT)
             sm_mapping_get_value( _sm_service_domain_scheduling_state_mappings,
-                                  SM_SERVICE_DOMAIN_SCHEDULING_STATE_MAX, 
+                                  SM_SERVICE_DOMAIN_SCHEDULING_STATE_MAX,
                                   sched_state_str ) );
 }
 // ****************************************************************************
@@ -941,9 +942,9 @@ const char* sm_service_domain_scheduling_state_str(
 SmServiceDomainSchedulingListT sm_service_domain_scheduling_list_value(
     const char* sched_list_str )
 {
-    return( (SmServiceDomainSchedulingListT) 
+    return( (SmServiceDomainSchedulingListT)
             sm_mapping_get_value( _sm_service_domain_scheduling_list_mappings,
-                                  SM_SERVICE_DOMAIN_SCHEDULING_LIST_MAX, 
+                                  SM_SERVICE_DOMAIN_SCHEDULING_LIST_MAX,
                                   sched_list_str ) );
 }
 // ****************************************************************************
@@ -966,7 +967,7 @@ const char* sm_service_domain_scheduling_list_str(
 SmServiceDomainInterfaceEventT sm_service_domain_interface_event_value(
     const char* event_str )
 {
-    return( (SmServiceDomainInterfaceEventT) 
+    return( (SmServiceDomainInterfaceEventT)
             sm_mapping_get_value( _sm_service_domain_interface_event_mappings,
                                   SM_SERVICE_DOMAIN_INTERFACE_EVENT_MAX,
                                   event_str ) );
@@ -1024,9 +1025,9 @@ const char* sm_failover_interface_state_str( SmFailoverInterfaceStateT state )
 SmServiceDomainNeighborStateT sm_service_domain_neighbor_state_value(
     const char* neighbor_state_str )
 {
-    return( (SmServiceDomainNeighborStateT) 
+    return( (SmServiceDomainNeighborStateT)
             sm_mapping_get_value( _sm_service_domain_neighbor_state_mappings,
-                                  SM_SERVICE_DOMAIN_NEIGHBOR_STATE_MAX, 
+                                  SM_SERVICE_DOMAIN_NEIGHBOR_STATE_MAX,
                                   neighbor_state_str ) );
 }
 // ****************************************************************************
@@ -1049,9 +1050,9 @@ const char* sm_service_domain_neighbor_state_str(
 SmServiceDomainNeighborEventT sm_service_domainneighbor_event_value(
     const char* neighbor_event_str )
 {
-    return( (SmServiceDomainNeighborEventT) 
+    return( (SmServiceDomainNeighborEventT)
             sm_mapping_get_value( _sm_service_domain_neighbor_event_mappings,
-                                  SM_SERVICE_DOMAIN_NEIGHBOR_EVENT_MAX, 
+                                  SM_SERVICE_DOMAIN_NEIGHBOR_EVENT_MAX,
                                   neighbor_event_str ) );
 }
 // ****************************************************************************
@@ -1121,7 +1122,7 @@ const char* sm_service_domain_split_brain_recovery_str(
 // ****************************************************************************
 // Types - Service Group Action Value
 // ==================================
-SmServiceGroupActionT sm_service_group_action_value( 
+SmServiceGroupActionT sm_service_group_action_value(
     const char* action_str )
 {
     return( (SmServiceGroupActionT)
@@ -1135,7 +1136,7 @@ SmServiceGroupActionT sm_service_group_action_value(
 // ===================================
 const char* sm_service_group_action_str( SmServiceGroupActionT action )
 {
-    return( sm_mapping_get_str( _sm_service_group_action_mappings, 
+    return( sm_mapping_get_str( _sm_service_group_action_mappings,
                                 SM_SERVICE_GROUP_ACTION_MAX, action ) );
 }
 // ****************************************************************************
@@ -1143,7 +1144,7 @@ const char* sm_service_group_action_str( SmServiceGroupActionT action )
 // ****************************************************************************
 // Types - Service Group State Value
 // =================================
-SmServiceGroupStateT sm_service_group_state_value( 
+SmServiceGroupStateT sm_service_group_state_value(
     const char* state_str )
 {
     return( (SmServiceGroupStateT)
@@ -1157,7 +1158,7 @@ SmServiceGroupStateT sm_service_group_state_value(
 // ==================================
 const char* sm_service_group_state_str( SmServiceGroupStateT state )
 {
-    return( sm_mapping_get_str( _sm_service_group_state_mappings, 
+    return( sm_mapping_get_str( _sm_service_group_state_mappings,
                                 SM_SERVICE_GROUP_STATE_MAX, state ) );
 }
 // ****************************************************************************
@@ -1302,7 +1303,7 @@ SmServiceGroupEventT sm_service_group_event_value( const char* event_str )
 // ==================================
 const char* sm_service_group_event_str( SmServiceGroupEventT event )
 {
-    return( sm_mapping_get_str( _sm_service_group_event_mappings, 
+    return( sm_mapping_get_str( _sm_service_group_event_mappings,
                                 SM_SERVICE_GROUP_EVENT_MAX, event ) );
 }
 // ****************************************************************************
@@ -1310,7 +1311,7 @@ const char* sm_service_group_event_str( SmServiceGroupEventT event )
 // ****************************************************************************
 // Types - Service Group Status Value
 // ==================================
-SmServiceGroupStatusT sm_service_group_status_value( 
+SmServiceGroupStatusT sm_service_group_status_value(
     const char* status_str )
 {
     return( (SmServiceGroupStatusT)
@@ -1324,7 +1325,7 @@ SmServiceGroupStatusT sm_service_group_status_value(
 // ===================================
 const char* sm_service_group_status_str( SmServiceGroupStatusT status )
 {
-    return( sm_mapping_get_str( _sm_service_group_status_mappings, 
+    return( sm_mapping_get_str( _sm_service_group_status_mappings,
                                 SM_SERVICE_GROUP_STATUS_MAX, status ) );
 }
 // ****************************************************************************
@@ -1332,7 +1333,7 @@ const char* sm_service_group_status_str( SmServiceGroupStatusT status )
 // ****************************************************************************
 // Types - Service Group Condition Value
 // =====================================
-SmServiceGroupConditionT sm_service_group_condition_value( 
+SmServiceGroupConditionT sm_service_group_condition_value(
     const char* condition_str )
 {
     return( (SmServiceGroupConditionT)
@@ -1347,7 +1348,7 @@ SmServiceGroupConditionT sm_service_group_condition_value(
 // ======================================
 const char* sm_service_group_condition_str( SmServiceGroupConditionT condition )
 {
-    return( sm_mapping_get_str( _sm_service_group_condition_mappings, 
+    return( sm_mapping_get_str( _sm_service_group_condition_mappings,
                                 SM_SERVICE_GROUP_CONDITION_MAX, condition ) );
 }
 // ****************************************************************************
@@ -1383,7 +1384,7 @@ const char* sm_service_group_notification_str(
 SmServiceAdminStateT sm_service_admin_state_value( const char* state_str )
 {
     return( (SmServiceAdminStateT)
-            sm_mapping_get_value( _sm_service_admin_state_mappings, 
+            sm_mapping_get_value( _sm_service_admin_state_mappings,
                                   SM_SERVICE_ADMIN_STATE_MAX, state_str ) );
 }
 // ****************************************************************************
@@ -1393,7 +1394,7 @@ SmServiceAdminStateT sm_service_admin_state_value( const char* state_str )
 // ==================================
 const char* sm_service_admin_state_str( SmServiceAdminStateT state )
 {
-    return( sm_mapping_get_str( _sm_service_admin_state_mappings, 
+    return( sm_mapping_get_str( _sm_service_admin_state_mappings,
                                 SM_SERVICE_ADMIN_STATE_MAX, state ) );
 }
 // ****************************************************************************
@@ -1404,7 +1405,7 @@ const char* sm_service_admin_state_str( SmServiceAdminStateT state )
 SmServiceStateT sm_service_state_value( const char* state_str )
 {
     return( (SmServiceStateT)
-            sm_mapping_get_value( _sm_service_state_mappings, 
+            sm_mapping_get_value( _sm_service_state_mappings,
                                   SM_SERVICE_STATE_MAX, state_str ) );
 }
 // ****************************************************************************
@@ -1414,7 +1415,7 @@ SmServiceStateT sm_service_state_value( const char* state_str )
 // ============================
 const char* sm_service_state_str( SmServiceStateT state )
 {
-    return( sm_mapping_get_str( _sm_service_state_mappings, 
+    return( sm_mapping_get_str( _sm_service_state_mappings,
                                 SM_SERVICE_STATE_MAX, state ) );
 }
 // ****************************************************************************
@@ -1571,7 +1572,7 @@ SmServiceStateT sm_service_state_lesser( SmServiceStateT state_a,
 SmServiceEventT sm_service_event_value( const char* event_str )
 {
     return( (SmServiceEventT)
-            sm_mapping_get_value( _sm_service_event_mappings, 
+            sm_mapping_get_value( _sm_service_event_mappings,
                                   SM_SERVICE_EVENT_MAX, event_str ) );
 }
 // ****************************************************************************
@@ -1581,7 +1582,7 @@ SmServiceEventT sm_service_event_value( const char* event_str )
 // ============================
 const char* sm_service_event_str( SmServiceEventT event )
 {
-    return( sm_mapping_get_str( _sm_service_event_mappings, 
+    return( sm_mapping_get_str( _sm_service_event_mappings,
                                 SM_SERVICE_EVENT_MAX, event ) );
 }
 // ****************************************************************************
@@ -1602,7 +1603,7 @@ SmServiceStatusT sm_service_status_value( const char* status_str )
 // =============================
 const char* sm_service_status_str( SmServiceStatusT status )
 {
-    return( sm_mapping_get_str( _sm_service_status_mappings, 
+    return( sm_mapping_get_str( _sm_service_status_mappings,
                                 SM_SERVICE_STATUS_MAX, status ) );
 }
 // ****************************************************************************
@@ -1623,7 +1624,7 @@ SmServiceConditionT sm_service_condition_value( const char* condition_str )
 // ================================
 const char* sm_service_condition_str( SmServiceConditionT condition )
 {
-    return( sm_mapping_get_str( _sm_service_condition_mappings, 
+    return( sm_mapping_get_str( _sm_service_condition_mappings,
                                 SM_SERVICE_CONDITION_MAX, condition ) );
 }
 // ****************************************************************************
@@ -1644,7 +1645,7 @@ SmServiceSeverityT sm_service_severity_value( const char* severity_str )
 // ===============================
 const char* sm_service_severity_str( SmServiceSeverityT severity )
 {
-    return( sm_mapping_get_str( _sm_service_severity_mappings, 
+    return( sm_mapping_get_str( _sm_service_severity_mappings,
                                 SM_SERVICE_SEVERITY_MAX, severity ) );
 }
 // ****************************************************************************
@@ -1652,7 +1653,7 @@ const char* sm_service_severity_str( SmServiceSeverityT severity )
 // ****************************************************************************
 // Types - Service Heartbeat Type Value
 // ====================================
-SmServiceHeartbeatTypeT sm_service_heartbeat_type_value( 
+SmServiceHeartbeatTypeT sm_service_heartbeat_type_value(
     const char* heartbeat_type_str )
 {
     return( (SmServiceHeartbeatTypeT)
@@ -1668,7 +1669,7 @@ SmServiceHeartbeatTypeT sm_service_heartbeat_type_value(
 const char* sm_service_heartbeat_type_str(
     SmServiceHeartbeatTypeT heartbeat_type )
 {
-    return( sm_mapping_get_str( _sm_service_heartbeat_type_mappings, 
+    return( sm_mapping_get_str( _sm_service_heartbeat_type_mappings,
                                 SM_SERVICE_HEARTBEAT_TYPE_MAX,
                                 heartbeat_type ) );
 }
@@ -1677,7 +1678,7 @@ const char* sm_service_heartbeat_type_str(
 // ****************************************************************************
 // Types - Service Heartbeat State Value
 // =====================================
-SmServiceHeartbeatStateT sm_service_heartbeat_state_value( 
+SmServiceHeartbeatStateT sm_service_heartbeat_state_value(
     const char* heartbeat_state_str )
 {
     return( (SmServiceHeartbeatStateT)
@@ -1693,7 +1694,7 @@ SmServiceHeartbeatStateT sm_service_heartbeat_state_value(
 const char* sm_service_heartbeat_state_str(
     SmServiceHeartbeatStateT heartbeat_state )
 {
-    return( sm_mapping_get_str( _sm_service_heartbeat_state_mappings, 
+    return( sm_mapping_get_str( _sm_service_heartbeat_state_mappings,
                                 SM_SERVICE_HEARTBEAT_STATE_MAX,
                                 heartbeat_state ) );
 }
@@ -1706,7 +1707,7 @@ SmServiceDependencyTypeT sm_service_dependency_type_value(
     const char* type_str )
 {
     return( (SmServiceDependencyTypeT)
-            sm_mapping_get_value( _sm_service_dependency_type_mappings, 
+            sm_mapping_get_value( _sm_service_dependency_type_mappings,
                                   SM_SERVICE_DEPENDENCY_TYPE_MAX, type_str ) );
 }
 // ****************************************************************************
@@ -1716,7 +1717,7 @@ SmServiceDependencyTypeT sm_service_dependency_type_value(
 // ======================================
 const char* sm_service_dependency_type_str( SmServiceDependencyTypeT type )
 {
-    return( sm_mapping_get_str( _sm_service_dependency_type_mappings, 
+    return( sm_mapping_get_str( _sm_service_dependency_type_mappings,
                                 SM_SERVICE_DEPENDENCY_TYPE_MAX, type ) );
 }
 // ****************************************************************************
@@ -1737,7 +1738,7 @@ SmServiceActionT sm_service_action_value( const char* action_str )
 // =============================
 const char* sm_service_action_str( SmServiceActionT action )
 {
-    return( sm_mapping_get_str( _sm_service_action_mappings, 
+    return( sm_mapping_get_str( _sm_service_action_mappings,
                                 SM_SERVICE_ACTION_MAX, action ) );
 }
 // ****************************************************************************
@@ -1758,7 +1759,7 @@ SmServiceActionResultT sm_service_action_result_value( const char* result_str )
 // ====================================
 const char* sm_service_action_result_str( SmServiceActionResultT result )
 {
-    return( sm_mapping_get_str( _sm_service_action_result_mappings, 
+    return( sm_mapping_get_str( _sm_service_action_result_mappings,
                                 SM_SERVICE_ACTION_RESULT_MAX, result ) );
 }
 // ****************************************************************************
@@ -1782,7 +1783,7 @@ bool sm_network_address_value( const char address_str[],
         result = inet_pton( AF_INET, address_str, &(address->u.ipv4.sin) );
 
     } else if(( SM_NETWORK_TYPE_IPV6 == address->type )||
-              ( SM_NETWORK_TYPE_IPV6_UDP == address->type )) 
+              ( SM_NETWORK_TYPE_IPV6_UDP == address->type ))
     {
         result = inet_pton( AF_INET6, address_str, &(address->u.ipv6.sin6) );
 
@@ -1804,7 +1805,7 @@ bool sm_network_address_value( const char address_str[],
 // ****************************************************************************
 // Types - Network Address String
 // ==============================
-void sm_network_address_str( const SmNetworkAddressT* address, 
+void sm_network_address_str( const SmNetworkAddressT* address,
     char address_str[] )
 {
     address_str[0] = '\0';

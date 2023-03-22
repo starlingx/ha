@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018 Wind River Systems, Inc.
+// Copyright (c) 2018-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -18,6 +18,7 @@ SmErrorT SmFailoverInitialState::event_handler(SmFailoverEventT event, const ISm
         case SM_FAILOVER_EVENT_IF_STATE_CHANGED:
         case SM_FAILOVER_EVENT_FAIL_PENDING_TIMEOUT:
         case SM_FAILOVER_EVENT_NODE_ENABLED:
+        case SM_FAILOVER_EVENT_PEER_IS_NORMAL:
             break;
         default:
             DPRINTFE("Runtime error, unexpected event %s, at state %s",

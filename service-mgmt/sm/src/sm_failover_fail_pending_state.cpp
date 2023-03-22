@@ -218,7 +218,7 @@ SmErrorT SmFailoverFailPendingState::event_handler(SmFailoverEventT event, const
         case SM_FAILOVER_EVENT_FAIL_PENDING_TIMEOUT:
             sm_node_utils_is_aio_duplex(&duplex);
             if( duplex &&
-                0 == (sm_failover_get_if_state() & SM_FAILOVER_HEARTBEAT_ALIVE))
+                0 == (sm_failover_get_host_node_info_flags() & SM_FAILOVER_HEARTBEAT_ALIVE))
             {
                 SmSystemModeT system_mode = sm_node_utils_get_system_mode();
                 SmInterfaceTypeT interfaces_to_check[3] = {SM_INTERFACE_UNKNOWN};
@@ -290,6 +290,8 @@ SmErrorT SmFailoverFailPendingState::event_handler(SmFailoverEventT event, const
                 }
                 return error;
             }
+            break;
+        case SM_FAILOVER_EVENT_PEER_IS_NORMAL:
             break;
         default:
             DPRINTFE("Runtime error, unexpected event %s, at state %s",

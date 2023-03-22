@@ -13,7 +13,7 @@
 typedef struct
 {
     const char* node_name;
-    unsigned int interface_state;
+    unsigned int node_info_flags;
     unsigned int heartbeat_state;
     SmFailoverInterfaceStateT mgmt_state;
     SmFailoverInterfaceStateT cluster_host_state;

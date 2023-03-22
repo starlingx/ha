@@ -109,7 +109,7 @@ SmErrorT SmFailoverFSM::send_event(SmFailoverEventT event, const ISmFSMEventData
         DPRINTFE("Runtime error. No handler for state %d", this->get_state());
         return SM_FAILED;
     }
-    DPRINTFI("send_event %s\n", sm_failover_event_str(event));
+    DPRINTFD("send_event %s\n", sm_failover_event_str(event));
     state_handler->event_handler(event, event_data);
     return SM_OKAY;
 }

@@ -1116,12 +1116,12 @@ DONE:
 // ****************************************************************************
 
 // ****************************************************************************
-// Heartbeat Thread - Receive if_state Message
+// Heartbeat Thread - Receive node_info Message
 // ========================================
-static void sm_heartbeat_thread_receive_if_state_message( const char node_name[],
-        SmHeartbeatMsgIfStateT if_state)
+static void sm_heartbeat_thread_receive_node_info_message( const char node_name[],
+        SmHeartbeatMsgNodeInfoT node_info)
 {
-    sm_failover_if_state_update(node_name, if_state);
+    sm_failover_node_info_update(node_name, node_info);
 }
 // ****************************************************************************
 
@@ -1158,7 +1158,7 @@ static SmErrorT sm_heartbeat_thread_initialize_thread( void )
 
     _callbacks.auth = sm_heartbeat_thread_auth_message;
     _callbacks.alive = sm_heartbeat_thread_receive_alive_message;
-    _callbacks.if_state = sm_heartbeat_thread_receive_if_state_message;
+    _callbacks.node_info = sm_heartbeat_thread_receive_node_info_message;
 
     error = sm_heartbeat_msg_register_callbacks( &_callbacks );
     if( SM_OKAY != error )
