@@ -112,7 +112,7 @@ INSERT INTO "SERVICES" VALUES(8,'yes','rabbit-fs','initial','initial','none','no
 INSERT INTO "SERVICES" VALUES(9,'yes','nfs-mgmt','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(11,'yes','platform-fs','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(12,'yes','postgres','initial','initial','none','none',2,1,90000,4,16,'/var/run/postmaster.pid');
-INSERT INTO "SERVICES" VALUES(13,'yes','rabbit','initial','initial','none','none',2,1,90000,4,16,'/var/run/rabbitmq/rabbitmq.pid');
+INSERT INTO "SERVICES" VALUES(13,'yes','rabbit','initial','initial','none','none',2,1,90000,4,5,'/var/run/rabbitmq/rabbitmq.pid');
 INSERT INTO "SERVICES" VALUES(17,'yes','platform-nfs-ip','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(15,'yes','platform-export-fs','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(18,'yes','sysinv-inv','initial','initial','none','none',2,1,90000,4,16,'/var/run/sysinv-api.pid');
