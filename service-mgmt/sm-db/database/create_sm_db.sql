@@ -185,7 +185,6 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-export-fs','not-appli
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','extension-export-fs','not-applicable','enable','extension-fs','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-export-fs','not-applicable','enable','management-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applicable','enable','postgres','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applicable','enable','rabbit','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applicable','enable','management-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-inv','not-applicable','enable','sysinv-conductor','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','mtc-agent','not-applicable','enable','sysinv-inv','enabled-active');
@@ -227,7 +226,6 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','di
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','keystone','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','postgres','not-applicable','disable','sysinv-conductor','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','keystone','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rabbit','not-applicable','disable','sysinv-conductor','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','disable','platform-export-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','disable','sysinv-conductor','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applicable','disable','sysinv-inv','disabled');
