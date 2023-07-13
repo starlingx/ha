@@ -5,3 +5,4 @@ build-essential [platform:dpkg]
 python3-dev [platform:dpkg]
 # default-libmysqlclient-dev is debian specific
 default-libmysqlclient-dev [platform:debian]
+pkg-config [platform:debian]
