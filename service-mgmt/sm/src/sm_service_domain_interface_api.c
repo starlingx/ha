@@ -16,6 +16,7 @@
 #include "sm_node_fsm.h"
 #include "sm_service_domain_interface_table.h"
 #include "sm_service_domain_interface_fsm.h"
+#include "sm_heartbeat.h"
 #include "sm_log.h"
 
 static void sm_service_domain_interface_api_send_event( void* user_data[],
@@ -250,17 +251,37 @@ SmErrorT sm_service_domain_interface_api_node_disabled( void )
 // ****************************************************************************
 // Service Domain Interface API - Interface Provisioned
 // ============================================
-SmErrorT sm_service_domain_interface_api_provisioned( SmServiceDomainInterfaceT* interface )
+SmErrorT sm_service_domain_interface_api_provisioned(
+    SmServiceDomainInterfaceT* interface )
 {
     char reason_text[SM_LOG_REASON_TEXT_MAX_CHAR];
     SmServiceDomainInterfaceEventT event;
     void* user_data[] = { &event, reason_text };
+    SmErrorT error;
 
+    error = sm_heartbeat_delete_interface( interface );
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to delete interface from heartbeat thread: %s",
+                   sm_error_str( error ) );
+        return( error );
+    }
+
+    sm_service_domain_interface_api_get_hw_interface(interface);
+
+    error = sm_heartbeat_add_interface( interface );
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to add messaging interface for service domain (%s), "
+                  "error=%s.", interface->service_domain,
+                  sm_error_str( error ) );
+        return( error );
+    }
+
+    /* The following will restart heartbeat services with the updated networking config via the FSM */
     event = SM_SERVICE_DOMAIN_INTERFACE_EVENT_UNKNOWN;
-
     snprintf( reason_text, sizeof(reason_text), "%s interface is enabled",
               interface->service_domain_interface );
-
     sm_service_domain_interface_api_send_event( user_data, interface );
 
     return( SM_OKAY );
@@ -270,18 +291,37 @@ SmErrorT sm_service_domain_interface_api_provisioned( SmServiceDomainInterfaceT*
 // ****************************************************************************
 // Service Domain Interface API - Interface Deprovisioned
 // ============================================
-SmErrorT sm_service_domain_interface_api_deprovisioned( SmServiceDomainInterfaceT* interface )
+SmErrorT sm_service_domain_interface_api_deprovisioned(
+    SmServiceDomainInterfaceT* interface )
 {
+    SmErrorT error;
     char reason_text[SM_LOG_REASON_TEXT_MAX_CHAR];
     SmServiceDomainInterfaceEventT event;
     void* user_data[] = { &event, reason_text };
 
     event = SM_SERVICE_DOMAIN_INTERFACE_EVENT_NOT_IN_USE;
-
     snprintf( reason_text, sizeof(reason_text), "%s interface is disabled",
               interface->service_domain_interface );
-
     sm_service_domain_interface_api_send_event( user_data, interface );
+
+    error = sm_heartbeat_delete_interface( interface );
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to delete interface from heartbeat thread: %s",
+                   sm_error_str( error ) );
+        return( error );
+    }
+
+    error = sm_heartbeat_delete_peer_interface( interface->interface_name,
+                                          &(interface->network_peer_address),
+                                          interface->network_heartbeat_port );
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to delete peer messaging interface for service "
+                  "domain (%s), error=%s.", interface->service_domain,
+                  sm_error_str( error ) );
+        return( error );
+    }
 
     return( SM_OKAY );
 }

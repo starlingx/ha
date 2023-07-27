@@ -763,7 +763,8 @@ static int sm_send_msg(SmServiceDomainInterfaceT* interface, SmMsgT* msg )
     dst_addr4.sin_family = AF_INET;
     dst_addr4.sin_port = htons(interface->network_port);
 
-    if ( SM_INTERFACE_OAM != interface->interface_type )
+    if (( SM_INTERFACE_OAM != interface->interface_type ) &&
+        ( SM_INTERFACE_ADMIN != interface->interface_type ))
     {
         ipv4_dst = &(interface->network_multicast.u.ipv4);
     }
@@ -795,7 +796,8 @@ static int sm_send_ipv6_msg(SmServiceDomainInterfaceT* interface, SmMsgT* msg )
     dst_addr6.sin6_family = AF_INET6;
     dst_addr6.sin6_port = htons(interface->network_port);
 
-    if ( SM_INTERFACE_OAM != interface->interface_type )
+    if (( SM_INTERFACE_OAM != interface->interface_type ) &&
+        ( SM_INTERFACE_ADMIN != interface->interface_type ))
     {
         ipv6_dst = &(interface->network_multicast.u.ipv6);
     }else

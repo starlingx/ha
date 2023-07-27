@@ -174,16 +174,6 @@ static bool sm_failover_failed_recovery_criteria_met( void )
         {
             criteria_met = true ;
         }
-
-        if ( criteria_met && is_admin_interface_configured() )
-        {
-            criteria_met = false ;
-            admin_state = sm_failover_get_interface_info(SM_INTERFACE_ADMIN);
-            if (( admin_state == SM_FAILOVER_INTERFACE_OK ) || ( admin_state == SM_FAILOVER_INTERFACE_MISSING_HEARTBEAT ))
-            {
-                criteria_met = true;
-            }
-        }
     }
 
     DPRINTFI("Oam:%s ; Mgmt:%s ; Cluster:%s ; Admin:%s recovery criteria met: %s",
