@@ -5,7 +5,7 @@
 install:
 	install -d ${DEST_DIR}/var/lib/sm
 	install -d ${DEST_DIR}/var/lib/sm/patches
+	install -d ${DEST_DIR}/usr/share/sm/patches
 	install sm.hb.db ${DEST_DIR}/var/lib/sm
 	install sm.db ${DEST_DIR}/var/lib/sm
-	install -m 644 sm-patch.sql ${DEST_DIR}/var/lib/sm/patches
-
+	install -m 644 sm-patch.sql ${DEST_DIR}/usr/share/sm/patches

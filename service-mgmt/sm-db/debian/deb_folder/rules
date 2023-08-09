@@ -12,6 +12,10 @@ override_dh_auto_build:
 	sqlite3 database/sm.hb.db < database/create_sm_hb_db.sql
 	dh_auto_build
 
+override_dh_install:
+	install -p -D -m 644 debian/tmpfiles.conf $(ROOT)/usr/lib/tmpfiles.d/sm-db.conf
+	dh_install
+
 override_dh_auto_install:
 	$(MAKE) DEST_DIR=${ROOT} \
 		VER=$(VER) \
