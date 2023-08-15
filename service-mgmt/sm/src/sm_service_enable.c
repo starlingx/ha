@@ -582,19 +582,19 @@ static int _get_num_csv_file(const char* filename)
 // ===========================
 static int get_initial_throttle()
 {
-    bool is_aio;
+    bool is_aio_duplex;
     SmErrorT error;
-    error = sm_node_utils_is_aio(&is_aio);
+    error = sm_node_utils_is_aio_duplex(&is_aio_duplex);
     if(SM_OKAY != error)
     {
-        DPRINTFE( "Failed to determine if it is AIO, "
+        DPRINTFE( "Failed to determine if it is AIO-DX, "
                   "error=%s.", sm_error_str(error) );
         // prepare for the worst
-        is_aio = true;
+        is_aio_duplex = true;
     }
 
     #define MAX_SERVICE_EXPECTED 1000
-    if( !is_aio )
+    if( !is_aio_duplex )
     {
         return MAX_SERVICE_EXPECTED;
     }
