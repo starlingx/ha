@@ -734,7 +734,7 @@ typedef enum
  *      - failover state is normal
  */
 #define SM_FAILOVER_STATE_MASK          0x00000F00  // 4 bits in use for failover states
-#define SM_FAILOVER_IF_STATE_MASK       0x0000000F  // 4 bits in use for interface states
+#define SM_FAILOVER_IF_STATE_MASK       0x0000003F  // 6 bits in use for interface states
 #define SM_FAILOVER_NODE_INFO_MASK  (SM_FAILOVER_STATE_MASK | SM_FAILOVER_IF_STATE_MASK)
 
 /* Extract the failover state from the node info flags  */
