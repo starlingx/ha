@@ -168,6 +168,7 @@ CREATE TABLE SERVICE_HEARTBEAT ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISION
 CREATE TABLE SERVICE_DEPENDENCY ( DEPENDENCY_TYPE CHAR(32), SERVICE_NAME CHAR(32), STATE CHAR(32), ACTION CHAR(32), DEPENDENT CHAR(32), DEPENDENT_STATE CHAR(32), PRIMARY KEY (DEPENDENCY_TYPE, SERVICE_NAME, STATE, ACTION, DEPENDENT));
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','oam-ip','not-applicable','enable','management-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','haproxy','not-applicable','enable','oam-ip','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','haproxy','not-applicable','enable','dnsmasq','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ip','not-applicable','enable','open-ldap','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-pg','not-applicable','go-active','management-ip','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-rabbit','not-applicable','go-active','management-ip','enabled-active');
@@ -194,6 +195,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dnsmasq','not-applicable','ena
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dnsmasq','not-applicable','enable','platform-fs','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dnsmasq','not-applicable','disable','keystone','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dnsmasq','not-applicable','disable','barbican-api','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dnsmasq','not-applicable','disable','haproxy','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','fm-mgr','not-applicable','enable','postgres','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd','not-applicable','enable','etcd-fs','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','enable','postgres','enabled-active');
