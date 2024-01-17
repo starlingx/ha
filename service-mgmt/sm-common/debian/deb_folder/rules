@@ -6,9 +6,16 @@ export PMONDIR = /usr/share/starlingx/pmon.d
 export VER = $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' ')
 export VER_MJR = $(shell echo $(VER) | cut -d. -f1)
 
+export DEB_HOST_ARCH = $(shell dpkg-architecture -qDEB_HOST_ARCH 2>/dev/null)
 
 %:
 	dh $@
+
+override_dh_auto_build:
+ifeq ($(DEB_HOST_ARCH),arm64)
+	sed -i "s/x86_64/aarch64/" $(CURDIR)/src/Makefile
+endif
+	dh_auto_build
 
 override_dh_auto_install:
 	$(MAKE) DEST_DIR=${ROOT} \

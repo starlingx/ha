@@ -4,10 +4,15 @@ export ROOT = $(CURDIR)/debian/tmp
 export VER = $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' ')
 export VER_MJR = $(shell echo $(VER) | cut -d. -f1)
 
+export DEB_HOST_ARCH = $(shell dpkg-architecture -qDEB_HOST_ARCH 2>/dev/null)
+
 %:
 	dh $@
 
 override_dh_auto_build:
+ifeq ($(DEB_HOST_ARCH),arm64)
+	sed -i "s/x86_64/aarch64/" $(CURDIR)/src/Makefile
+endif
 	sqlite3 database/sm.db < database/create_sm_db.sql
 	sqlite3 database/sm.hb.db < database/create_sm_hb_db.sql
 	dh_auto_build
