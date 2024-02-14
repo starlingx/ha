@@ -5,6 +5,7 @@
 //
 #ifndef __SM_CLUSTER_HBS_INFO_MSG_H__
 #define __SM_CLUSTER_HBS_INFO_MSG_H__
+#include <atomic>
 #include <list>
 #include <pthread.h>
 #include <stdio.h>
@@ -77,11 +78,12 @@ class SmClusterHbsInfoMsg
         static SmErrorT finalize();
         static const SmClusterHbsStateT& get_current_state();
         static const SmClusterHbsStateT& get_previous_state();
-        static bool cluster_hbs_info_query(cluster_hbs_query_ready_callback callback = NULL, bool alive_pulse = false);
+        static bool cluster_hbs_info_query(cluster_hbs_query_ready_callback callback = NULL);
         static bool send_alive_pulse();
         static void dump_hbs_record(FILE* fp);
         static int get_peer_controller_index();
         static int get_this_controller_index();
+        static SmErrorT set_address();
 
     private:
         static int _sock;
@@ -93,7 +95,7 @@ class SmClusterHbsInfoMsg
         static SmErrorT open_socket();
         static SmErrorT get_controller_index();
 
-        static SmErrorT _get_address(struct sockaddr_in* addr);
+        static struct sockaddr_in* _get_address();
         static void _cluster_hbs_info_msg_received( int selobj, int64_t user_data );
         static bool _process_cluster_hbs_history(mtce_hbs_cluster_history_type history,
                                                  SmClusterHbsStateT& state);
@@ -102,6 +104,8 @@ class SmClusterHbsInfoMsg
         static char client_port[SM_CONFIGURATION_VALUE_MAX_CHAR + 1];
         static int peer_controller_index;
         static int this_controller_index;
+        static std::atomic_flag _sending_query;
+        static struct sockaddr_in sock_addr;
 };
 
 #endif // __SM_CLUSTER_HBS_INFO_MSG_H__
