@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2024 Wind River Systems, Inc.
+// Copyright (c) 2014-2023 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -18,7 +18,6 @@
 #include "sm_types.h"
 #include "sm_debug.h"
 
-#define SM_NODE_LOCKED_FILE           "/etc/mtc/tmp/.node_locked"
 #define SM_NODE_GO_ENABLE_FILE        "/var/run/goenabled"
 #define SM_NODE_GO_ENABLE_FILE_SIMPLEX "/var/run/.goenabled"
 #define SM_NODE_UNHEALTHY_FILE        "/var/run/.sm_node_unhealthy"
@@ -51,7 +50,7 @@ static SmErrorT sm_node_utils_read_platform_config( const char key[],
     char format[1024];
     char line[1024];
     char val[1024];
-
+    
     value[0] = '\0';
 
     fp = fopen( SM_NODE_PLATFORM_CONFIG_FILE, "r" );
@@ -157,7 +156,7 @@ SmErrorT sm_node_utils_is_aio( bool* is_aio )
     else
     {
         *is_aio = ( IsTrue == _is_aio );
-    }
+    } 
 
     return SM_OKAY;
 }
@@ -347,7 +346,7 @@ SmErrorT sm_node_utils_get_hostname( char node_name[] )
 // ****************************************************************************
 
 // ****************************************************************************
-// Node Utilities - Configuration Complete
+// Node Utilities - Configuration Complete 
 // =======================================
 SmErrorT sm_node_utils_config_complete( bool* complete )
 {
@@ -370,7 +369,7 @@ SmErrorT sm_node_utils_config_complete( bool* complete )
 
     *complete = true;
 
-    return( SM_OKAY );
+    return( SM_OKAY );     
 }
 // ****************************************************************************
 
@@ -382,7 +381,6 @@ typedef enum
     NODE_UNHEALTHY_FILE_EXISTS,
     NODE_DISABLED_LICENSE_INVALID,
     NODE_DISABLED_FAILOVER,
-    NODE_IS_LOCKED,
     NODE_ENABLED
 }SmNodeEnabledBlockingStateT;
 static SmNodeEnabledBlockingStateT blocking_state = BLOCKING_STATE_INIT;
@@ -396,7 +394,6 @@ SmErrorT sm_node_utils_enabled( bool* enabled, char reason_text[] )
     *enabled = false;
     reason_text[0] = '\0';
     const char* goenabled_file = SM_NODE_GO_ENABLE_FILE;
-    const char* node_locked_file = SM_NODE_LOCKED_FILE;
 
     bool is_aio_simplex = false;
     SmErrorT error = sm_node_utils_is_aio_simplex(&is_aio_simplex);
@@ -410,20 +407,6 @@ SmErrorT sm_node_utils_enabled( bool* enabled, char reason_text[] )
     if(is_aio_simplex)
     {
         goenabled_file = SM_NODE_GO_ENABLE_FILE_SIMPLEX;
-    }
-
-    if(0 == access( node_locked_file, F_OK ))
-    {
-        if(blocking_state != NODE_IS_LOCKED)
-        {
-            blocking_state = NODE_IS_LOCKED;
-            DPRINTFI("Node enable: blocked. Node is locked ; the %s file is present", node_locked_file);
-        }
-
-        snprintf( reason_text, SM_LOG_REASON_TEXT_MAX_CHAR,
-                  "node is locked" );
-
-        return( SM_OKAY );
     }
 
     if(0 > access( goenabled_file, F_OK ))
@@ -535,7 +518,7 @@ bool sm_node_utils_set_failover( bool to_disable )
 // ****************************************************************************
 // Node Utilities - Set Unhealthy
 // ==============================
-SmErrorT sm_node_utils_set_unhealthy( void )
+SmErrorT sm_node_utils_set_unhealthy( void ) 
 {
     int fd = open( SM_NODE_UNHEALTHY_FILE,
                    O_RDWR | O_CREAT, S_IRUSR | S_IRGRP | S_IROTH);
@@ -580,13 +563,13 @@ SmErrorT sm_node_utils_is_aio_duplex( bool* is_aio_duplex )
     if( IsUnknown == _is_aio_duplex )
     {
         SmErrorT error;
-        bool is_aio = false;
+        bool is_aio = false;  
         error = sm_node_utils_is_aio( &is_aio );
         if( SM_OKAY != error)
         {
             return error;
         }
-
+        
         if ( !is_aio )
         {
             *is_aio_duplex = false;
