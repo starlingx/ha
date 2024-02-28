@@ -20,19 +20,24 @@
 #
 
 
-import pecan
-from pecan import rest
-import wsme
-import six
-from six.moves import urllib
-from wsme import types as wtypes
-import wsmeext.pecan as wsme_pecan
-import socket
 import json
+import pecan
+import six
+import socket
+import wsme
+import wsmeext.pecan as wsme_pecan
 
+from keystoneauth1 import exceptions as keystone_exceptions
+from keystoneauth1 import identity as keystone_identity
+from keystoneauth1 import session as keystone_session
+from oslo_config import cfg as oslo_cfg
+from pecan import rest
+from six.moves import urllib
 from sm_api.api.controllers.v1 import base
 from sm_api.api.controllers.v1 import smc_api
 from sm_api.openstack.common import log
+from wsme import types as wtypes
+
 
 LOG = log.getLogger(__name__)
 
@@ -114,6 +119,8 @@ SM_SERVICE_STATE_DISABLED = "disabled"
 SM_SERVICE_STATE_SHUTDOWN = "shutdown"
 
 LOCAL_HOST_NAME = socket.gethostname()
+
+CONF = oslo_cfg.CONF
 
 
 def rest_api_request(token, method, api_cmd, api_cmd_headers=None,
@@ -317,6 +324,9 @@ class ServiceNodeController(rest.RestController):
 
         origin_state = self._collect_svc_state(sm_sdas, hostname)
 
+        if not self._are_controllers_synced():
+            check_result = ("Deployment data in both controllers is not in sync.")
+
         for sm_sda in sm_sdas:
             if sm_sda.node_name != hostname:
                 have_destination = True
@@ -441,6 +451,68 @@ class ServiceNodeController(rest.RestController):
                                     None)
 
         return response
+
+    def _get_endpoint(self, service_type="usm", interface="internal"):
+        """
+        Get service endpoint
+        :param service_type: service type
+        :param interface: interface type
+        :return: endpoint for given service type and interface
+        """
+
+        endpoint = None
+
+        try:
+            keystone_conf = CONF.get('keystone_authtoken')
+
+            auth = keystone_identity.Password(
+                auth_url=keystone_conf["auth_url"],
+                username=keystone_conf["username"],
+                password=keystone_conf["password"],
+                project_name=keystone_conf["project_name"],
+                user_domain_name=keystone_conf["user_domain_name"],
+                project_domain_name=keystone_conf["project_domain_name"],
+            )
+            session = keystone_session.Session(auth=auth)
+
+            endpoint = auth.get_endpoint(session, service_type=service_type,
+                                         interface=interface,
+                                         region_name=keystone_conf["region_name"])
+
+        except keystone_exceptions.http.Unauthorized:
+            LOG.error("Failed to authenticate to Keystone. Request unauthorized")
+
+        except Exception as e:
+            LOG.error("Failed to get '%s' endpoint. Error: %s", service_type, str(e))
+
+        return endpoint
+
+    def _get_controller_sync_state(self):
+        """
+        Get controller upgrade sync state from USM endpoint
+        :return: response object
+        """
+        usm_endpoint = self._get_endpoint()
+
+        if not usm_endpoint:
+            return None
+
+        auth_token = pecan.request.context.auth_token
+        usm_req_headers = {"Content-type": "application/json"}
+        response = rest_api_request(auth_token,
+                                    "GET",
+                                    usm_endpoint.join(("/v1/software/in_sync_controller",)),
+                                    usm_req_headers,
+                                    None)
+        return response
+
+    def _are_controllers_synced(self):
+        """
+        Check if all controllers are in sync
+        :return: boolean true if all controllers are in sync, false otherwise
+        """
+        response = self._get_controller_sync_state()
+        return response["in_sync"] if response else False
 
     def _lock_pre_check(self, hostname):
         services = pecan.request.dbapi.sm_service_get_list()
