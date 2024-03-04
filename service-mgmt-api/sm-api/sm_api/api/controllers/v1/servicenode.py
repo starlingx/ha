@@ -501,7 +501,7 @@ class ServiceNodeController(rest.RestController):
         usm_req_headers = {"Content-type": "application/json"}
         response = rest_api_request(auth_token,
                                     "GET",
-                                    usm_endpoint.join(("/v1/software/in_sync_controller",)),
+                                    usm_endpoint + "/v1/software/in_sync_controller",
                                     usm_req_headers,
                                     None)
         return response
