@@ -512,7 +512,9 @@ class ServiceNodeController(rest.RestController):
         :return: boolean true if all controllers are in sync, false otherwise
         """
         response = self._get_controller_sync_state()
-        return response["in_sync"] if response else False
+        # If response is None, we assume USM endpoint is not available
+        # We don't block the swact operation in this case
+        return response["in_sync"] if response else True
 
     def _lock_pre_check(self, hostname):
         services = pecan.request.dbapi.sm_service_get_list()
