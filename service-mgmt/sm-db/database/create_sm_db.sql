@@ -104,6 +104,7 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-s
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcmanager-state','major' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','admin-ipv4','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','admin-ipv6','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','ipsec-config','critical' FROM "SERVICE_GROUP_MEMBERS";
 CREATE TABLE SERVICES ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), DESIRED_STATE CHAR(32), STATE CHAR(32), STATUS CHAR(32), CONDITION CHAR(32), MAX_FAILURES INT, FAIL_COUNTDOWN INT, FAIL_COUNTDOWN_INTERVAL INT, MAX_ACTION_FAILURES INT, MAX_TRANSITION_FAILURES INT, PID_FILE CHAR(256) );
 INSERT INTO "SERVICES" VALUES(1,'no','oam-ipv4','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(2,'no','management-ipv4','initial','initial','none','none',2,1,90000,4,16,'');
@@ -174,6 +175,7 @@ INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcmanager-audit-worker','initial
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcmanager-state','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcmanager-state.pid' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','admin-ipv4','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','admin-ipv6','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','ipsec-config','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 CREATE TABLE SERVICE_HEARTBEAT ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), TYPE CHAR(32), SRC_ADDRESS CHAR(108), SRC_PORT INT, DST_ADDRESS CHAR(108), DST_PORT INT, MESSAGE CHAR(256), INTERVAL_IN_MS INT, MISSED_WARN INT, MISSED_DEGRADE INT, MISSED_FAIL INT, STATE CHAR(32), MISSED INT, HEARTBEAT_TIMER_ID INT, HEARTBEAT_SOCKET INT );
 CREATE TABLE SERVICE_DEPENDENCY ( DEPENDENCY_TYPE CHAR(32), SERVICE_NAME CHAR(32), STATE CHAR(32), ACTION CHAR(32), DEPENDENT CHAR(32), DEPENDENT_STATE CHAR(32), PRIMARY KEY (DEPENDENCY_TYPE, SERVICE_NAME, STATE, ACTION, DEPENDENT));
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','oam-ipv4','not-applicable','enable','management-ipv4','enabled-active');
@@ -238,6 +240,10 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ipv4','not-applicab
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ipv6','not-applicable','disable','pg-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ipv6','not-applicable','disable','rabbit-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ipv6','not-applicable','disable','platform-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ipsec-config','not-applicable','enable','management-ipv4','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ipsec-config','not-applicable','enable','management-ipv6','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ipv4','not-applicable','disable','ipsec-config','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ipv6','not-applicable','disable','ipsec-config','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-pg','not-applicable','go-standby','pg-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-pg','not-applicable','disable','pg-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-rabbit','not-applicable','go-standby','rabbit-fs','disabled');
@@ -362,6 +368,7 @@ INSERT INTO "SERVICE_INSTANCES" VALUES(11,'haproxy','haproxy','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(12,'mgr-restful-plugin','mgr-restful-plugin','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(13,'ceph-manager','ceph-manager','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(14,'ceph-radosgw','ceph-radosgw','');
+INSERT INTO "SERVICE_INSTANCES" SELECT MAX(id) + 1,'ipsec-config','ipsec-config','' FROM "SERVICE_INSTANCES";
 CREATE TABLE SERVICE_ACTIONS ( SERVICE_NAME CHAR(32), ACTION CHAR(32), PLUGIN_TYPE CHAR(32), PLUGIN_CLASS CHAR(32), PLUGIN_NAME CHAR(80), PLUGIN_COMMAND CHAR(80), PLUGIN_PARAMETERS CHAR(1024), MAX_FAILURE_RETRIES INT,      MAX_TIMEOUT_RETRIES INT,      MAX_TOTAL_RETRIES INT,      TIMEOUT_IN_SECS INT,      INTERVAL_IN_SECS INT,      PRIMARY KEY (SERVICE_NAME, ACTION));
 INSERT INTO "SERVICE_ACTIONS" VALUES('oam-ipv4','enable','ocf-script','heartbeat','IPaddr2','start','',2,2,2,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('oam-ipv4','disable','ocf-script','heartbeat','IPaddr2','stop','',1,1,1,20,'');
@@ -653,6 +660,10 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('admin-ipv6','enable','ocf-script','heartbe
 INSERT INTO "SERVICE_ACTIONS" VALUES('admin-ipv6','disable','ocf-script','heartbeat','IPaddr2','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('admin-ipv6','audit-enabled','ocf-script','heartbeat','IPaddr2','monitor','',2,2,2,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('admin-ipv6','audit-disabled','ocf-script','heartbeat','IPaddr2','monitor','',0,0,0,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('ipsec-config','enable','ocf-script','platform','ipsec-config','start','',2,2,2,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('ipsec-config','disable','ocf-script','platform','ipsec-config','stop','',1,1,1,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('ipsec-config','audit-enabled','ocf-script','platform','ipsec-config','monitor','',2,2,2,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('ipsec-config','audit-disabled','ocf-script','platform','ipsec-config','monitor','',1,1,1,20,5);
 CREATE TABLE SERVICE_ACTION_RESULTS ( PLUGIN_TYPE CHAR(32), PLUGIN_NAME CHAR(80), PLUGIN_COMMAND CHAR(80), PLUGIN_EXIT_CODE CHAR(32), ACTION_RESULT CHAR(32), SERVICE_STATE CHAR(32), SERVICE_STATUS CHAR(32), SERVICE_CONDITION CHAR(32), PRIMARY KEY (PLUGIN_TYPE, PLUGIN_NAME, PLUGIN_COMMAND, PLUGIN_EXIT_CODE));
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('lsb-script','default','status','0','success','enabled-active','unknown','unknown');
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('lsb-script','default','status','1','success','disabled','unknown','unknown');
