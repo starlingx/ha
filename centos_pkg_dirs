@@ -1,7 +1,0 @@
-service-mgmt/sm-common
-service-mgmt/sm-db
-service-mgmt/sm
-service-mgmt-api
-service-mgmt-client
-service-mgmt-tools
-stx-ocf-scripts
