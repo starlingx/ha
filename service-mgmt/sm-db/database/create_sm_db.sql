@@ -244,8 +244,8 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ipv6','not-applicab
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ipv6','not-applicable','disable','platform-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ipsec-config','not-applicable','enable','management-ipv4','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ipsec-config','not-applicable','enable','management-ipv6','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ipv4','not-applicable','disable','ipsec-config','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ipv6','not-applicable','disable','ipsec-config','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ipsec-config','not-applicable','disable','management-ipv4','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ipsec-config','not-applicable','disable','management-ipv6','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-pg','not-applicable','go-standby','pg-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-pg','not-applicable','disable','pg-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-rabbit','not-applicable','go-standby','rabbit-fs','disabled');
