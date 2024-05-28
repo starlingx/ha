@@ -209,6 +209,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applica
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applicable','enable','management-ipv4','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-conductor','not-applicable','enable','management-ipv6','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-inv','not-applicable','enable','sysinv-conductor','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-inv','not-applicable','enable','dnsmasq','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','mtc-agent','not-applicable','enable','sysinv-inv','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','hw-mon','not-applicable','enable','mtc-agent','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','vim','not-applicable','enable','mtc-agent','enabled-active');
@@ -220,6 +221,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dnsmasq','not-applicable','ena
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dnsmasq','not-applicable','disable','keystone','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dnsmasq','not-applicable','disable','barbican-api','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dnsmasq','not-applicable','disable','haproxy','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dnsmasq','not-applicable','disable','sysinv-inv','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','fm-mgr','not-applicable','enable','postgres','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd','not-applicable','enable','etcd-fs','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','enable','postgres','enabled-active');
