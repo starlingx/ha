@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014-2023 Wind River Systems, Inc.
+# Copyright (c) 2014-2024 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -16,7 +16,7 @@ cpe_duplex_direct = "duplex-direct"
 mgmt_if = 'management-interface'
 cluster_host_if = 'cluster-host-interface'
 admin_if = 'admin-interface'
-admin_ip = 'admin-ip'
+ip_services_list = ['admin-ipv4', 'admin-ipv6']
 tor_connect = 'tor'
 dc_connect = 'dc'
 database_name = "/var/lib/sm/sm.db"
@@ -269,7 +269,7 @@ def _configure_service_instance(args):
     _dispatch_config_action(args, database)
     database.close()
     if args.apply:
-        if args.service == admin_ip:
+        if args.service in ip_services_list:
             database = sqlite3.connect(runtime_db_name)
             _dispatch_config_action(args, database)
             database.close()
