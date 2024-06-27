@@ -97,6 +97,9 @@ timeout --signal KILL 5s /sbin/tc -s qdisc show
 delimiter "iptables -nvL"
 timeout --signal KILL 5s /usr/sbin/iptables -nvL
 
+delimiter "ip6tables -nvL"
+timeout --signal KILL 5s /usr/sbin/ip6tables -nvL
+
 delimiter "cat /etc/hosts"
 timeout --signal KILL 5s cat /etc/hosts
 
