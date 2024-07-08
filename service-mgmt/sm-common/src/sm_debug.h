@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014,2024 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -18,6 +18,7 @@ typedef enum
 {
     SM_DEBUG_LOG,
     SM_DEBUG_SCHED_LOG,
+    SM_DEBUG_SERVICE_LOG,
 } SmDebugLogTypeT;
 
 typedef enum
@@ -97,6 +98,13 @@ extern SmErrorT sm_debug_initialize( void );
 extern SmErrorT sm_debug_finalize( void );
 // ****************************************************************************
 
+#define DPRINTF_SVC( level, format, args... ) \
+    if( sm_debug_do_log( __FILE__, level ) ) \
+        sm_debug_log( SM_DEBUG_SERVICE_LOG, "%s: %s: %s(%i): " format, \
+                      sm_debug_log_level_str( level ), \
+                      sm_debug_get_thread_info(), \
+                      __FILE__, __LINE__, ##args )
+
 #define DPRINTF( level, format, args... ) \
     if( sm_debug_do_log( __FILE__, level ) ) \
         sm_debug_log( SM_DEBUG_LOG, "%s: %s: %s(%i): " format, \
@@ -112,6 +120,14 @@ extern SmErrorT sm_debug_finalize( void );
     DPRINTF( SM_DEBUG_LOG_LEVEL_DEBUG, format, ##args )
 #define DPRINTFV( format, args... ) \
     DPRINTF( SM_DEBUG_LOG_LEVEL_VERBOSE, format, ##args )
+#define DPRINTFI_SVC( log_type, format, args... ) \
+    DPRINTF_SVC( SM_DEBUG_LOG_LEVEL_INFO, log_type, format, ##args )
+#define DPRINTFE_SVC( log_type, format, args... ) \
+    DPRINTF_SVC( SM_DEBUG_LOG_LEVEL_ERROR, log_type, format, ##args )
+#define DPRINTFD_SVC( log_type, format, args... ) \
+    DPRINTF_SVC( SM_DEBUG_LOG_LEVEL_DEBUG, log_type, format, ##args )
+#define DPRINTFV_SVC( log_type, format, args... ) \
+    DPRINTF_SVC( SM_DEBUG_LOG_LEVEL_VERBOSE, log_type, format, ##args )
 
 #define SCHED_LOG_START( domain, format, args... ) \
     sm_debug_sched_log_start( domain ); \

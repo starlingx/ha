@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 Wind River Systems, Inc.
+# Copyright (c) 2014,2024 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -59,3 +59,18 @@ nodateext
     compress
     copytruncate
 }
+
+/var/log/sm-service.log
+{
+        nodateext
+        size 50M
+        start 1
+        rotate 10
+        missingok
+        notifempty
+        compress
+        postrotate
+                systemctl reload syslog-ng > /dev/null 2>&1 || true
+        endscript
+}
+

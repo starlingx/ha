@@ -3,6 +3,7 @@
 ROOT := $(CURDIR)/debian/tmp
 PMONDIR := /usr/share/starlingx/pmon.d
 UNIT_DIR := /lib/systemd/system
+SYSCONFDIR := debian/tmp/etc
 
 export DEB_HOST_ARCH = $(shell dpkg-architecture -qDEB_HOST_ARCH 2>/dev/null)
 
@@ -20,6 +21,9 @@ endif
 	dh_auto_build
 
 override_dh_auto_install:
+	# syslog configuration
+	install -m 644 -p -D src/scripts/sm.syslog $(SYSCONFDIR)/syslog-ng/conf.d/sm.conf
+
 	$(MAKE) DEST_DIR=${ROOT} \
 		PMONDIR=${PMONDIR} \
 		UNIT_DIR=${UNIT_DIR} \

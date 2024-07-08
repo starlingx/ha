@@ -7,3 +7,4 @@ usr/local/sbin/sm-notification
 usr/local/sbin/sm-notify
 usr/local/sbin/sm-troubleshoot
 usr/share/starlingx/pmon.d/sm.conf
+etc/syslog-ng/conf.d/sm.conf

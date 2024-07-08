@@ -18,6 +18,7 @@ typedef enum
 {
     SM_DEBUG_THREAD_MSG_LOG,
     SM_DEBUG_THREAD_MSG_SCHED_LOG,
+    SM_DEBUG_THREAD_MSG_SERVICE_LOG,
 } SmDebugThreadMsgTypeT;
 
 #define SM_DEBUG_THREAD_LOG_MAX_CHARS       512
@@ -25,8 +26,8 @@ typedef enum
 typedef struct
 {
     uint64_t seqnum;
-    struct timespec ts_mono;    
-    struct timespec ts_real;    
+    struct timespec ts_mono;
+    struct timespec ts_real;
     char data[SM_DEBUG_THREAD_LOG_MAX_CHARS];
 } SmDebugThreadMsgLogT;
 

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014,2024 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -28,6 +28,7 @@ typedef struct
 {
     bool inuse;
     uint64_t log_seqnum;
+    u_int64_t service_log_seqnum;
     char thread_name[SM_THREAD_NAME_MAX_CHAR];
     int thread_id;
     char thread_identifier[SM_THREAD_NAME_MAX_CHAR+10];
@@ -124,6 +125,13 @@ void sm_debug_log( SmDebugLogTypeT type, const char* format, ... )
         msg.type = SM_DEBUG_THREAD_MSG_SCHED_LOG;
         msg.u.log.seqnum = 0;
 
+    } else if (SM_DEBUG_SERVICE_LOG == type) {
+        msg.type = SM_DEBUG_THREAD_MSG_SERVICE_LOG;
+
+        if( NULL != info )
+            msg.u.log.seqnum = ++(info->service_log_seqnum);
+        else
+            msg.u.log.seqnum = 0;
     } else {
         msg.type = SM_DEBUG_THREAD_MSG_LOG;
 
@@ -276,6 +284,7 @@ void sm_debug_set_thread_info( void )
         if( !(info->inuse) )
         {
             info->log_seqnum = 0;
+            info->service_log_seqnum = 0;
             pthread_getname_np( pthread_self(), info->thread_name, 
                                 sizeof(info->thread_name) );
             info->thread_id = (int) syscall(SYS_gettid);
