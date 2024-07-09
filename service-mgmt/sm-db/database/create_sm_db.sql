@@ -96,6 +96,7 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'yes','cloud-services','b
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','cluster-host-ipv4','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','cluster-host-ipv6','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcdbsync-api','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcagent-api','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','ironic-ipv4','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','ironic-ipv6','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcdbsync-openstack-api','critical' FROM "SERVICE_GROUP_MEMBERS";
@@ -168,6 +169,7 @@ INSERT INTO "SERVICES" SELECT MAX(id) + 1,'yes','barbican-worker','initial','ini
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','cluster-host-ipv4','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','cluster-host-ipv6','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcdbsync-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcdbsync-api.pid' FROM "SERVICES";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcagent-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcagent-api.pid' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','ironic-ipv4','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','ironic-ipv6','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcdbsync-openstack-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcdbsync-openstack-api.pid' FROM "SERVICES";
@@ -376,6 +378,10 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcdbsync-api','not-applicable'
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','disable','dcdbsync-api','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcdbsync-openstack-api','not-applicable','enable','keystone','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','disable','dcdbsync-openstack-api','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcagent-api','not-applicable','enable','keystone','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcagent-api','not-applicable','enable','sysinv-inv','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','sysinv-inv','not-applicable','disable','dcagent-api','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','keystone','not-applicable','disable','dcagent-api','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-audit-worker','not-applicable','enable','dcmanager-manager','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-audit-worker','not-applicable','enable','dcmanager-state','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dcmanager-audit-worker','disabled');
@@ -639,6 +645,10 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('dcdbsync-openstack-api','enable','ocf-scri
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcdbsync-openstack-api','disable','ocf-script','openstack','dcdbsync-api','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcdbsync-openstack-api','audit-enabled','ocf-script','openstack','dcdbsync-api','monitor','',2,2,2,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcdbsync-openstack-api','audit-disabled','ocf-script','openstack','dcdbsync-api','monitor','',0,0,0,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcagent-api','enable','ocf-script','openstack','dcagent-api','start','',2,2,2,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcagent-api','disable','ocf-script','openstack','dcagent-api','stop','',1,1,1,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcagent-api','audit-enabled','ocf-script','openstack','dcagent-api','monitor','',2,2,2,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcagent-api','audit-disabled','ocf-script','openstack','dcagent-api','monitor','',0,0,0,20,5);
 
 INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-etcd','enable','ocf-script','linbit','drbd','start','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',2,2,2,90,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('drbd-etcd','disable','ocf-script','linbit','drbd','stop','master_max=1,master_node_max=1,clone_max=2,clone_node_max=1,notify=true,globally_unique=false',1,1,1,180,'');
