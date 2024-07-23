@@ -8,8 +8,9 @@ from __future__ import print_function
 
 import time
 import socket
-
-database_name = "/var/lib/sm/sm.db"
+import subprocess
+platform_release = subprocess.getoutput("source /etc/build.info; echo $SW_VERSION").strip()
+database_name = f"/etc/sm/{platform_release}/sm.db"
 database_running_name = "/var/run/sm/sm.db"
 
 SM_API_SERVER_ADDR = "/tmp/.sm_server_api"

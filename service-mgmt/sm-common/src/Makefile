@@ -29,6 +29,7 @@ SRCS+=sm_util_types.c
 
 OBJS = $(SRCS:.c=.o)
 CCFLAGS= -fPIC -g -O2 -Wall -Werror -Wno-restrict -Wno-format-truncation -std=c++11
+SW_VERSION="$(shell grep SW_VERSION /usr/include/build_info.h | cut -d ' ' -f 3)"
 EXTRACCFLAGS= -D__STDC_FORMAT_MACROS -DSW_VERSION=\"$(SW_VERSION)\"
 EXTRACCFLAGS+= -Wformat -Wformat-security
 LDLIBS= -lsqlite3 -lglib-2.0 -lgmodule-2.0 -luuid -lrt -lpthread

@@ -8,13 +8,14 @@ from __future__ import print_function
 import os
 import sys
 import argparse
+import subprocess
 import sqlite3
 from sm_tools.sm_api_msg_utils import provision_service
 from sm_tools.sm_api_msg_utils import deprovision_service
 from sm_tools.sm_api_msg_utils import provision_service_domain_interface
 from sm_tools.sm_api_msg_utils import deprovision_service_domain_interface
-
-database_name = "/var/lib/sm/sm.db"
+platform_release = subprocess.getoutput("source /etc/build.info; echo $SW_VERSION").strip()
+database_name = f"/etc/sm/{platform_release}/sm.db"
 runtime_db_name = "/var/run/sm/sm.db"
 
 

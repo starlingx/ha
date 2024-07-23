@@ -3,5 +3,4 @@ usr/share/sm/patches/sm-patch.sql
 usr/lib/tmpfiles.d/sm-db.conf
 
 # Marked on centos .spec file as "%config(noreplace)"
-var/lib/sm/sm.hb.db
-var/lib/sm/sm.db
+etc/sm/*

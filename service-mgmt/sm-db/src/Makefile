@@ -30,7 +30,8 @@ SRCS+=sm_db_configuration.c
 
 OBJS = $(SRCS:.c=.o)
 CCFLAGS= -fPIC -g -O2 -Wall -Werror -std=c++11 -Wformat -Wformat-security -Wno-stringop-truncation
-EXTRACCFLAGS= -D__STDC_FORMAT_MACROS
+SW_VERSION="$(shell grep SW_VERSION /usr/include/build_info.h | cut -d ' ' -f 3)"
+EXTRACCFLAGS= -D__STDC_FORMAT_MACROS -DSW_VERSION=\"$(SW_VERSION)\"
 LDLIBS= -lsqlite3 -lglib-2.0 -luuid -lrt -lsm_common
 LDFLAGS = -shared -rdynamic
 OS_ID = $(shell grep '^ID=' /etc/os-release | cut -f2- -d= | sed -e 's/\"//g')

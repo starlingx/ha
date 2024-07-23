@@ -3,6 +3,7 @@ Section: admin
 Priority: optional
 Maintainer: StarlingX Developers <starlingx-discuss@lists.starlingx.io>
 Build-Depends: debhelper-compat (= 13),
+ build-info-dev,
  dh-python,
  python3-all,
  python3-setuptools,

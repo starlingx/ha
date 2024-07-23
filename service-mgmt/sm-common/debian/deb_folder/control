@@ -3,6 +3,7 @@ Section: admin
 Priority: optional
 Maintainer: StarlingX Developers <starlingx-discuss@lists.starlingx.io>
 Build-Depends: debhelper (>= 13),
+ build-info-dev,
  libsqlite3-dev,
  libglib2.0-dev,
  uuid-dev,
