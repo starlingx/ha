@@ -957,4 +957,13 @@ INSERT INTO "SERVICE_ACTIONS" VALUES ('storage-networking','disable','lsb-script
 INSERT INTO "SERVICE_ACTIONS" VALUES ('storage-networking','audit-enabled','lsb-script','','ceph-storage-network','status','',1,1,1,15,1);
 INSERT INTO "SERVICE_ACTIONS" VALUES ('storage-networking','audit-disabled','lsb-script','','ceph-storage-network','status','',0,0,0,15,1);
 
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1, 'no','distributed-cloud-services','dcorch-usm-api-proxy','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1, 'no','dcorch-usm-api-proxy','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcorch-usm-api-proxy.pid' FROM "SERVICES";
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-usm-api-proxy','not-applicable','enable','dcmanager-manager','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dcorch-usm-api-proxy','disabled');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-usm-api-proxy','enable','ocf-script','openstack','dcorch-usm-api-proxy','start','',2,2,2,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-usm-api-proxy','disable','ocf-script','openstack','dcorch-usm-api-proxy','stop','',1,1,1,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-usm-api-proxy','audit-enabled','ocf-script','openstack','dcorch-usm-api-proxy','monitor','',2,2,2,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-usm-api-proxy','audit-disabled','ocf-script','openstack','dcorch-usm-api-proxy','monitor','',0,0,0,20,5);
+
 COMMIT;
