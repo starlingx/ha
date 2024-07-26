@@ -6,6 +6,7 @@
 #ifndef __SM_TYPES_H__
 #define __SM_TYPES_H__
 
+#include <assert.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <sys/types.h>
@@ -27,10 +28,14 @@ extern "C" {
 #define SM_RUN_SERVICES_DIRECTORY                    "/var/run/sm/services"
 #define SM_DATABASE_NAME                             "/var/run/sm/sm.db"
 #define SM_HEARTBEAT_DATABASE_NAME                   "/var/run/sm/sm.hb.db"
-#define SM_MASTER_DATABASE_NAME                      "/var/lib/sm/sm.db"
-#define SM_MASTER_HEARTBEAT_DATABASE_NAME            "/var/lib/sm/sm.hb.db"
-#define SM_PATCH_SCRIPT                              "/var/lib/sm/patches/sm-patch.sql"
 
+#ifndef SW_VERSION
+    static_assert(false, "SW_VERSION is not defined!");
+#endif
+
+#define SM_MASTER_DATABASE_NAME                      "/etc/sm/" SW_VERSION "/sm.db"
+#define SM_MASTER_HEARTBEAT_DATABASE_NAME            "/etc/sm/" SW_VERSION "/sm.hb.db"
+#define SM_PATCH_SCRIPT                              "/var/lib/sm/patches/sm-patch.sql"
 #define SM_SERVICE_ACTION_PLUGIN_TYPE_LSB_SCRIPT     "lsb-script"
 #ifdef __LSB_DIR
 #define SM_SERVICE_ACTION_PLUGIN_TYPE_LSB_DIR        MAKE_STRING(__LSB_DIR)

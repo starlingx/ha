@@ -122,7 +122,8 @@ SRCS+=sm_configure.cpp
 
 OBJS= $(SRCS:.c=.o)
 CCFLAGS= -g -O2 -Wall -Werror -Wformat -Wno-stringop-truncation -Wno-format-truncation -Wno-format-overflow -std=c++11
-EXTRACCFLAGS= -D__STDC_FORMAT_MACROS -Wformat -Wformat-security
+SW_VERSION="$(shell grep SW_VERSION /usr/include/build_info.h | cut -d ' ' -f 3)"
+EXTRACCFLAGS= -D__STDC_FORMAT_MACROS -Wformat -Wformat-security -DSW_VERSION=\"$(SW_VERSION)\"
 LDLIBS= -lglib-2.0 -luuid -lpthread -lrt -lsm_common -lsm_db -lfmcommon -ljson-c -lcrypto -lssl -lsqlite3
 LDFLAGS = -rdynamic
 

@@ -6,6 +6,7 @@
 from __future__ import print_function
 import sys
 import argparse
+import subprocess
 import sqlite3
 from netaddr import IPNetwork
 from sm_tools.sm_api_msg_utils import database_name as database_name
@@ -19,7 +20,8 @@ admin_if = 'admin-interface'
 ip_services_list = ['admin-ipv4', 'admin-ipv6', 'cluster-host-ipv4', 'cluster-host-ipv6']
 tor_connect = 'tor'
 dc_connect = 'dc'
-database_name = "/var/lib/sm/sm.db"
+platform_release = subprocess.getoutput("source /etc/build.info; echo $SW_VERSION").strip()
+database_name = f"/etc/sm/{platform_release}/sm.db"
 runtime_db_name = "/var/run/sm/sm.db"
 
 

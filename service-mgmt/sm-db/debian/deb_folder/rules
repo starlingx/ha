@@ -4,6 +4,7 @@ export ROOT = $(CURDIR)/debian/tmp
 export VER = $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' ')
 export VER_MJR = $(shell echo $(VER) | cut -d. -f1)
 
+export SW_VERSION="$(shell grep SW_VERSION /usr/include/build_info.h | cut -d ' ' -f 3)"
 export DEB_HOST_ARCH = $(shell dpkg-architecture -qDEB_HOST_ARCH 2>/dev/null)
 
 %:
@@ -18,6 +19,7 @@ endif
 	dh_auto_build
 
 override_dh_install:
+	install -v -d -m -755 $(ROOT)/etc/sm/${SW_VERSION}
 	install -p -D -m 644 debian/tmpfiles.conf $(ROOT)/usr/lib/tmpfiles.d/sm-db.conf
 	dh_install
 
@@ -31,4 +33,3 @@ override_dh_auto_install:
 override_dh_fixperms:
 	dh_fixperms \
 	-Xlibsm_db.so.*
-
