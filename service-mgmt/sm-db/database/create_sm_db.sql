@@ -834,10 +834,10 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-mon','not-applicable','en
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','ceph-mon','not-applicable','enable','management-ipv6','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ipv4','not-applicable','disable','ceph-mon','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','management-ipv6','not-applicable','disable','ceph-mon','disabled');
-INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-mon','enable','lsb-script','','ceph-init-wrapper','start','ARGS=mon',2,2,2,120,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-mon','disable','lsb-script','','ceph-init-wrapper','stop','ARGS=mon',1,1,1,120,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-mon','audit-enabled','lsb-script','','ceph-init-wrapper','status','ARGS=mon',2,2,2,60,40);
-INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-mon','audit-disabled','lsb-script','','ceph-init-wrapper','status','ARGS=mon',0,0,0,60,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-mon','enable','lsb-script','','ceph-init-wrapper','start','ARGS=mon.controller',2,2,2,120,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-mon','disable','lsb-script','','ceph-init-wrapper','stop','ARGS=mon.controller',1,1,1,120,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-mon','audit-enabled','lsb-script','','ceph-init-wrapper','status','ARGS=mon.controller',2,2,2,60,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('ceph-mon','audit-disabled','lsb-script','','ceph-init-wrapper','status','ARGS=mon.controller',0,0,0,60,40);
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','cephmon-fs','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','cephmon-fs','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cephmon-fs','not-applicable','enable','drbd-cephmon','enabled-active');
@@ -946,5 +946,15 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('cert-alarm','enable','ocf-script','platfor
 INSERT INTO "SERVICE_ACTIONS" VALUES('cert-alarm','disable','ocf-script','platform','cert-alarm','stop','',1,1,1,60,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('cert-alarm','audit-enabled','ocf-script','platform','cert-alarm','monitor','',2,2,2,30,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('cert-alarm','audit-disabled','ocf-script','platform','cert-alarm','monitor','',0,0,0,30,40);
+
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','storage-services','storage-networking','major' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES"  SELECT MAX(id) + 1,'no','storage-networking','initial','initial','none','none',2,1,90000,2,2,'' FROM "SERVICES";
+INSERT INTO "SERVICE_INSTANCES" SELECT MAX(id) + 1,'storage-networking','storage-networking','' FROM "SERVICE_INSTANCES";
+INSERT INTO "SERVICE_DEPENDENCY" VALUES ('action', 'ceph-mon', 'not-applicable', 'enable', 'storage-networking', 'enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES ('action', 'ceph-osd', 'not-applicable', 'enable', 'storage-networking', 'enabled-active');
+INSERT INTO "SERVICE_ACTIONS" VALUES ('storage-networking','enable','lsb-script','','ceph-storage-network','start','',2,2,2,15,15);
+INSERT INTO "SERVICE_ACTIONS" VALUES ('storage-networking','disable','lsb-script','','ceph-storage-network','stop','',2,2,2,15,15);
+INSERT INTO "SERVICE_ACTIONS" VALUES ('storage-networking','audit-enabled','lsb-script','','ceph-storage-network','status','',1,1,1,15,1);
+INSERT INTO "SERVICE_ACTIONS" VALUES ('storage-networking','audit-disabled','lsb-script','','ceph-storage-network','status','',0,0,0,15,1);
 
 COMMIT;
