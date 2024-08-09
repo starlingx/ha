@@ -961,6 +961,7 @@ SmErrorT sm_failover_set_system(const SmSystemFailoverStatus& failover_status)
         {
             DPRINTFE("%s still exists after %d seconds. Start activating the controller.",
                      RESET_PEER_NOW, seconds_to_wait);
+            remove(RESET_PEER_NOW) ;
         }
     }
 
