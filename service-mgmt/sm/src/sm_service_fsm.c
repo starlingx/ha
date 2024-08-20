@@ -97,7 +97,7 @@ static bool sm_service_fsm_fail_countdown_timeout( SmTimerIdT timer_id,
     service = sm_service_table_read_by_id( id );
     if( NULL == service )
     {
-        DPRINTFE( "Failed to read service %d, error=%s.",
+        DPRINTFE_SVC( "Failed to read service %d, error=%s.",
                   id, sm_error_str(SM_NOT_FOUND) );
         return( false );
     }
@@ -110,7 +110,7 @@ static bool sm_service_fsm_fail_countdown_timeout( SmTimerIdT timer_id,
         {
             service->fail_count = 0;
 
-            DPRINTFI( "Fail count for service (%s) reset.",
+            DPRINTFI_SVC( "Fail count for service (%s) reset.",
                       service->name );
         }
     }
@@ -128,7 +128,7 @@ SmErrorT sm_service_fsm_start_fail_countdown_timer( SmServiceT* service )
     SmTimerIdT fail_countdown_timer_id;
     SmErrorT error;
 
-    DPRINTFD( "Start fail countdown timer for service (%s).", service->name );
+    DPRINTFD_SVC( "Start fail countdown timer for service (%s).", service->name );
 
     snprintf( timer_name, sizeof(timer_name), "%s fail countdown",
               service->name );
@@ -139,7 +139,7 @@ SmErrorT sm_service_fsm_start_fail_countdown_timer( SmServiceT* service )
                                service->id, &fail_countdown_timer_id );
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to create fail countdown timer for "
+        DPRINTFE_SVC( "Failed to create fail countdown timer for "
                   "service (%s), error=%s.", service->name,
                   sm_error_str( error ) );
         return( error );
@@ -158,14 +158,14 @@ SmErrorT sm_service_fsm_stop_fail_countdown_timer( SmServiceT* service )
 {
     SmErrorT error;
 
-    DPRINTFD( "Stop fail countdown timer for service (%s).", service->name );
+    DPRINTFD_SVC( "Stop fail countdown timer for service (%s).", service->name );
 
     if( SM_TIMER_ID_INVALID != service->fail_countdown_timer_id )
     {
         error = sm_timer_deregister( service->fail_countdown_timer_id );
         if( SM_OKAY != error )
         {
-            DPRINTFE( "Failed to cancel fail countdown timer for "
+            DPRINTFE_SVC( "Failed to cancel fail countdown timer for "
                       "service (%s), error=%s.", service->name,
                       sm_error_str( error ) );
         }
@@ -190,7 +190,7 @@ static SmErrorT sm_service_fsm_enter_state( SmServiceT* service )
             error = sm_service_initial_state_entry( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to enter state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to enter state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -201,7 +201,7 @@ static SmErrorT sm_service_fsm_enter_state( SmServiceT* service )
             error = sm_service_unknown_state_entry( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to enter state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to enter state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -212,7 +212,7 @@ static SmErrorT sm_service_fsm_enter_state( SmServiceT* service )
             error = sm_service_enabled_active_state_entry( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to enter state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to enter state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -223,7 +223,7 @@ static SmErrorT sm_service_fsm_enter_state( SmServiceT* service )
             error = sm_service_enabled_go_active_state_entry( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to enter state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to enter state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -234,7 +234,7 @@ static SmErrorT sm_service_fsm_enter_state( SmServiceT* service )
             error = sm_service_enabled_go_standby_state_entry( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to enter state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to enter state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -245,7 +245,7 @@ static SmErrorT sm_service_fsm_enter_state( SmServiceT* service )
             error = sm_service_enabled_standby_state_entry( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to enter state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to enter state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -257,7 +257,7 @@ static SmErrorT sm_service_fsm_enter_state( SmServiceT* service )
             error = sm_service_enabling_throttle_state_entry( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to enter state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to enter state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -268,7 +268,7 @@ static SmErrorT sm_service_fsm_enter_state( SmServiceT* service )
             error = sm_service_enabling_state_entry( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to enter state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to enter state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -279,7 +279,7 @@ static SmErrorT sm_service_fsm_enter_state( SmServiceT* service )
             error = sm_service_disabling_state_entry( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to enter state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to enter state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -290,7 +290,7 @@ static SmErrorT sm_service_fsm_enter_state( SmServiceT* service )
             error = sm_service_disabled_state_entry( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to enter state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to enter state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -301,7 +301,7 @@ static SmErrorT sm_service_fsm_enter_state( SmServiceT* service )
             error = sm_service_shutdown_state_entry( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to enter state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to enter state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -309,7 +309,7 @@ static SmErrorT sm_service_fsm_enter_state( SmServiceT* service )
         break;
 
         default:
-            DPRINTFE( "Unknown service (%s) state (%s).", service->name,
+            DPRINTFE_SVC( "Unknown service (%s) state (%s).", service->name,
                       sm_service_state_str( service->state ) );
         break;
     }
@@ -331,7 +331,7 @@ static SmErrorT sm_service_fsm_exit_state( SmServiceT* service )
             error = sm_service_initial_state_exit( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to exit state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to exit state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -342,7 +342,7 @@ static SmErrorT sm_service_fsm_exit_state( SmServiceT* service )
             error = sm_service_unknown_state_exit( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to exit state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to exit state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -353,7 +353,7 @@ static SmErrorT sm_service_fsm_exit_state( SmServiceT* service )
             error = sm_service_enabled_active_state_exit( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to exit state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to exit state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -364,7 +364,7 @@ static SmErrorT sm_service_fsm_exit_state( SmServiceT* service )
             error = sm_service_enabled_go_active_state_exit( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to exit state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to exit state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -375,7 +375,7 @@ static SmErrorT sm_service_fsm_exit_state( SmServiceT* service )
             error = sm_service_enabled_go_standby_state_exit( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to exit state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to exit state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -386,7 +386,7 @@ static SmErrorT sm_service_fsm_exit_state( SmServiceT* service )
             error = sm_service_enabled_standby_state_exit( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to exit state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to exit state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -397,7 +397,7 @@ static SmErrorT sm_service_fsm_exit_state( SmServiceT* service )
             error = sm_service_enabling_throttle_state_exit( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to exit state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to exit state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -408,7 +408,7 @@ static SmErrorT sm_service_fsm_exit_state( SmServiceT* service )
             error = sm_service_enabling_state_exit( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to exit state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to exit state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -419,7 +419,7 @@ static SmErrorT sm_service_fsm_exit_state( SmServiceT* service )
             error = sm_service_disabling_state_exit( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to exit state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to exit state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -430,7 +430,7 @@ static SmErrorT sm_service_fsm_exit_state( SmServiceT* service )
             error = sm_service_disabled_state_exit( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to exit state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to exit state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -441,7 +441,7 @@ static SmErrorT sm_service_fsm_exit_state( SmServiceT* service )
             error = sm_service_shutdown_state_exit( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to exit state (%s), error=%s.",
+                DPRINTFE_SVC( "Service (%s) unable to exit state (%s), error=%s.",
                           service->name, sm_service_state_str( service->state ),
                           sm_error_str( error ) );
                 return( error );
@@ -449,7 +449,7 @@ static SmErrorT sm_service_fsm_exit_state( SmServiceT* service )
         break;
 
         default:
-            DPRINTFE( "Unknown service (%s) state (%s).", service->name,
+            DPRINTFE_SVC( "Unknown service (%s) state (%s).", service->name,
                       sm_service_state_str( service->state ) );
         break;
     }
@@ -472,7 +472,7 @@ static SmErrorT sm_service_fsm_transition_state( SmServiceT* service,
             error = sm_service_initial_state_transition( service, from_state );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to transition from state (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to transition from state (%s) "
                           "to state (%s), error=%s.", service->name,
                           sm_service_state_str( from_state ),
                           sm_service_state_str( service->state ),
@@ -485,7 +485,7 @@ static SmErrorT sm_service_fsm_transition_state( SmServiceT* service,
             error = sm_service_unknown_state_transition( service, from_state );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to transition from state (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to transition from state (%s) "
                           "to state (%s), error=%s.", service->name,
                           sm_service_state_str( from_state ),
                           sm_service_state_str( service->state ),
@@ -499,7 +499,7 @@ static SmErrorT sm_service_fsm_transition_state( SmServiceT* service,
                                                                 from_state );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to transition from state (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to transition from state (%s) "
                           "to state (%s), error=%s.", service->name,
                           sm_service_state_str( from_state ),
                           sm_service_state_str( service->state ),
@@ -513,7 +513,7 @@ static SmErrorT sm_service_fsm_transition_state( SmServiceT* service,
                                                                    from_state );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to transition from state (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to transition from state (%s) "
                           "to state (%s), error=%s.", service->name,
                           sm_service_state_str( from_state ),
                           sm_service_state_str( service->state ),
@@ -527,7 +527,7 @@ static SmErrorT sm_service_fsm_transition_state( SmServiceT* service,
                                                                     from_state );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to transition from state (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to transition from state (%s) "
                           "to state (%s), error=%s.", service->name,
                           sm_service_state_str( from_state ),
                           sm_service_state_str( service->state ),
@@ -541,7 +541,7 @@ static SmErrorT sm_service_fsm_transition_state( SmServiceT* service,
                                                                  from_state );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to transition from state (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to transition from state (%s) "
                           "to state (%s), error=%s.", service->name,
                           sm_service_state_str( from_state ),
                           sm_service_state_str( service->state ),
@@ -554,7 +554,7 @@ static SmErrorT sm_service_fsm_transition_state( SmServiceT* service,
             error = sm_service_enabling_throttle_state_transition( service, from_state );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to transition from state (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to transition from state (%s) "
                           "to state (%s), error=%s.", service->name,
                           sm_service_state_str( from_state ),
                           sm_service_state_str( service->state ),
@@ -567,7 +567,7 @@ static SmErrorT sm_service_fsm_transition_state( SmServiceT* service,
             error = sm_service_enabling_state_transition( service, from_state );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to transition from state (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to transition from state (%s) "
                           "to state (%s), error=%s.", service->name,
                           sm_service_state_str( from_state ),
                           sm_service_state_str( service->state ),
@@ -580,7 +580,7 @@ static SmErrorT sm_service_fsm_transition_state( SmServiceT* service,
             error = sm_service_disabling_state_transition( service, from_state );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to transition from state (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to transition from state (%s) "
                           "to state (%s), error=%s.", service->name,
                           sm_service_state_str( from_state ),
                           sm_service_state_str( service->state ),
@@ -593,7 +593,7 @@ static SmErrorT sm_service_fsm_transition_state( SmServiceT* service,
             error = sm_service_disabled_state_transition( service, from_state );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to transition from state (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to transition from state (%s) "
                           "to state (%s), error=%s.", service->name,
                           sm_service_state_str( from_state ),
                           sm_service_state_str( service->state ),
@@ -606,7 +606,7 @@ static SmErrorT sm_service_fsm_transition_state( SmServiceT* service,
             error = sm_service_shutdown_state_transition( service, from_state );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to transition from state (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to transition from state (%s) "
                           "to state (%s), error=%s.", service->name,
                           sm_service_state_str( from_state ),
                           sm_service_state_str( service->state ),
@@ -616,7 +616,7 @@ static SmErrorT sm_service_fsm_transition_state( SmServiceT* service,
         break;
 
         default:
-            DPRINTFE( "Unknown service (%s) state (%s).", service->name,
+            DPRINTFE_SVC( "Unknown service (%s) state (%s).", service->name,
                       sm_service_state_str( service->state ) );
         break;
     }
@@ -638,7 +638,7 @@ SmErrorT sm_service_fsm_set_state( SmServiceT* service, SmServiceStateT state )
     error = sm_service_fsm_exit_state( service ); 
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to exit state (%s) service (%s), error=%s.",
+        DPRINTFE_SVC( "Failed to exit state (%s) service (%s), error=%s.",
                   sm_service_state_str( service->state ),
                   service->name, sm_error_str( error ) );
         return( error );
@@ -649,7 +649,7 @@ SmErrorT sm_service_fsm_set_state( SmServiceT* service, SmServiceStateT state )
     error = sm_service_fsm_transition_state( service, prev_state );
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to transition to state (%s) service (%s), "
+        DPRINTFE_SVC( "Failed to transition to state (%s) service (%s), "
                   "error=%s.", sm_service_state_str( service->state ),
                   service->name, sm_error_str( error ) );
         goto STATE_CHANGE_ERROR;
@@ -658,7 +658,7 @@ SmErrorT sm_service_fsm_set_state( SmServiceT* service, SmServiceStateT state )
     error = sm_service_fsm_enter_state( service ); 
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to enter state (%s) service (%s), error=%s.",
+        DPRINTFE_SVC( "Failed to enter state (%s) service (%s), error=%s.",
                   sm_service_state_str( service->state ),
                   service->name, sm_error_str( error ) );
         goto STATE_CHANGE_ERROR;
@@ -670,7 +670,7 @@ STATE_CHANGE_ERROR:
     error2 = sm_service_fsm_exit_state( service ); 
     if( SM_OKAY != error2 )
     {
-        DPRINTFE( "Failed to exit state (%s) service (%s), error=%s.",
+        DPRINTFE_SVC( "Failed to exit state (%s) service (%s), error=%s.",
                   sm_service_state_str( service->state ),
                   service->name, sm_error_str( error2 ) );
         abort();
@@ -681,7 +681,7 @@ STATE_CHANGE_ERROR:
     error2 = sm_service_fsm_transition_state( service, state );
     if( SM_OKAY != error2 )
     {
-        DPRINTFE( "Failed to transition to state (%s) service (%s), "
+        DPRINTFE_SVC( "Failed to transition to state (%s) service (%s), "
                   "error=%s.", sm_service_state_str( service->state ),
                   service->name, sm_error_str( error2 ) );
         abort();
@@ -690,7 +690,7 @@ STATE_CHANGE_ERROR:
     error2 = sm_service_fsm_enter_state( service ); 
     if( SM_OKAY != error2 )
     {
-        DPRINTFE( "Failed to enter state (%s) service (%s), error=%s.",
+        DPRINTFE_SVC( "Failed to enter state (%s) service (%s), error=%s.",
                   sm_service_state_str( service->state ),
                   service->name, sm_error_str( error2 ) );
         abort();
@@ -768,7 +768,7 @@ SmErrorT sm_service_fsm_set_status( SmServiceT* service,
         break;
 
         default:
-            DPRINTFE( "Uknown status (%i) for service (%s) given.", status,
+            DPRINTFE_SVC( "Uknown status (%i) for service (%s) given.", status,
                       service->name );
         break;
     }
@@ -780,7 +780,7 @@ SmErrorT sm_service_fsm_set_status( SmServiceT* service,
         error = sm_service_table_persist( service );
         if( SM_OKAY != error )
         {
-            DPRINTFE( "Failed to persist service (%s) data, error=%s.",
+            DPRINTFE_SVC( "Failed to persist service (%s) data, error=%s.",
                       service->name, sm_error_str(error) );
             return( error );
         }
@@ -805,7 +805,7 @@ SmErrorT sm_service_fsm_event_handler( char service_name[],
     service = sm_service_table_read( service_name );
     if( NULL == service )
     {
-        DPRINTFE( "Failed to read service (%s), error=%s.",
+        DPRINTFE_SVC( "Failed to read service (%s), error=%s.",
                   service_name, sm_error_str(SM_NOT_FOUND) );
         return( SM_NOT_FOUND );
     }
@@ -834,7 +834,7 @@ SmErrorT sm_service_fsm_event_handler( char service_name[],
                                                    action_condition );
                 if( SM_OKAY != error )
                 {
-                    DPRINTFE( "Failed to set status (%s) and condition (%s) "
+                    DPRINTFE_SVC( "Failed to set status (%s) and condition (%s) "
                               "of service (%s), error=%s.",
                               sm_service_status_str(action_status),
                               sm_service_condition_str(action_condition),
@@ -852,7 +852,7 @@ SmErrorT sm_service_fsm_event_handler( char service_name[],
                                                             event_data );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to handle event (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to handle event (%s) "
                           "in state (%s), error=%s.", service_name,
                           sm_service_event_str( event ),
                           sm_service_state_str( service->state ),
@@ -866,7 +866,7 @@ SmErrorT sm_service_fsm_event_handler( char service_name[],
                                                             event_data );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to handle event (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to handle event (%s) "
                           "in state (%s), error=%s.", service_name,
                           sm_service_event_str( event ),
                           sm_service_state_str( service->state ),
@@ -880,7 +880,7 @@ SmErrorT sm_service_fsm_event_handler( char service_name[],
                                                             event, event_data );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to handle event (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to handle event (%s) "
                           "in state (%s), error=%s.", service_name,
                           sm_service_event_str( event ),
                           sm_service_state_str( service->state ),
@@ -894,7 +894,7 @@ SmErrorT sm_service_fsm_event_handler( char service_name[],
                                                             event, event_data );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to handle event (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to handle event (%s) "
                           "in state (%s), error=%s.", service_name,
                           sm_service_event_str( event ),
                           sm_service_state_str( service->state ),
@@ -908,7 +908,7 @@ SmErrorT sm_service_fsm_event_handler( char service_name[],
                                                             event, event_data );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to handle event (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to handle event (%s) "
                           "in state (%s), error=%s.", service_name,
                           sm_service_event_str( event ),
                           sm_service_state_str( service->state ),
@@ -922,7 +922,7 @@ SmErrorT sm_service_fsm_event_handler( char service_name[],
                                                             event, event_data );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to handle event (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to handle event (%s) "
                           "in state (%s), error=%s.", service_name,
                           sm_service_event_str( event ),
                           sm_service_state_str( service->state ),
@@ -936,7 +936,7 @@ SmErrorT sm_service_fsm_event_handler( char service_name[],
                                                              event_data );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to handle event (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to handle event (%s) "
                           "in state (%s), error=%s.", service_name,
                           sm_service_event_str( event ),
                           sm_service_state_str( service->state ),
@@ -950,7 +950,7 @@ SmErrorT sm_service_fsm_event_handler( char service_name[],
                                                              event_data );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to handle event (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to handle event (%s) "
                           "in state (%s), error=%s.", service_name,
                           sm_service_event_str( event ),
                           sm_service_state_str( service->state ),
@@ -965,7 +965,7 @@ SmErrorT sm_service_fsm_event_handler( char service_name[],
                                                               event_data );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to handle event (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to handle event (%s) "
                           "in state (%s), error=%s.", service_name,
                           sm_service_event_str( event ),
                           sm_service_state_str( service->state ),
@@ -979,7 +979,7 @@ SmErrorT sm_service_fsm_event_handler( char service_name[],
                                                              event_data );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to handle event (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to handle event (%s) "
                           "in state (%s), error=%s.", service_name,
                           sm_service_event_str( event ),
                           sm_service_state_str( service->state ),
@@ -993,7 +993,7 @@ SmErrorT sm_service_fsm_event_handler( char service_name[],
                                                              event_data );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Service (%s) unable to handle event (%s) "
+                DPRINTFE_SVC( "Service (%s) unable to handle event (%s) "
                           "in state (%s), error=%s.", service_name,
                           sm_service_event_str( event ),
                           sm_service_state_str( service->state ),
@@ -1003,7 +1003,7 @@ SmErrorT sm_service_fsm_event_handler( char service_name[],
         break;
 
         default:
-            DPRINTFE( "Unknown state (%s) for service (%s).",
+            DPRINTFE_SVC( "Unknown state (%s) for service (%s).",
                       sm_service_state_str( service->state ),
                       service_name );
         break;
@@ -1012,7 +1012,7 @@ SmErrorT sm_service_fsm_event_handler( char service_name[],
     if(( prev_state != service->state )||( prev_status != service->status )||
        ( prev_condition != service->condition ))
     {
-        DPRINTFI( "Service (%s) received event (%s) was in the %s%s%s state "
+        DPRINTFI_SVC("Service (%s) received event (%s) was in the %s%s%s state "
                   "and is now in the %s%s%s state%s%s.",
                   service_name,
                   sm_service_event_str( event ),
@@ -1034,7 +1034,7 @@ SmErrorT sm_service_fsm_event_handler( char service_name[],
         error = sm_service_table_persist( service );
         if( SM_OKAY != error )
         {
-            DPRINTFE( "Failed to persist service (%s) data, error=%s.",
+            DPRINTFE_SVC( "Failed to persist service (%s) data, error=%s.",
                       service->name, sm_error_str(error) );
             return( error );
         }
@@ -1056,7 +1056,7 @@ SmErrorT sm_service_fsm_event_handler( char service_name[],
             error = sm_service_engine_signal( service );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Failed to signal service (%s), error=%s.",
+                DPRINTFE_SVC( "Failed to signal service (%s), error=%s.",
                           service_name, sm_error_str( error ) );
                 return( error );
             }
@@ -1092,7 +1092,7 @@ SmErrorT sm_service_fsm_action_complete_handler( char service_name[],
     service = sm_service_table_read( service_name );
     if( NULL == service )
     {
-        DPRINTFE( "Failed to read service (%s), error=%s.",
+        DPRINTFE_SVC( "Failed to read service (%s), error=%s.",
                   service_name, sm_error_str(SM_NOT_FOUND) );
         return( SM_NOT_FOUND );
     }
@@ -1132,7 +1132,7 @@ SmErrorT sm_service_fsm_action_complete_handler( char service_name[],
                 break;
 
                 default:
-                    DPRINTFE( "Unknown action result (%s) for action (%s) of "
+                    DPRINTFE_SVC( "Unknown action result (%s) for action (%s) of "
                               "service (%s).",
                               sm_service_action_result_str( action_result ),
                               sm_service_action_str( action ), service_name );
@@ -1168,7 +1168,7 @@ SmErrorT sm_service_fsm_action_complete_handler( char service_name[],
                 break;
 
                 default:
-                    DPRINTFE( "Unknown action result (%s) for action (%s) of "
+                    DPRINTFE_SVC( "Unknown action result (%s) for action (%s) of "
                               "service (%s).",
                               sm_service_action_result_str( action_result ),
                               sm_service_action_str( action ), service_name );
@@ -1204,7 +1204,7 @@ SmErrorT sm_service_fsm_action_complete_handler( char service_name[],
                 break;
 
                 default:
-                    DPRINTFE( "Unknown action result (%s) for action (%s) of "
+                    DPRINTFE_SVC( "Unknown action result (%s) for action (%s) of "
                               "service (%s).",
                               sm_service_action_result_str( action_result ),
                               sm_service_action_str( action ), service_name );
@@ -1240,7 +1240,7 @@ SmErrorT sm_service_fsm_action_complete_handler( char service_name[],
                 break;
 
                 default:
-                    DPRINTFE( "Unknown action result (%s) for action (%s) of "
+                    DPRINTFE_SVC( "Unknown action result (%s) for action (%s) of "
                               "service (%s).", 
                               sm_service_action_result_str( action_result ),
                               sm_service_action_str( action ), service_name );
@@ -1314,7 +1314,7 @@ SmErrorT sm_service_fsm_action_complete_handler( char service_name[],
                 break;
 
                 default:
-                    DPRINTFE( "Unknown action result (%s) for action (%s) of "
+                    DPRINTFE_SVC( "Unknown action result (%s) for action (%s) of "
                               "service (%s).", 
                               sm_service_action_result_str( action_result ),
                               sm_service_action_str( action ), service_name );
@@ -1323,7 +1323,7 @@ SmErrorT sm_service_fsm_action_complete_handler( char service_name[],
         break;
 
         default:
-            DPRINTFE( "Unknown action (%s) for service (%s).",
+            DPRINTFE_SVC( "Unknown action (%s) for service (%s).",
                       sm_service_action_str( action ), service_name );
         break;
     }
@@ -1334,7 +1334,7 @@ SmErrorT sm_service_fsm_action_complete_handler( char service_name[],
                                               event_data, event_reason_text );
         if( SM_OKAY != error )
         {
-            DPRINTFE( "Event (%s) not handled for service (%s).",
+            DPRINTFE_SVC( "Event (%s) not handled for service (%s).",
                       sm_service_event_str( event ), service_name );
             return( error );
         }
@@ -1352,13 +1352,13 @@ static void sm_service_fsm_heartbeat_okay_callback( char service_name[] )
     SmServiceEventT event = SM_SERVICE_EVENT_HEARTBEAT_OKAY;
     SmErrorT error;
 
-    DPRINTFI( "Service (%s) heartbeat okay.", service_name );
+    DPRINTFI_SVC( "Service (%s) heartbeat okay.", service_name );
 
     error = sm_service_fsm_event_handler( service_name, event, NULL,
                                           "heartbeat okay" );
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Event (%s) not handled for service (%s).",
+        DPRINTFE_SVC( "Event (%s) not handled for service (%s).",
                   sm_service_event_str( event ), service_name );
         return;
     }
@@ -1373,13 +1373,13 @@ static void sm_service_fsm_heartbeat_warn_callback( char service_name[] )
     SmServiceEventT event = SM_SERVICE_EVENT_HEARTBEAT_WARN;
     SmErrorT error;
 
-    DPRINTFI( "Service (%s) heartbeat warning.", service_name );
+    DPRINTFI_SVC( "Service (%s) heartbeat warning.", service_name );
 
     error = sm_service_fsm_event_handler( service_name, event, NULL,
                                           "heartbeat warning threshold crossed" );
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Event (%s) not handled for service (%s).",
+        DPRINTFE_SVC( "Event (%s) not handled for service (%s).",
                   sm_service_event_str( event ), service_name );
         return;
     }
@@ -1394,13 +1394,13 @@ static void sm_service_fsm_heartbeat_degrade_callback( char service_name[] )
     SmServiceEventT event = SM_SERVICE_EVENT_HEARTBEAT_DEGRADE;
     SmErrorT error;
 
-    DPRINTFI( "Service (%s) heartbeat degrade.", service_name );
+    DPRINTFI_SVC( "Service (%s) heartbeat degrade.", service_name );
 
     error = sm_service_fsm_event_handler( service_name, event, NULL,
                                           "heartbeat degrade threshold crossed" );
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Event (%s) not handled for service (%s).",
+        DPRINTFE_SVC( "Event (%s) not handled for service (%s).",
                   sm_service_event_str( event ), service_name );
         return;
     }
@@ -1415,13 +1415,13 @@ static void sm_service_fsm_heartbeat_fail_callback( char service_name[] )
     SmServiceEventT event = SM_SERVICE_EVENT_HEARTBEAT_FAIL;
     SmErrorT error;
 
-    DPRINTFI( "Service (%s) heartbeat failure.", service_name );
+    DPRINTFI_SVC( "Service (%s) heartbeat failure.", service_name );
 
     error = sm_service_fsm_event_handler( service_name, event, NULL,
                                           "heartbeat failure" );
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Event (%s) not handled for service (%s).",
+        DPRINTFE_SVC( "Event (%s) not handled for service (%s).",
                   sm_service_event_str( event ), service_name );
         return;
     }
@@ -1442,12 +1442,12 @@ static void sm_service_fsm_process_failure_callback( pid_t pid, int exit_code,
     service = sm_service_table_read_by_pid( (int) pid );
     if( NULL == service )
     {
-        DPRINTFE( "Failed to read service based on pid (%" PRIu64 "), error=%s.",
+        DPRINTFE_SVC( "Failed to read service based on pid (%" PRIu64 "), error=%s.",
                   user_data, sm_error_str(SM_NOT_FOUND) );
         return;
     }
     
-    DPRINTFI( "Service (%s) process failure, pid=%i, exit_code=%i.",
+    DPRINTFI_SVC( "Service (%s) process failure, pid=%i, exit_code=%i.",
               service->name, (int) pid, exit_code );
 
     sm_service_get_terminate_reason(service, reason_text, sizeof(reason_text));
@@ -1456,7 +1456,7 @@ static void sm_service_fsm_process_failure_callback( pid_t pid, int exit_code,
                                           reason_text );
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Event (%s) not handled for service (%s).",
+        DPRINTFE_SVC( "Event (%s) not handled for service (%s).",
                   sm_service_event_str( event ), service->name );
         return;
     }
@@ -1476,7 +1476,7 @@ static bool sm_service_fsm_process_audit_pid_file_timer( SmTimerIdT timer_id,
     service = sm_service_table_read_by_id( id );
     if( NULL == service )
     {
-        DPRINTFE( "Failed to read service, error=%s.",
+        DPRINTFE_SVC( "Failed to read service, error=%s.",
                   sm_error_str(SM_NOT_FOUND) );
         goto EXIT;
     }
@@ -1486,7 +1486,7 @@ static bool sm_service_fsm_process_audit_pid_file_timer( SmTimerIdT timer_id,
     error = sm_service_fsm_process_failure_register( service );
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to register for process failure for "
+        DPRINTFE_SVC( "Failed to register for process failure for "
                   "service (%s), error=%s.", service->name,
                   sm_error_str( error ) );
         goto EXIT;
@@ -1514,7 +1514,7 @@ SmErrorT sm_service_fsm_process_failure_register( SmServiceT* service )
 
         if( NULL == pid_file )
         {
-            DPRINTFE( "Failed to open pid file (%s) for service (%s).",
+            DPRINTFE_SVC( "Failed to open pid file (%s) for service (%s).",
                       service->pid_file, service->name );
             audit_pid_file = true;
             goto EXIT;
@@ -1522,7 +1522,7 @@ SmErrorT sm_service_fsm_process_failure_register( SmServiceT* service )
 
         if( NULL == fgets( file_line, sizeof(file_line), pid_file ) )
         {
-            DPRINTFE( "Failed to read pid from pid file (%s) for "
+            DPRINTFE_SVC( "Failed to read pid from pid file (%s) for "
                       "service (%s).", service->pid_file, service->name );
             fclose( pid_file );
 
@@ -1535,7 +1535,7 @@ SmErrorT sm_service_fsm_process_failure_register( SmServiceT* service )
 
         if( 1 != sscanf( file_line, "%d", &pid ) )
         {
-            DPRINTFE( "pid file (%s) for (%s) is invalid. content (%s).",
+            DPRINTFE_SVC( "pid file (%s) for (%s) is invalid. content (%s).",
                       service->pid_file, service->name, file_line );
 
             remove_pid_file( service->pid_file );
@@ -1545,7 +1545,7 @@ SmErrorT sm_service_fsm_process_failure_register( SmServiceT* service )
 
         if( 0 > pid )
         {
-            DPRINTFE( "Invalid pid (%i) converted from line (%s) from file "
+            DPRINTFE_SVC( "Invalid pid (%i) converted from line (%s) from file "
                       "(%s) for service (%s).", pid, file_line,
                       service->pid_file, service->name );
             audit_pid_file = true;
@@ -1554,7 +1554,7 @@ SmErrorT sm_service_fsm_process_failure_register( SmServiceT* service )
 
         if ( 0 != kill(pid, 0) )
         {
-            DPRINTFE( "pid (%i) from file (%s) for service (%s)"
+            DPRINTFE_SVC( "pid (%i) from file (%s) for service (%s)"
                       " is no longer valid.", pid,
                       service->pid_file, service->name );
             remove_pid_file( service->pid_file );
@@ -1579,7 +1579,7 @@ SmErrorT sm_service_fsm_process_failure_register( SmServiceT* service )
                                                   reason_text );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Event (%s) not handled for service (%s).",
+                DPRINTFE_SVC( "Event (%s) not handled for service (%s).",
                           sm_service_event_str( event ), service->name );
             }
             goto EXIT;
@@ -1590,7 +1590,7 @@ SmErrorT sm_service_fsm_process_failure_register( SmServiceT* service )
         if( sm_process_death_already_registered( pid,
                     sm_service_fsm_process_failure_callback ) )
         {
-            DPRINTFD( "Already registered for process failure callback "
+            DPRINTFD_SVC( "Already registered for process failure callback "
                       "for service (%s), pid=%i.", service->name, pid );
             goto EXIT;
         }
@@ -1600,7 +1600,7 @@ SmErrorT sm_service_fsm_process_failure_register( SmServiceT* service )
                         service->id );
         if( SM_OKAY != error )
         {
-            DPRINTFE( "Failed to register for process failure callback "
+            DPRINTFE_SVC( "Failed to register for process failure callback "
                       "for service (%s), pid=%i, error=%s.", service->name,
                       pid, sm_error_str( error ) );
             goto EXIT;
@@ -1620,7 +1620,7 @@ EXIT:
             error = sm_timer_deregister( service->pid_file_audit_timer_id );
             if( SM_OKAY != error )
             {
-                DPRINTFE( "Failed to cancel pid file audit timer, error=%s.",
+                DPRINTFE_SVC( "Failed to cancel pid file audit timer, error=%s.",
                           sm_error_str( error ) );
             }
 
@@ -1639,7 +1639,7 @@ EXIT:
             service->pid_file_audit_timer_id = audit_timer_id;
 
         } else {
-            DPRINTFE( "Failed to create pid file audit timer for "
+            DPRINTFE_SVC( "Failed to create pid file audit timer for "
                       "service (%s), error=%s.", service->name,
                       sm_error_str( error ) );
         }
@@ -1661,7 +1661,7 @@ SmErrorT sm_service_fsm_process_failure_deregister( SmServiceT* service )
         error = sm_timer_deregister( service->pid_file_audit_timer_id );
         if( SM_OKAY != error )
         {
-            DPRINTFE( "Failed to cancel pid file audit timer, error=%s.",
+            DPRINTFE_SVC( "Failed to cancel pid file audit timer, error=%s.",
                       sm_error_str( error ) );
         }
 
@@ -1673,7 +1673,7 @@ SmErrorT sm_service_fsm_process_failure_deregister( SmServiceT* service )
         error = sm_process_death_deregister( service->pid );
         if( SM_OKAY != error )
         {
-            DPRINTFE( "Failed to deregister for process failure callback "
+            DPRINTFE_SVC( "Failed to deregister for process failure callback "
                       "for service (%s), pid=%i, error=%s.", service->name,
                       service->pid, sm_error_str( error ) );
         }
@@ -1697,7 +1697,7 @@ SmErrorT sm_service_fsm_initialize( void )
     error = sm_service_initial_state_initialize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to initialize service initial state module, "
+        DPRINTFE_SVC( "Failed to initialize service initial state module, "
                   "error=%s.", sm_error_str( error ) );
         return( error );
     }
@@ -1705,7 +1705,7 @@ SmErrorT sm_service_fsm_initialize( void )
     error = sm_service_unknown_state_initialize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to initialize service unknown state module, "
+        DPRINTFE_SVC( "Failed to initialize service unknown state module, "
                   "error=%s.", sm_error_str( error ) );
         return( error );
     }
@@ -1713,7 +1713,7 @@ SmErrorT sm_service_fsm_initialize( void )
     error = sm_service_enabled_active_state_initialize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to initialize service enabled active state "
+        DPRINTFE_SVC( "Failed to initialize service enabled active state "
                   "module, error=%s.", sm_error_str( error ) );
         return( error );
     }
@@ -1721,7 +1721,7 @@ SmErrorT sm_service_fsm_initialize( void )
     error = sm_service_enabled_go_active_state_initialize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to initialize service enabled go-active state "
+        DPRINTFE_SVC( "Failed to initialize service enabled go-active state "
                   "module, error=%s.", sm_error_str( error ) );
         return( error );
     }
@@ -1729,7 +1729,7 @@ SmErrorT sm_service_fsm_initialize( void )
     error = sm_service_enabled_go_standby_state_initialize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to initialize service enabled go-standby state "
+        DPRINTFE_SVC( "Failed to initialize service enabled go-standby state "
                   "module, error=%s.", sm_error_str( error ) );
         return( error );
     }
@@ -1737,7 +1737,7 @@ SmErrorT sm_service_fsm_initialize( void )
     error = sm_service_enabled_standby_state_initialize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to initialize service enabled standby state "
+        DPRINTFE_SVC( "Failed to initialize service enabled standby state "
                   "module, error=%s.", sm_error_str( error ) );
         return( error );
     }
@@ -1745,7 +1745,7 @@ SmErrorT sm_service_fsm_initialize( void )
     error = sm_service_enabling_throttle_state_initialize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to initialize service enabling throttle state "
+        DPRINTFE_SVC( "Failed to initialize service enabling throttle state "
                   "module, error=%s.", sm_error_str( error ) );
         return( error );
     }
@@ -1753,7 +1753,7 @@ SmErrorT sm_service_fsm_initialize( void )
     error = sm_service_enabling_state_initialize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to initialize service enabling state "
+        DPRINTFE_SVC( "Failed to initialize service enabling state "
                   "module, error=%s.", sm_error_str( error ) );
         return( error );
     }
@@ -1761,7 +1761,7 @@ SmErrorT sm_service_fsm_initialize( void )
     error = sm_service_disabling_state_initialize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to initialize service disabling state "
+        DPRINTFE_SVC( "Failed to initialize service disabling state "
                   "module, error=%s.", sm_error_str( error ) );
         return( error );
     }
@@ -1769,7 +1769,7 @@ SmErrorT sm_service_fsm_initialize( void )
     error = sm_service_disabled_state_initialize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to initialize service disabled state "
+        DPRINTFE_SVC( "Failed to initialize service disabled state "
                   "module, error=%s.", sm_error_str( error ) );
         return( error );
     }
@@ -1777,7 +1777,7 @@ SmErrorT sm_service_fsm_initialize( void )
     error = sm_service_shutdown_state_initialize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to initialize service shutdown state module, "
+        DPRINTFE_SVC( "Failed to initialize service shutdown state module, "
                   "error=%s.", sm_error_str( error ) );
         return( error );
     }
@@ -1785,7 +1785,7 @@ SmErrorT sm_service_fsm_initialize( void )
     error = sm_service_enable_initialize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to initialize service enable module, error=%s.",
+        DPRINTFE_SVC( "Failed to initialize service enable module, error=%s.",
                   sm_error_str( error ) );
         return( error );
     }
@@ -1793,7 +1793,7 @@ SmErrorT sm_service_fsm_initialize( void )
     error = sm_service_go_active_initialize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to initialize service go-active module, error=%s.",
+        DPRINTFE_SVC( "Failed to initialize service go-active module, error=%s.",
                   sm_error_str( error ) );
         return( error );
     }
@@ -1801,7 +1801,7 @@ SmErrorT sm_service_fsm_initialize( void )
     error = sm_service_go_standby_initialize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to initialize service go-standby module, error=%s.",
+        DPRINTFE_SVC( "Failed to initialize service go-standby module, error=%s.",
                   sm_error_str( error ) );
         return( error );
     }
@@ -1809,7 +1809,7 @@ SmErrorT sm_service_fsm_initialize( void )
     error = sm_service_disable_initialize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to initialize service disable module, error=%s.",
+        DPRINTFE_SVC( "Failed to initialize service disable module, error=%s.",
                   sm_error_str( error ) );
         return( error );
     }
@@ -1817,7 +1817,7 @@ SmErrorT sm_service_fsm_initialize( void )
     error = sm_service_audit_initialize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to initialize service audit module, error=%s.",
+        DPRINTFE_SVC( "Failed to initialize service audit module, error=%s.",
                   sm_error_str( error ) );
         return( error );
     }
@@ -1830,7 +1830,7 @@ SmErrorT sm_service_fsm_initialize( void )
     error = sm_service_heartbeat_api_register_callbacks( &_hb_callbacks );
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to register service heartbeat callbacks, "
+        DPRINTFE_SVC( "Failed to register service heartbeat callbacks, "
                   "error=%s.", sm_error_str( error ) );
         return( error );
     }
@@ -1849,7 +1849,7 @@ SmErrorT sm_service_fsm_finalize( void )
     error = sm_service_heartbeat_api_deregister_callbacks( &_hb_callbacks );
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to deregister service heartbeat callbacks, "
+        DPRINTFE_SVC( "Failed to deregister service heartbeat callbacks, "
                   "error=%s.", sm_error_str( error ) );
     }
 
@@ -1858,112 +1858,112 @@ SmErrorT sm_service_fsm_finalize( void )
     error = sm_service_initial_state_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finalize service initial state module, "
+        DPRINTFE_SVC( "Failed to finalize service initial state module, "
                   "error=%s.", sm_error_str( error ) );
     }
 
     error = sm_service_unknown_state_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finalize service unknown state module, "
+        DPRINTFE_SVC( "Failed to finalize service unknown state module, "
                   "error=%s.", sm_error_str( error ) );
     }
 
     error = sm_service_enabled_active_state_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finalize service enabled active state "
+        DPRINTFE_SVC( "Failed to finalize service enabled active state "
                   "module, error=%s.", sm_error_str( error ) );
     }
 
     error = sm_service_enabled_go_active_state_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finalize service enabled go-active state "
+        DPRINTFE_SVC( "Failed to finalize service enabled go-active state "
                   "module, error=%s.", sm_error_str( error ) );
     }
 
     error = sm_service_enabled_go_standby_state_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finalize service enabled go-standby state "
+        DPRINTFE_SVC( "Failed to finalize service enabled go-standby state "
                   "module, error=%s.", sm_error_str( error ) );
     }
 
     error = sm_service_enabled_standby_state_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finalize service enabled standby state "
+        DPRINTFE_SVC( "Failed to finalize service enabled standby state "
                   "module, error=%s.", sm_error_str( error ) );
     }
 
     error = sm_service_enabling_throttle_state_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finalize service enabling throttle state "
+        DPRINTFE_SVC( "Failed to finalize service enabling throttle state "
                   "module, error=%s.", sm_error_str( error ) );
     }
 
     error = sm_service_enabling_state_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finalize service enabling state "
+        DPRINTFE_SVC( "Failed to finalize service enabling state "
                   "module, error=%s.", sm_error_str( error ) );
     }
 
     error = sm_service_disabling_state_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finalize service disabling state "
+        DPRINTFE_SVC( "Failed to finalize service disabling state "
                   "module, error=%s.", sm_error_str( error ) );
     }
 
     error = sm_service_disabled_state_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finalize service disabled state "
+        DPRINTFE_SVC( "Failed to finalize service disabled state "
                   "module, error=%s.", sm_error_str( error ) );
     }
 
     error = sm_service_shutdown_state_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finalize service shutdown state module, "
+        DPRINTFE_SVC( "Failed to finalize service shutdown state module, "
                   "error=%s.", sm_error_str( error ) );
     }
 
     error = sm_service_enable_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finalize service enable module, error=%s.",
+        DPRINTFE_SVC( "Failed to finalize service enable module, error=%s.",
                   sm_error_str( error ) );
     }
 
     error = sm_service_go_active_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finalize service go-active module, error=%s.",
+        DPRINTFE_SVC( "Failed to finalize service go-active module, error=%s.",
                   sm_error_str( error ) );
     }
 
     error = sm_service_go_standby_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finalize service go-standby module, error=%s.",
+        DPRINTFE_SVC( "Failed to finalize service go-standby module, error=%s.",
                   sm_error_str( error ) );
     }
 
     error = sm_service_disable_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finalize service disable module, error=%s.",
+        DPRINTFE_SVC( "Failed to finalize service disable module, error=%s.",
                   sm_error_str( error ) );
     }
 
     error = sm_service_audit_finalize();
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to finalize service audit module, error=%s.",
+        DPRINTFE_SVC( "Failed to finalize service audit module, error=%s.",
                   sm_error_str( error ) );
     }
 
@@ -2003,11 +2003,11 @@ static bool remove_pid_file(char pid_file[])
 {
     if ( 0 == remove( pid_file ) )
     {
-        DPRINTFI( "pid file (%s) is deleted. ", pid_file );
+        DPRINTFI_SVC( "pid file (%s) is deleted. ", pid_file );
         return true;
     }else
     {
-        DPRINTFE( "Failed to delete pid file (%s). ", pid_file );
+        DPRINTFE_SVC( "Failed to delete pid file (%s). ", pid_file );
         return false;
     }
 }

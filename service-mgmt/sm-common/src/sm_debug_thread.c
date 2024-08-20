@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014,2024 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -33,6 +33,9 @@
 
 #define SM_WRITE_SYSLOG( format, args... ) \
     syslog( LOG_LOCAL3 | LOG_DEBUG, format "\n", ##args )
+
+#define SM_WRITE_SERVICELOG( format, args... ) \
+    syslog( LOG_LOCAL0 | LOG_DEBUG, format "\n", ##args )
 
 #define SM_WRITE_SCHEDLOG( format, args... ) \
     fprintf( _sched_log, format "\n", ##args ); \
@@ -124,6 +127,23 @@ static void sm_debug_thread_dispatch( int selobj, int64_t user_data )
             if( 1000 <= ms_expired )
                 SM_SYSLOG( "Scheduler logging took %li ms.", ms_expired );
         break;
+
+        case SM_DEBUG_THREAD_MSG_SERVICE_LOG:
+
+            sm_time_get( &time_prev );
+
+            SM_WRITE_SERVICELOG( "time[%ld.%03ld] log<%" PRIu64 "> %s",
+                             (long) msg.u.log.ts_mono.tv_sec,
+                             (long) msg.u.log.ts_mono.tv_nsec/1000000,
+                             msg.u.log.seqnum, msg.u.log.data );
+
+            sm_time_get( &time_now );
+            ms_expired = sm_time_delta_in_ms( &time_now, &time_prev );
+
+            if( 1000 <= ms_expired )
+                SM_SYSLOG( "Syslog logging took %li ms.", ms_expired );
+        break;
+
 
         default:
             SM_SYSLOG( "Unknown message (%i) received.", msg.type );
