@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2018 Wind River Systems, Inc.
+// Copyright (c) 2014-2024 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -11,6 +11,7 @@
 
 #include "sm_types.h"
 #include "sm_debug.h"
+#include "sm_node_utils.h"
 #include "sm_time.h"
 #include "sm_service_group_table.h"
 #include "sm_service_group_member_table.h"
@@ -161,14 +162,32 @@ static void sm_service_group_audit_service_for_status( void* user_data[],
     SmServiceGroupStatusT mapped_status;
     SmServiceGroupConditionT mapped_condition;
     char service_reason_text[SM_SERVICE_GROUP_REASON_TEXT_MAX_CHAR] = "";
+    static bool _is_aio_simplex = false;
+    SmErrorT error;
 
     sgm_imply_status = service_group_member->service_status;
     if( 0 != service_group_member->service_failure_timestamp )
     {
         elapsed_ms = sm_time_get_elapsed_ms( NULL );
         delta_ms = elapsed_ms - service_group_member->service_failure_timestamp;
+        int adjusted_failure_debounce = service_group->failure_debounce_in_ms;
 
-        if( service_group->failure_debounce_in_ms >= delta_ms )
+        /* In AIO SX systems, the default debounce time may lead to undesired
+           behavior, unnecessarily increasing recovery time and potentially
+           affecting upgrade duration as well. */
+        error = sm_node_utils_is_aio_simplex(&_is_aio_simplex);
+        if(SM_OKAY != error)
+        {
+            DPRINTFE("Failed to get system mode, error %s",
+                sm_error_str(error));
+        }
+
+        if(_is_aio_simplex)
+        {
+            adjusted_failure_debounce = service_group->failure_debounce_in_ms / 10;
+        }
+
+        if( adjusted_failure_debounce >= delta_ms )
         {
             DPRINTFD( "Service group (%s) member (%s) failure debounce (%d) "
                       "still in effect since (%li), indicating member as unhealthy, "
