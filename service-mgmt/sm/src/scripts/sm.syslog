@@ -1,9 +1,12 @@
 #SM log filters
-filter f_smsvc   { facility(local0) and program(sm); };
+filter f_smsvc  { facility(local3) and match("sm_svc_log.*"); };
+filter f_local3 { facility(local3) and not filter(f_smsvc); };
 
 #SM log destinaions
 destination d_smsvc     { file("/var/log/sm-service.log"); };
+destination d_sm        { file("/var/log/sm.log"); };
 
 #SM log paths
 log { source(s_src); filter(f_smsvc); destination(d_smsvc); };
+log { source(s_src); filter(f_local3); destination(d_sm); };
 
