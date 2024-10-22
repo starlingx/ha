@@ -31,6 +31,12 @@
 #define SM_SYSLOG( format, args... ) \
     syslog( LOG_LOCAL3 | LOG_DEBUG, format "\n", ##args )
 
+#define SM_WRITE_SYSLOG( format, args... ) \
+    syslog( LOG_LOCAL3 | LOG_DEBUG, format "\n", ##args )
+
+#define SM_WRITE_SERVICELOG( format, args... ) \
+    syslog( LOG_LOCAL0 | LOG_DEBUG, format "\n", ##args )
+
 #define SM_WRITE_SCHEDLOG( format, args... ) \
     fprintf( _sched_log, format "\n", ##args ); \
     fflush( _sched_log )
@@ -83,8 +89,8 @@ static void sm_debug_thread_dispatch( int selobj, int64_t user_data )
 
             sm_time_get( &time_prev );
 
-            SM_SYSLOG( "time[%ld.%03ld] log<%" PRIu64 "> %s",
-                             (long) msg.u.log.ts_mono.tv_sec,
+            SM_WRITE_SYSLOG( "time[%ld.%03ld] log<%" PRIu64 "> %s",
+                             (long) msg.u.log.ts_mono.tv_sec, 
                              (long) msg.u.log.ts_mono.tv_nsec/1000000,
                              msg.u.log.seqnum, msg.u.log.data );
 
@@ -126,7 +132,7 @@ static void sm_debug_thread_dispatch( int selobj, int64_t user_data )
 
             sm_time_get( &time_prev );
 
-            SM_SYSLOG( "time[%ld.%03ld] sm_svc_log<%" PRIu64 "> %s",
+            SM_WRITE_SERVICELOG( "time[%ld.%03ld] log<%" PRIu64 "> %s",
                              (long) msg.u.log.ts_mono.tv_sec,
                              (long) msg.u.log.ts_mono.tv_nsec/1000000,
                              msg.u.log.seqnum, msg.u.log.data );
