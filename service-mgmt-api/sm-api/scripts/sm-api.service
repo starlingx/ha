@@ -11,5 +11,8 @@ ExecStart=/etc/init.d/sm-api start
 ExecStop=/etc/init.d/sm-api stop
 PIDFile=/var/run/sm-api.pid
 
+# cgroup engineering
+CPUShares=512
+
 [Install]
 WantedBy=multi-user.target

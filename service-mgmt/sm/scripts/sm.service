@@ -15,5 +15,8 @@ RestartSec=10
 Restart=on-failure
 LimitNOFILE=1024
 
+# cgroup engineering
+CPUShares=512
+
 [Install]
 WantedBy=multi-user.target
