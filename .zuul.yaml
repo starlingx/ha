@@ -7,17 +7,27 @@
       - stx-bandit-jobs
     check:
       jobs:
-        - openstack-tox-pep8
-        - openstack-tox-linters
+        - stx-ha-tox-pep8
+        - stx-ha-tox-linters
         - ha-tox-pylint
     gate:
       jobs:
-        - openstack-tox-pep8
-        - openstack-tox-linters
+        - stx-ha-tox-pep8
+        - stx-ha-tox-linters
         - ha-tox-pylint
     post:
       jobs:
         - stx-ha-upload-git-mirror
+
+- job:
+    name: stx-ha-tox-linters
+    parent: openstack-tox-linters
+    nodeset: debian-bullseye
+
+- job:
+    name: stx-ha-tox-pep8
+    parent: openstack-tox-pep8
+    nodeset: debian-bullseye
 
 - job:
     name: ha-tox-pylint
