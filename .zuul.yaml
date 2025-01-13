@@ -7,13 +7,13 @@
       - stx-bandit-jobs
     check:
       jobs:
-        - openstack-tox-pep8
-        - openstack-tox-linters
+        - starlingx-common-tox-pep8
+        - starlingx-common-tox-linters
         - ha-tox-pylint
     gate:
       jobs:
-        - openstack-tox-pep8
-        - openstack-tox-linters
+        - starlingx-common-tox-pep8
+        - starlingx-common-tox-linters
         - ha-tox-pylint
     post:
       jobs:
