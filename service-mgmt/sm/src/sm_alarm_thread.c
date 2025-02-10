@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <pthread.h>
 
 #include "fm_api_wrapper.h"
@@ -1593,6 +1594,7 @@ static SmErrorT sm_alarm_thread_initialize_thread( void )
                   SM_ALARM_CUSTOMER_LOG_FILE );
         return( SM_FAILED );
     }
+    chmod( SM_ALARM_CUSTOMER_LOG_FILE, 0640);
 
     return( SM_OKAY );
 }

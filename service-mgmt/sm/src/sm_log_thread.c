@@ -17,6 +17,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <sys/stat.h>
 #include <sys/syscall.h>
 #include <pthread.h>
 
@@ -718,6 +719,7 @@ static SmErrorT sm_log_thread_initialize_thread( void )
                   SM_LOG_CUSTOMER_LOG_FILE );
         return( SM_FAILED );
     }
+    chmod( SM_LOG_CUSTOMER_LOG_FILE, 0640);
 
     return( SM_OKAY );
 }
