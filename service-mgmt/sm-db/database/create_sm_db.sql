@@ -107,6 +107,7 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','admin-ipv6','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','ipsec-config','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcorch-engine-worker','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dccertmon','critical' FROM "SERVICE_GROUP_MEMBERS";
 CREATE TABLE SERVICES ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), DESIRED_STATE CHAR(32), STATE CHAR(32), STATUS CHAR(32), CONDITION CHAR(32), MAX_FAILURES INT, FAIL_COUNTDOWN INT, FAIL_COUNTDOWN_INTERVAL INT, MAX_ACTION_FAILURES INT, MAX_TRANSITION_FAILURES INT, PID_FILE CHAR(256) );
 INSERT INTO "SERVICES" VALUES(1,'no','oam-ipv4','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(2,'no','management-ipv4','initial','initial','none','none',2,1,90000,4,16,'');
@@ -180,6 +181,7 @@ INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','admin-ipv4','initial','initial',
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','admin-ipv6','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','ipsec-config','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcorch-engine-worker','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcorch-engine-worker.pid' FROM "SERVICES";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dccertmon','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dccertmon.pid' FROM "SERVICES";
 CREATE TABLE SERVICE_HEARTBEAT ( ID INTEGER PRIMARY KEY AUTOINCREMENT, PROVISIONED CHAR(32), NAME CHAR(32), TYPE CHAR(32), SRC_ADDRESS CHAR(108), SRC_PORT INT, DST_ADDRESS CHAR(108), DST_PORT INT, MESSAGE CHAR(256), INTERVAL_IN_MS INT, MISSED_WARN INT, MISSED_DEGRADE INT, MISSED_FAIL INT, STATE CHAR(32), MISSED INT, HEARTBEAT_TIMER_ID INT, HEARTBEAT_SOCKET INT );
 CREATE TABLE SERVICE_DEPENDENCY ( DEPENDENCY_TYPE CHAR(32), SERVICE_NAME CHAR(32), STATE CHAR(32), ACTION CHAR(32), DEPENDENT CHAR(32), DEPENDENT_STATE CHAR(32), PRIMARY KEY (DEPENDENCY_TYPE, SERVICE_NAME, STATE, ACTION, DEPENDENT));
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','oam-ipv4','not-applicable','enable','management-ipv4','enabled-active');
@@ -388,6 +390,8 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applic
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-state','not-applicable','enable','dcmanager-manager','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-state','not-applicable','disable','dcmanager-audit-worker','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dcmanager-state','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dccertmon','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dccertmon','not-applicable','enable','dcmanager-manager','enabled-active');
 CREATE TABLE SERVICE_INSTANCES ( ID INTEGER PRIMARY KEY AUTOINCREMENT, SERVICE_NAME CHAR(32), INSTANCE_NAME CHAR(32), INSTANCE_PARAMETERS CHAR(1024) );
 INSERT INTO "SERVICE_INSTANCES" VALUES(1,'lighttpd','lighttpd','');
 INSERT INTO "SERVICE_INSTANCES" VALUES(2,'horizon','horizon','');
@@ -704,6 +708,10 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-engine-worker','enable','ocf-script
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-engine-worker','disable','ocf-script','openstack','dcorch-engine-worker','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-engine-worker','audit-enabled','ocf-script','openstack','dcorch-engine-worker','monitor','',2,2,2,20,20);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-engine-worker','audit-disabled','ocf-script','openstack','dcorch-engine-worker','monitor','',0,0,0,20,20);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dccertmon','enable','ocf-script','openstack','dccertmon','start','',2,2,2,30,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dccertmon','disable','ocf-script','openstack','dccertmon','stop','',1,1,1,60,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dccertmon','audit-enabled','ocf-script','openstack','dccertmon','monitor','',2,2,2,30,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dccertmon','audit-disabled','ocf-script','openstack','dccertmon','monitor','',0,0,0,30,40);
 CREATE TABLE SERVICE_ACTION_RESULTS ( PLUGIN_TYPE CHAR(32), PLUGIN_NAME CHAR(80), PLUGIN_COMMAND CHAR(80), PLUGIN_EXIT_CODE CHAR(32), ACTION_RESULT CHAR(32), SERVICE_STATE CHAR(32), SERVICE_STATUS CHAR(32), SERVICE_CONDITION CHAR(32), PRIMARY KEY (PLUGIN_TYPE, PLUGIN_NAME, PLUGIN_COMMAND, PLUGIN_EXIT_CODE));
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('lsb-script','default','status','0','success','enabled-active','unknown','unknown');
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('lsb-script','default','status','1','success','disabled','unknown','unknown');
