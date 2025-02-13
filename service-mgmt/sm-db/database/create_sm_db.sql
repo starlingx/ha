@@ -101,6 +101,7 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','ironic-ipv6','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcdbsync-openstack-api','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcmanager-orchestrator','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcmanager-orchestrator-worker','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcmanager-audit-worker','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcmanager-state','major' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','admin-ipv4','critical' FROM "SERVICE_GROUP_MEMBERS";
@@ -175,6 +176,7 @@ INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','ironic-ipv4','initial','initial'
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','ironic-ipv6','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcdbsync-openstack-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcdbsync-openstack-api.pid' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcmanager-orchestrator','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcmanager-orchestrator.pid' FROM "SERVICES";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcmanager-orchestrator-worker','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcmanager-orchestrator-worker.pid' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcmanager-audit-worker','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcmanager-audit-worker.pid' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcmanager-state','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcmanager-state.pid' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','admin-ipv4','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
@@ -332,6 +334,8 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-audit','not-applicab
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-audit-worker','not-applicable','disable','dcmanager-audit','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-orchestrator','not-applicable','enable','dcmanager-manager','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dcmanager-orchestrator','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-orchestrator-worker','not-applicable','enable','dcmanager-manager','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dcmanager-orchestrator-worker','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-sysinv-api-proxy','not-applicable','enable','sysinv-inv','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-sysinv-api-proxy','not-applicable','enable','dcorch-engine','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-sysinv-api-proxy','not-applicable','enable','dcorch-engine-worker','enabled-active');
@@ -603,6 +607,10 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator','enable','ocf-scri
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator','disable','ocf-script','openstack','dcmanager-orchestrator','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator','audit-enabled','ocf-script','openstack','dcmanager-orchestrator','monitor','',2,2,2,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator','audit-disabled','ocf-script','openstack','dcmanager-orchestrator','monitor','',0,0,0,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator-worker','enable','ocf-script','openstack','dcmanager-orchestrator-worker','start','',2,2,2,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator-worker','disable','ocf-script','openstack','dcmanager-orchestrator-worker','stop','',1,1,1,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator-worker','audit-enabled','ocf-script','openstack','dcmanager-orchestrator-worker','monitor','',2,2,2,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator-worker','audit-disabled','ocf-script','openstack','dcmanager-orchestrator-worker','monitor','',0,0,0,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-api','enable','ocf-script','openstack','dcmanager-api','start','',2,2,2,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-api','disable','ocf-script','openstack','dcmanager-api','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-api','audit-enabled','ocf-script','openstack','dcmanager-api','monitor','',2,2,2,20,5);
