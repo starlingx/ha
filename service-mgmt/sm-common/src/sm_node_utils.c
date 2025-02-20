@@ -18,7 +18,7 @@
 #include "sm_types.h"
 #include "sm_debug.h"
 
-#define SM_NODE_LOCKED_FILE           "/etc/mtc/tmp/.node_locked"
+#define SM_NODE_LOCKED_FILE           "/var/persist/mtc/.node_locked"
 #define SM_NODE_GO_ENABLE_FILE        "/var/run/goenabled"
 #define SM_NODE_GO_ENABLE_FILE_SIMPLEX "/var/run/.goenabled"
 #define SM_NODE_UNHEALTHY_FILE        "/var/run/.sm_node_unhealthy"
