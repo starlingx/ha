@@ -15,7 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Copyright (c) 2013-2018 Wind River Systems, Inc.
+# Copyright (c) 2013-2018, 2025 Wind River Systems, Inc.
 #
 
 
@@ -75,16 +75,20 @@ def db_session_cleanup(cls):
         @functools.wraps(method)
         def wrapper(self, *args, **kwargs):
             _context = eventlet.greenthread.getcurrent()
+            exc_info = (None, None, None)
 
             try:
                 return method(self, *args, **kwargs)
+            except Exception:
+                exc_info = sys.exc_info()
+                raise
             finally:
-                if (hasattr(_context, "_db_session_context") and
-                        _context._db_session_context is not None):
+                if (
+                    hasattr(_context, "_db_session_context") and
+                    _context._db_session_context is not None
+                ):
                     try:
-                        if hasattr(_context, "_db_session_context"):
-                            exc_info = sys.exc_info()
-                            _context._db_session_context.__exit__(*exc_info)
+                        _context._db_session_context.__exit__(*exc_info)
                     except Exception as e:
                         LOG.warning(f"Error closing database session: {e}")
 
