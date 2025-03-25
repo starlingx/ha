@@ -28,7 +28,7 @@ typedef struct
 {
     bool inuse;
     uint64_t log_seqnum;
-    u_int64_t service_log_seqnum;
+    uint64_t service_log_seqnum;
     char thread_name[SM_THREAD_NAME_MAX_CHAR];
     int thread_id;
     char thread_identifier[SM_THREAD_NAME_MAX_CHAR+10];
