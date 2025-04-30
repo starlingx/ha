@@ -68,7 +68,7 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(56,'no','controller-services','cinder
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(57,'no','controller-services','iscsi','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(59,'yes','vim-services','vim','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(60,'yes','vim-services','vim-api','critical');
-INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(61,'yes','vim-services','vim-webserver','minor');
+INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(61,'no','vim-services','vim-webserver','minor');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(64,'yes','oam-services','haproxy','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(65,'no','controller-services','pxeboot-ipv4','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(67,'no','storage-monitoring-services','ceph-radosgw','minor');
@@ -143,7 +143,7 @@ INSERT INTO "SERVICES" VALUES(56,'no','cinder-lvm','initial','initial','none','n
 INSERT INTO "SERVICES" VALUES(57,'no','iscsi','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(59,'yes','vim','initial','initial','none','none',2,1,90000,4,16,'/var/run/nfv-vim.pid');
 INSERT INTO "SERVICES" VALUES(60,'yes','vim-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/nfv-vim-api.pid');
-INSERT INTO "SERVICES" VALUES(61,'yes','vim-webserver','initial','initial','none','none',2,1,90000,4,16,'/var/run/nfv-vim-webserver.pid');
+INSERT INTO "SERVICES" VALUES(61,'no','vim-webserver','initial','initial','none','none',2,1,90000,4,16,'/var/run/nfv-vim-webserver.pid');
 INSERT INTO "SERVICES" VALUES(64,'yes','haproxy','initial','initial','none','none',2,1,90000,4,16,'/var/run/haproxy.pid');
 INSERT INTO "SERVICES" VALUES(65,'no','pxeboot-ipv4','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(67,'no','ceph-radosgw','initial','initial','none','none',2,1,90000,4,16,'');
