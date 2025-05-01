@@ -10,7 +10,7 @@
 # Support:      openstack@lists.launchpad.net
 # License:      Apache Software License (ASL) 2.0
 #
-# Copyright (c) 2018 Wind River Systems, Inc.
+# Copyright (c) 2018-2019,2025 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -46,6 +46,10 @@ OCF_RESKEY_server_port_default="9311"
 : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
 : ${OCF_RESKEY_server_port=${OCF_RESKEY_server_port_default}}
+
+SERVICE="openstack-barbican-api.service"
+SERVICE_CPUSHARES=512
+SERVICE_DESC="OpenStack Key Management API Service (barbican-api)"
 
 #######################################################################
 
@@ -184,17 +188,14 @@ barbican_api_validate() {
 }
 
 barbican_api_status() {
-    local pid
     local rc
 
     if [ ! -f $OCF_RESKEY_pid ]; then
         ocf_log info "OpenStack Key Management API (barbican-api) is not running"
         return $OCF_NOT_RUNNING
-    else
-        pid=`cat $OCF_RESKEY_pid`
     fi
 
-    ocf_run -warn kill -s 0 $pid
+    systemctl is-active --quiet $SERVICE
     rc=$?
     if [ $rc -eq 0 ]; then
         return $OCF_SUCCESS
@@ -247,8 +248,17 @@ barbican_api_start() {
     su ${OCF_RESKEY_user}
     mkdir -p /run/barbican
     chown barbican:barbican /run/barbican
-    /bin/python /usr/bin/gunicorn --pid $OCF_RESKEY_pid --config /etc/barbican/gunicorn-config.py \
-    --paste /etc/barbican/barbican-api-paste.ini >> /var/log/barbican/barbican-api.log 2>&1 &
+    systemd-run --collect --unit=${SERVICE} --slice-inherit \
+      -p CPUShares=${SERVICE_CPUSHARES} \
+      -p Description="${SERVICE_DESC}" \
+      -p PIDFile=${OCF_RESKEY_pid} \
+      -p User=barbican -p Group=barbican \
+      -p RuntimeDirectory=barbican -p RuntimeDirectoryMode=770 \
+      -p StandardError=file:/var/log/barbican/barbican-api.log \
+      -p StandardOutput=file:/var/log/barbican/barbican-api.log \
+      /usr/bin/gunicorn --pid $OCF_RESKEY_pid --config /etc/barbican/gunicorn-config.py \
+      --paste /etc/barbican/barbican-api-paste.ini
+
     # Restrict access to logfile
     chmod 640 /var/log/barbican/barbican-api.log
 
@@ -283,7 +293,6 @@ barbican_api_confirm_stop() {
 
 barbican_api_stop() {
     local rc
-    local pid
 
     barbican_api_status
     rc=$?
@@ -293,9 +302,8 @@ barbican_api_stop() {
         return $OCF_SUCCESS
     fi
 
-    # Try SIGTERM
-    pid=`cat $OCF_RESKEY_pid`
-    ocf_run kill -s TERM $pid
+    # Try systemctl stop
+    systemctl stop $SERVICE
     rc=$?
     if [ $rc -ne 0 ]; then
         ocf_log err "OpenStack Key Management API (barbican-api) couldn't be stopped"
@@ -327,7 +335,7 @@ barbican_api_stop() {
         # SIGTERM didn't help either, try SIGKILL
         ocf_log info "OpenStack Key Management API (barbican-api) failed to stop after \
           ${shutdown_timeout}s using SIGTERM. Trying SIGKILL ..."
-        ocf_run kill -s KILL $pid
+        systemctl kill --signal=SIGKILL $SERVICE
     fi
     barbican_api_confirm_stop
 
