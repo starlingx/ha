@@ -15,12 +15,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Copyright (c) 2013-2018 Wind River Systems, Inc.
+# Copyright (c) 2013-2018, 2025 Wind River Systems, Inc.
 #
 
 
 """SQLAlchemy storage backend."""
 
+import functools
+import sys
+
+import eventlet
 from oslo_config import cfg
 
 # TODO(deva): import MultipleResultsFound and handle it appropriately
@@ -44,7 +48,7 @@ CONF.import_opt('connection',
 LOG = log.getLogger(__name__)
 
 get_engine = db_session.get_engine
-get_session = db_session.get_session
+get_session_manager = db_session.get_session_manager
 
 
 def _paginate_query(model, limit=None, marker=None, sort_key=None,
@@ -64,15 +68,69 @@ def get_backend():
     return Connection()
 
 
+def db_session_cleanup(cls):
+    """Class decorator that automatically adds session cleanup to all non-special methods."""
+
+    def method_decorator(method):
+        @functools.wraps(method)
+        def wrapper(self, *args, **kwargs):
+            _context = eventlet.greenthread.getcurrent()
+            exc_info = (None, None, None)
+
+            try:
+                return method(self, *args, **kwargs)
+            except Exception:
+                exc_info = sys.exc_info()
+                raise
+            finally:
+                if (
+                    hasattr(_context, "_db_session_context") and
+                    _context._db_session_context is not None
+                ):
+                    try:
+                        _context._db_session_context.__exit__(*exc_info)
+                    except Exception as e:
+                        LOG.warning(f"Error closing database session: {e}")
+
+                    # Clear the session
+                    _context._db_session = None
+                    _context._db_session_context = None
+
+        return wrapper
+
+    for attr_name in dir(cls):
+        # Skip special methods
+        if not attr_name.startswith("__"):
+            attr = getattr(cls, attr_name)
+            if callable(attr):
+                setattr(cls, attr_name, method_decorator(attr))
+
+    return cls
+
+
 def model_query(model, *args, **kwargs):
     """Query helper for simpler session usage.
 
+    If the session is already provided in the kwargs, use it. Otherwise,
+    try to get it from thread context. If it's not there, create a new one.
+
     :param session: if present, the session to use
     """
+    session = kwargs.get('session')
+    if not session:
+        _context = eventlet.greenthread.getcurrent()
+        if hasattr(_context, '_db_session') and _context._db_session is not None:
+            session = _context._db_session
+        else:
+            session_context = get_session_manager()
+            session = session_context.__enter__()
+            _context._db_session = session
+            # Need to store the session context to call __exit__ method later
+            _context._db_session_context = session_context
 
-    session = kwargs.get('session') or get_session()
-    query = session.query(model, *args)
-    return query
+        query = session.query(model, *args)
+
+    return session.query(model, *args)
 
 
 def add_identity_filter(query, value, model, use_name=False):
@@ -119,6 +177,7 @@ def add_filter_by_many_identities(query, model, values):
         raise exception.InvalidIdentity(identity=value)
 
 
+@db_session_cleanup
 class Connection(api.Connection):
     """SqlAlchemy connection."""
 

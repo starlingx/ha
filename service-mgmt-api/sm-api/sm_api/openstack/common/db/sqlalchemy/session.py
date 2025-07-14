@@ -35,10 +35,11 @@ Initializing:
 
 Recommended ways to use sessions within this framework:
 
-* Don't use them explicitly; this is like running with AUTOCOMMIT=1.
-  model_query() will implicitly use a session when called without one
-  supplied. This is the ideal situation because it will allow queries
-  to be automatically retried if the database connection is interrupted.
+* Don't use them explicitly; when entering model_query(), a session will be created
+  and stored in the thread context; upon exiting the db function, the __exit__ method of
+  the session will be called, which will commit/rollback and then close it. It's important
+  to note that AUTOCOMMIT was deprecated in sqlalchemy 1.4 and removed in 2.0, so that's
+  why we need to manually manage the session this way.
 
     Note: Automatic retry will be enabled in a future patch.
 
@@ -246,18 +247,19 @@ Efficient use of soft deletes:
 
 """
 
+from contextlib import contextmanager
 import re
 import time
 
 from eventlet import greenthread
 from oslo_config import cfg
 import six
+from sqlalchemy import event
 from sqlalchemy import exc as sqla_exc
-import sqlalchemy.interfaces
-from sqlalchemy.interfaces import PoolListener
 import sqlalchemy.orm
 from sqlalchemy.pool import NullPool, StaticPool
 from sqlalchemy.sql.expression import literal_column
+from sqlalchemy import __version__ as sa_version
 
 from sm_api.openstack.common.db import exception
 from sm_api.openstack.common import log as logging
@@ -357,7 +359,7 @@ def cleanup():
         _ENGINE = None
 
 
-class SqliteForeignKeysListener(PoolListener):
+class SqliteForeignKeysListener:
     """
     Ensures that the foreign key constraints are enforced in SQLite.
 
@@ -370,17 +372,28 @@ class SqliteForeignKeysListener(PoolListener):
         dbapi_con.execute('pragma foreign_keys=ON')
 
 
-def get_session(autocommit=True, expire_on_commit=False,
-                sqlite_fk=False):
+def get_session(expire_on_commit=False, sqlite_fk=False):
     """Return a SQLAlchemy session."""
     global _MAKER
 
     if _MAKER is None:
         engine = get_engine(sqlite_fk=sqlite_fk)
-        _MAKER = get_maker(engine, autocommit, expire_on_commit)
+        _MAKER = get_maker(engine, expire_on_commit)
 
-    session = _MAKER()
-    return session
+    return _MAKER()
+
+
+@contextmanager
+def get_session_manager():
+    session = get_session()
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
 
 # note(boris-42): In current versions of DB backends unique constraint
@@ -557,12 +570,15 @@ def _is_db_connection_error(args):
 
 def create_engine(sql_connection, sqlite_fk=False):
     """Return a new SQLAlchemy engine."""
-    connection_dict = sqlalchemy.engine.url.make_url(sql_connection)
+    if sa_version >= '1.4.0':
+        connection_dict = sqlalchemy.engine.URL.create(sql_connection)
+    else:
+        connection_dict = sqlalchemy.engine.url.make_url(sql_connection)
 
     engine_args = {
         "pool_recycle": CONF.database.idle_timeout,
         "echo": False,
-        'convert_unicode': True,
+        'echo_pool': False,
     }
 
     # Map our SQL debug level to SQLAlchemy's options
@@ -571,9 +587,12 @@ def create_engine(sql_connection, sqlite_fk=False):
     elif CONF.database.connection_debug >= 50:
         engine_args['echo'] = True
 
+    engine = None
+
     if "sqlite" in connection_dict.drivername:
         if sqlite_fk:
-            engine_args["listeners"] = [SqliteForeignKeysListener()]
+            engine = sqlalchemy.create_engine(sql_connection, **engine_args)
+            event.listen(engine, 'connect', SqliteForeignKeysListener())
         engine_args["poolclass"] = NullPool
 
         if CONF.database.connection == "sqlite://":
@@ -584,7 +603,8 @@ def create_engine(sql_connection, sqlite_fk=False):
         if CONF.database.max_overflow is not None:
             engine_args['max_overflow'] = CONF.database.max_overflow
 
-    engine = sqlalchemy.create_engine(sql_connection, **engine_args)
+    if not engine:
+        engine = sqlalchemy.create_engine(sql_connection, **engine_args)
 
     sqlalchemy.event.listen(engine, 'checkin', _greenthread_yield)
 
@@ -601,8 +621,9 @@ def create_engine(sql_connection, sqlite_fk=False):
         _patch_mysqldb_with_stacktrace_comments()
 
     try:
-        engine.connect()
-    except sqla_exc.OperationalError as e:
+        with engine.connect() as conn:
+            conn.execute(sqlalchemy.text("SELECT 1"))
+    except sqlalchemy.exc.OperationalError as e:
         if not _is_db_connection_error(e.args[0]):
             raise
 
@@ -616,9 +637,10 @@ def create_engine(sql_connection, sqlite_fk=False):
                 remaining -= 1
             time.sleep(CONF.database.retry_interval)
             try:
-                engine.connect()
+                with engine.connect() as conn:
+                    conn.execute(sqlalchemy.text("SELECT 1"))
                 break
-            except sqla_exc.OperationalError as e:
+            except sqlalchemy.exc.OperationalError as e:
                 if (remaining != 'infinite' and remaining == 0) or \
                         not _is_db_connection_error(e.args[0]):
                     raise
@@ -650,13 +672,14 @@ class Session(sqlalchemy.orm.session.Session):
         return super(Session, self).execute(*args, **kwargs)
 
 
-def get_maker(engine, autocommit=True, expire_on_commit=False):
+def get_maker(engine, expire_on_commit=False):
     """Return a SQLAlchemy sessionmaker using the given engine."""
-    return sqlalchemy.orm.sessionmaker(bind=engine,
-                                       class_=Session,
-                                       autocommit=autocommit,
-                                       expire_on_commit=expire_on_commit,
-                                       query_cls=Query)
+    return sqlalchemy.orm.sessionmaker(
+        bind=engine,
+        class_=Session,
+        expire_on_commit=expire_on_commit,
+        query_cls=Query
+    )
 
 
 def _patch_mysqldb_with_stacktrace_comments():
