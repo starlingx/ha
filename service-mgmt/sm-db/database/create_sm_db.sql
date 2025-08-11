@@ -499,8 +499,8 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-inv','audit-enabled','ocf-script','
 INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-inv','audit-disabled','ocf-script','platform','sysinv-api','monitor','',0,0,0,160,90);
 INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-conductor','enable','ocf-script','platform','sysinv-conductor','start','',2,2,2,30,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-conductor','disable','ocf-script','platform','sysinv-conductor','stop','',1,1,1,20,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-conductor','audit-enabled','ocf-script','platform','sysinv-conductor','monitor','',2,2,2,15,40);
-INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-conductor','audit-disabled','ocf-script','platform','sysinv-conductor','monitor','',0,0,0,15,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-conductor','audit-enabled','ocf-script','platform','sysinv-conductor','monitor','',2,2,2,30,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-conductor','audit-disabled','ocf-script','platform','sysinv-conductor','monitor','',0,0,0,30,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('mtc-agent','enable','ocf-script','platform','mtcAgent','start','',2,2,2,30,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('mtc-agent','disable','ocf-script','platform','mtcAgent','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('mtc-agent','audit-enabled','ocf-script','platform','mtcAgent','monitor','',2,2,2,15,40);
