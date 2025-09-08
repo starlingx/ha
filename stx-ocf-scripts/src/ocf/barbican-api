@@ -49,7 +49,7 @@ OCF_RESKEY_server_port_default="9311"
 
 SERVICE="openstack-barbican-api.service"
 SERVICE_CPUSHARES=512
-SERVICE_DESC="OpenStack Key Management API Service (barbican-api)"
+SERVICE_DESC="OpenStack Key Management API Service (openstack-barbican-api)"
 
 #######################################################################
 
@@ -190,19 +190,19 @@ barbican_api_validate() {
 barbican_api_status() {
     local rc
 
-    if [ ! -f $OCF_RESKEY_pid ]; then
-        ocf_log info "OpenStack Key Management API (barbican-api) is not running"
-        return $OCF_NOT_RUNNING
-    fi
-
     systemctl is-active --quiet $SERVICE
     rc=$?
     if [ $rc -eq 0 ]; then
         return $OCF_SUCCESS
     else
-        ocf_log info "Old PID file found, but OpenStack Key Management API \
-          (barbican-api) is not running"
-        rm -f $OCF_RESKEY_pid
+        if [ ! -f $OCF_RESKEY_pid ]; then
+            ocf_log info "OpenStack Key Management API (openstack-barbican-api) is not running"
+        else
+            pid=`cat $OCF_RESKEY_pid`
+            ocf_log info "Old PID file found with pid=(${pid}), but OpenStack Key Management API \
+            (openstack-barbican-api) is not running"
+            rm -f $OCF_RESKEY_pid
+        fi
         return $OCF_NOT_RUNNING
     fi
 }
@@ -229,18 +229,34 @@ barbican_api_monitor() {
               return $OCF_NOT_RUNNING
           fi
 
-    ocf_log debug "OpenStack Key Management API (barbican-api) monitor succeeded"
+    ocf_log debug "OpenStack Key Management API (openstack-barbican-api) monitor succeeded"
     return $OCF_SUCCESS
+}
+
+barbican_api_stop_systemd_managed_instance() {
+    local rc
+
+    # Check if barbican-api.service initialized during bootstrap is still running
+    # This a workaround for https://bugs.launchpad.net/starlingx/+bug/2122366
+    systemctl is-active --quiet barbican-api.service
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      ocf_log info "OpenStack Key Management API (barbican-api) managed by systemd identified. Stopping it..."
+      systemctl stop --quiet barbican-api.service
+      systemctl reset-failed --quiet barbican-api.service
+      systemctl disable --quiet barbican-api.service
+    fi
 }
 
 barbican_api_start() {
     local rc
     local host
 
+    barbican_api_stop_systemd_managed_instance
     barbican_api_status
     rc=$?
     if [ $rc -eq $OCF_SUCCESS ]; then
-        ocf_log info "OpenStack Key Management API (barbican-api) already running"
+        ocf_log info "OpenStack Key Management API (openstack-barbican-api) already running"
         return $OCF_SUCCESS
     fi
     # run the actual barbican-api daemon. Don't use ocf_run as we're sending the tool's output
@@ -254,10 +270,15 @@ barbican_api_start() {
       -p PIDFile=${OCF_RESKEY_pid} \
       -p User=barbican -p Group=barbican \
       -p RuntimeDirectory=barbican -p RuntimeDirectoryMode=770 \
-      -p StandardError=file:/var/log/barbican/barbican-api.log \
-      -p StandardOutput=file:/var/log/barbican/barbican-api.log \
+      -p StandardError=append:/var/log/barbican/barbican-api.log \
+      -p StandardOutput=append:/var/log/barbican/barbican-api.log \
       /usr/bin/gunicorn --pid $OCF_RESKEY_pid --config /etc/barbican/gunicorn-config.py \
       --paste /etc/barbican/barbican-api-paste.ini
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        ocf_log err "OpenStack Key Management API (openstack-barbican-api) failed to start (rc=$rc)"
+        exit $OCF_ERR_GENERIC
+    fi
 
     # Restrict access to logfile
     chmod 640 /var/log/barbican/barbican-api.log
@@ -268,19 +289,21 @@ barbican_api_start() {
     rc=$?
     [ $rc -eq $OCF_SUCCESS ] && break
     if [ $rc -ne $OCF_NOT_RUNNING ]; then
-        ocf_log err "OpenStack Key Management API (barbican-api) start failed"
+        ocf_log err "OpenStack Key Management API (openstack-barbican-api) start failed (rc=$rc)"
         exit $OCF_ERR_GENERIC
     fi
     sleep 1
     done
 
-    ocf_log info "OpenStack Key Management API (barbican-api) started"
+    ocf_log info "OpenStack Key Management API (openstack-barbican-api) started"
     return $OCF_SUCCESS
 }
 
 barbican_api_confirm_stop() {
     local my_bin
     local my_processes
+
+    barbican_api_stop_systemd_managed_instance
 
     my_processes=`pgrep -l -f "gunicorn.*master.*barbican-api"`
 
@@ -297,7 +320,7 @@ barbican_api_stop() {
     barbican_api_status
     rc=$?
     if [ $rc -eq $OCF_NOT_RUNNING ]; then
-        ocf_log info "OpenStack Key Management API (barbican-api) already stopped"
+        ocf_log info "OpenStack Key Management API (openstack-barbican-api) already stopped"
         barbican_api_confirm_stop
         return $OCF_SUCCESS
     fi
@@ -325,7 +348,7 @@ barbican_api_stop() {
         fi
         count=`expr $count + 1`
         sleep 1
-        ocf_log debug "OpenStack Key Management API (barbican-api) still hasn't stopped yet. \
+        ocf_log debug "OpenStack Key Management API (openstack-barbican-api) still hasn't stopped yet. \
          Waiting ..."
     done
 
@@ -333,13 +356,13 @@ barbican_api_stop() {
     rc=$?
     if [ $rc -ne $OCF_NOT_RUNNING ]; then
         # SIGTERM didn't help either, try SIGKILL
-        ocf_log info "OpenStack Key Management API (barbican-api) failed to stop after \
+        ocf_log info "OpenStack Key Management API (openstack-barbican-api) failed to stop after \
           ${shutdown_timeout}s using SIGTERM. Trying SIGKILL ..."
         systemctl kill --signal=SIGKILL $SERVICE
     fi
     barbican_api_confirm_stop
 
-    ocf_log info "OpenStack Key Management API (barbican-api) stopped"
+    ocf_log info "OpenStack Key Management API (openstack-barbican-api) stopped"
 
     rm -f $OCF_RESKEY_pid
 
