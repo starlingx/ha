@@ -367,6 +367,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-etcd','not-applicable','g
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-etcd','not-applicable','go-active','management-ipv6','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd-fs','not-applicable','enable','drbd-etcd','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-etcd','not-applicable','go-standby','etcd-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-etcd','not-applicable','disable','etcd-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','barbican-api','not-applicable','enable','postgres','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','barbican-api','not-applicable','enable','rabbit','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','barbican-api','not-applicable','enable','dnsmasq','enabled-active');
