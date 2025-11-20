@@ -283,7 +283,7 @@ function install_sm_api {
     sudo install -m 644 -D scripts/sm-api.service $STX_SYSCONFDIR/systemd/system
     sudo install -m 644 -D scripts/sm_api.ini $STX_SM_CONF_DIR
     sudo install -m 644 scripts/sm-api.conf $STX_SYSCONFDIR/pmon.d
-    sudo install -m 644 -D etc/sm-api/policy.json $STX_SM_API_CONF_DIR
+    sudo install -m 644 -D etc/sm-api/policy.yaml $STX_SM_API_CONF_DIR
 
     popd
 }
