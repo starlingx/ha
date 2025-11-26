@@ -32,7 +32,7 @@ delimiter "cat /etc/motd"
 timeout --signal KILL 5s cat /etc/motd
 
 delimiter "ntpq -n -p"
-timeout --signal KILL 5s /usr/sbin/ntpq -n -p
+timeout --signal KILL 5s /usr/bin/ntpq -n -p
 
 delimiter "cat /proc/stat"
 timeout --signal KILL 5s cat /proc/stat
