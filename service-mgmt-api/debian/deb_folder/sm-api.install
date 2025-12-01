@@ -1,6 +1,6 @@
 etc/init.d/sm-api
 etc/sm/sm_api.ini
-etc/sm-api/policy.json
+etc/sm-api/policy.yaml
 lib/systemd/system/*
 usr/bin/sm-api
 usr/lib/python3*

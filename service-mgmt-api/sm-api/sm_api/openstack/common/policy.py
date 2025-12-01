@@ -15,7 +15,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
-# Copyright (c) 2013-2014 Wind River Systems, Inc.
+# Copyright (c) 2013-2014,2018,2021,2025 Wind River Systems, Inc.
 #
 
 
@@ -64,6 +64,7 @@ import abc
 import re
 
 import six
+import yaml
 
 from sm_api.openstack.common.gettextutils import _
 from sm_api.openstack.common import jsonutils
@@ -79,21 +80,38 @@ _rules = None
 _checks = {}
 
 
+def parse_file_contents(data):
+    """Parse the raw contents of a policy file.
+
+    Parses the contents of a policy file which currently can be in either
+    yaml or json format. Both can be parsed as yaml.
+
+    :param data: A string containing the contents of a policy file.
+    :returns: A dict of of the form {'policy_name1': 'policy1',
+                                     'policy_name2': 'policy2,...}
+    """
+    try:
+        parsed = jsonutils.loads(data)
+    except ValueError:
+        try:
+            parsed = yaml.safe_load(data) or {}
+        except yaml.YAMLError as e:
+            # For backwards-compatibility, convert yaml error to ValueError,
+            # which is what JSON loader raised.
+            raise ValueError(six.text_type(e))
+    return parsed
+
+
 class Rules(dict):
     """
     A store for rules.  Handles the default_rule setting directly.
     """
 
     @classmethod
-    def load_json(cls, data, default_rule=None):
-        """
-        Allow loading of JSON rule data.
-        """
-
-        # Suck in the JSON data and parse the rules
-        rules = dict((k, parse_rule(v)) for k, v in
-                     jsonutils.loads(data).items())
-
+    def load(cls, data, default_rule=None):
+        """Allow loading of YAML/JSON rule data."""
+        # Parse the rules
+        rules = {k: parse_rule(v) for k, v in parse_file_contents(data).items()}
         return cls(rules, default_rule)
 
     def __init__(self, rules=None, default_rule=None):
