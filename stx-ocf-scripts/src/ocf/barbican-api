@@ -190,7 +190,11 @@ barbican_api_validate() {
 barbican_api_status() {
     local rc
 
-    systemctl is-active --quiet $SERVICE
+    # Check if the transient service unit is loaded to avoid systemd log errors
+    # before systemctl is-active query
+    systemctl list-unit-files $SERVICE && \
+	systemctl is-active --quiet $SERVICE
+
     rc=$?
     if [ $rc -eq 0 ]; then
         return $OCF_SUCCESS
@@ -265,8 +269,8 @@ barbican_api_start() {
     mkdir -p /run/barbican
     chown barbican:barbican /run/barbican
     systemd-run --collect --unit=${SERVICE} --slice-inherit \
+      --description="${SERVICE_DESC}" \
       -p CPUShares=${SERVICE_CPUSHARES} \
-      -p Description="${SERVICE_DESC}" \
       -p PIDFile=${OCF_RESKEY_pid} \
       -p User=barbican -p Group=barbican \
       -p RuntimeDirectory=barbican -p RuntimeDirectoryMode=770 \
