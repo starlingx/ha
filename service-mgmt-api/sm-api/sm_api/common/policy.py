@@ -15,7 +15,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
-# Copyright (c) 2013-2014 Wind River Systems, Inc.
+# Copyright (c) 2013-2014,2018,2025 Wind River Systems, Inc.
 #
 
 
@@ -32,8 +32,8 @@ from sm_api.openstack.common import policy
 
 policy_opts = [
     cfg.StrOpt('policy_file',
-               default='policy.json',
-               help=_('JSON file representing policy')),
+               default='policy.yaml',
+               help=_('The file representing policy')),
     cfg.StrOpt('policy_default_rule',
                default='default',
                help=_('Rule checked when requested rule is not found')),
@@ -69,7 +69,7 @@ def init():
 
 def _set_rules(data):
     default_rule = CONF.policy_default_rule
-    policy.set_rules(policy.Rules.load_json(data, default_rule))
+    policy.set_rules(policy.Rules.load(data, default_rule))
 
 
 def enforce(context, action, target, do_raise=True):

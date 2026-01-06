@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014,2023 Wind River Systems, Inc.
+// Copyright (c) 2014,2023,2025 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -40,6 +40,24 @@ typedef struct
 static pthread_mutex_t hw_mutex;
 static SmHwThreadInfoT _threads[SM_THREADS_MAX];
 
+typedef struct {
+    int value;
+    const char* name;
+} SmNetLinkEventIdToName;
+
+SmNetLinkEventIdToName netlink_evt_map[] = {
+    {RTM_NEWLINK, "RTM_NEWLINK"},
+    {RTM_DELLINK, "RTM_DELLINK"},
+    {RTM_GETLINK, "RTM_GETLINK"},
+    {RTM_SETLINK, "RTM_SETLINK"},
+    {RTM_NEWADDR, "RTM_NEWADDR"},
+    {RTM_GETADDR, "RTM_GETADDR"},
+    {RTM_DELADDR, "RTM_DELADDR"},
+    {RTM_NEWQDISC, "RTM_NEWQDISC"},
+    {RTM_GETQDISC, "RTM_GETQDISC"},
+    {RTM_DELQDISC, "RTM_DELQDISC"}
+};
+
 SmErrorT sm_hw_mutex_initialize ( void )
 {
     return sm_mutex_initialize(&hw_mutex, false);
@@ -50,6 +68,24 @@ SmErrorT sm_hw_mutex_finalize ( void )
     return sm_mutex_finalize(&hw_mutex);
 }
 
+// ***************************************************************************
+
+// ***************************************************************************
+// Get Netlink event Id and convert to Name
+// ==============================
+const char* rtm_event_to_string(int rtm_event) {
+    static char buf[16];
+
+    int nl_map_size = sizeof(netlink_evt_map) / sizeof(netlink_evt_map[0]);
+    for (int i = 0; i < nl_map_size; i++) {
+        if (netlink_evt_map[i].value == rtm_event)
+            return netlink_evt_map[i].name;
+    }
+
+    // Use the rtm_event Id as string
+    snprintf(buf, sizeof(buf), "%d", rtm_event);
+    return buf;
+}
 // ****************************************************************************
 // Hardware - Find Thread Info
 // ===========================
@@ -334,14 +370,15 @@ static void sm_hw_netlink_if_msg_dispatch( SmHwThreadInfoT* thread_info,
 
     if( 0 >= if_msg_size )
     {
-        DPRINTFE( "Netlink message has the wrong length( %i).", if_msg_size );
+        DPRINTFE( "Netlink msg: %s has the wrong length( %i).",
+                  rtm_event_to_string(payload->nlmsg_type), if_msg_size );
         return;
     }
 
     if( AF_UNSPEC != if_msg->ifi_family )
     {
-        DPRINTFE( "Unknown interface address family (%i) received.",
-                  if_msg->ifi_family );
+        DPRINTFE( "Netlink msg %s: Unknown interface address family (%i) received.",
+                  rtm_event_to_string(payload->nlmsg_type), if_msg->ifi_family );
         return;
     }
 
@@ -367,8 +404,8 @@ static void sm_hw_netlink_if_msg_dispatch( SmHwThreadInfoT* thread_info,
 
     if( NULL == if_msg_attr[IFLA_IFNAME] )
     {
-        DPRINTFE( "Missing interface name for interface index %i.",
-                  if_msg->ifi_index );
+        DPRINTFE( "Missing interface name for interface index %i. msg: %s",
+                  if_msg->ifi_index, rtm_event_to_string(payload->nlmsg_type) );
         return;
     }
 
@@ -379,8 +416,9 @@ static void sm_hw_netlink_if_msg_dispatch( SmHwThreadInfoT* thread_info,
     error = sm_hw_get_if_state( if_change_data.interface_name, &enabled );
     if(( SM_OKAY != error )&&( SM_NOT_FOUND != error ))
     {
-        DPRINTFE( "Failed to get interface (%s) state information, "
+        DPRINTFE( "Failed to get interface (%s) state information, NetLink msg: %s "
                   "error=%s.", if_change_data.interface_name,
+                  rtm_event_to_string(payload->nlmsg_type),
                   sm_error_str( error ) );
         return;
     } else if( SM_NOT_FOUND == error ) {
@@ -432,9 +470,21 @@ static void sm_hw_netlink_ip_msg_dispatch( SmHwThreadInfoT* thread_info,
                                ip_info.interface_name );
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to look up interface name, ifindex=%i, "
+        // Interface name lookup errors are common for RTM_DELADDR on Calico interfaces
+        // during POD deletion. Keep the message log as informational.
+        if (RTM_DELADDR == payload->nlmsg_type) {
+            DPRINTFI( "Failed to look up interface name, ifindex=%i, "
+                  "NetLink msg=%s, "
                   "error=%s.", (int) if_addr_msg->ifa_index,
+                  rtm_event_to_string(payload->nlmsg_type),
                   sm_error_str(error) );
+        } else {
+            DPRINTFE( "Failed to look up interface name, ifindex=%i, "
+                    "NetLink msg=%s, "
+                    "error=%s.", (int) if_addr_msg->ifa_index,
+                    rtm_event_to_string(payload->nlmsg_type),
+                    sm_error_str(error) );
+        }
         return;
     }
 
@@ -512,15 +562,19 @@ static void sm_hw_netlink_qdisc_msg_dispatch( SmHwThreadInfoT* thread_info,
     error = sm_hw_get_if_name( tc->tcm_ifindex, qdisc_info.interface_name );
     if( SM_OKAY != error )
     {
-        DPRINTFE( "Failed to look up interface name, ifindex=%i, error=%s.",
-                  (int) tc->tcm_ifindex, sm_error_str(error) );
+        DPRINTFE( "Failed to look up interface name, ifindex=%i, "
+                    "NetLink msg=%s, "
+                    "error=%s.", (int) tc->tcm_ifindex,
+                    rtm_event_to_string(payload->nlmsg_type),
+                    sm_error_str(error) );
         return;
     }
 
     len = payload->nlmsg_len - NLMSG_LENGTH(sizeof(struct tcmsg));
     if( 0 > len )
     {
-        DPRINTFE( "Invalid length detected." );
+        DPRINTFE( "NetLink msg %s: Invalid length detected.",
+                   rtm_event_to_string(payload->nlmsg_type));
         return;
     }
 
@@ -536,7 +590,8 @@ static void sm_hw_netlink_qdisc_msg_dispatch( SmHwThreadInfoT* thread_info,
 
     if( NULL == tb[TCA_KIND] )
     {
-        DPRINTFE( "Kind of qdisc not set." );
+        DPRINTFE( "NetLink msg %s: Kind of qdisc not set.",
+                   rtm_event_to_string(payload->nlmsg_type));
         return;
     }
 

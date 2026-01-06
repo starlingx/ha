@@ -68,7 +68,7 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(56,'no','controller-services','cinder
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(57,'no','controller-services','iscsi','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(59,'yes','vim-services','vim','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(60,'yes','vim-services','vim-api','critical');
-INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(61,'yes','vim-services','vim-webserver','minor');
+INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(61,'no','vim-services','vim-webserver','minor');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(64,'yes','oam-services','haproxy','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(65,'no','controller-services','pxeboot-ipv4','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(67,'no','storage-monitoring-services','ceph-radosgw','minor');
@@ -85,7 +85,6 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(93,'no','distributed-cloud-services',
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(94,'no','distributed-cloud-services','dcorch-cinder-api-proxy','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(95,'no','controller-services','drbd-dc-vault','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(96,'no','controller-services','dc-vault-fs','critical');
-INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(97,'no','distributed-cloud-services','dcorch-patch-api-proxy','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(98,'no','distributed-cloud-services','dcorch-identity-api-proxy','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" VALUES(99,'yes','controller-services','etcd','critical');
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','drbd-etcd','critical' FROM "SERVICE_GROUP_MEMBERS";
@@ -101,6 +100,7 @@ INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','ironic-ipv6','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcdbsync-openstack-api','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcmanager-orchestrator','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcmanager-orchestrator-worker','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcmanager-audit-worker','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','distributed-cloud-services','dcmanager-state','major' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','admin-ipv4','critical' FROM "SERVICE_GROUP_MEMBERS";
@@ -142,7 +142,7 @@ INSERT INTO "SERVICES" VALUES(56,'no','cinder-lvm','initial','initial','none','n
 INSERT INTO "SERVICES" VALUES(57,'no','iscsi','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(59,'yes','vim','initial','initial','none','none',2,1,90000,4,16,'/var/run/nfv-vim.pid');
 INSERT INTO "SERVICES" VALUES(60,'yes','vim-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/nfv-vim-api.pid');
-INSERT INTO "SERVICES" VALUES(61,'yes','vim-webserver','initial','initial','none','none',2,1,90000,4,16,'/var/run/nfv-vim-webserver.pid');
+INSERT INTO "SERVICES" VALUES(61,'no','vim-webserver','initial','initial','none','none',2,1,90000,4,16,'/var/run/nfv-vim-webserver.pid');
 INSERT INTO "SERVICES" VALUES(64,'yes','haproxy','initial','initial','none','none',2,1,90000,4,16,'/var/run/haproxy.pid');
 INSERT INTO "SERVICES" VALUES(65,'no','pxeboot-ipv4','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(67,'no','ceph-radosgw','initial','initial','none','none',2,1,90000,4,16,'');
@@ -159,7 +159,6 @@ INSERT INTO "SERVICES" VALUES(93,'no','dcorch-neutron-api-proxy','initial','init
 INSERT INTO "SERVICES" VALUES(94,'no','dcorch-cinder-api-proxy','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcorch-cinder-api-proxy.pid');
 INSERT INTO "SERVICES" VALUES(95,'no','drbd-dc-vault','initial','initial','none','none',2,1,90000,4,16,'');
 INSERT INTO "SERVICES" VALUES(96,'no','dc-vault-fs','initial','initial','none','none',2,1,90000,4,16,'');
-INSERT INTO "SERVICES" VALUES(97,'no','dcorch-patch-api-proxy','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcorch-patch-api-proxy.pid');
 INSERT INTO "SERVICES" VALUES(98,'no','dcorch-identity-api-proxy','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcorch-identity-api-proxy.pid');
 INSERT INTO "SERVICES" VALUES(99,'yes','etcd','initial','initial','none','none',2,1,90000,4,16,'/var/run/etcd.pid');
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','drbd-etcd','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
@@ -175,6 +174,7 @@ INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','ironic-ipv4','initial','initial'
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','ironic-ipv6','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcdbsync-openstack-api','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcdbsync-openstack-api.pid' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcmanager-orchestrator','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcmanager-orchestrator.pid' FROM "SERVICES";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcmanager-orchestrator-worker','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcmanager-orchestrator-worker.pid' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcmanager-audit-worker','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcmanager-audit-worker.pid' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','dcmanager-state','initial','initial','none','none',2,1,90000,4,16,'/var/run/resource-agents/dcmanager-state.pid' FROM "SERVICES";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','admin-ipv4','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
@@ -330,8 +330,10 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-api','not-applicable
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dcmanager-api','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-audit','not-applicable','enable','dcmanager-audit-worker','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-audit-worker','not-applicable','disable','dcmanager-audit','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-orchestrator','not-applicable','enable','dcmanager-manager','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dcmanager-orchestrator','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-orchestrator','not-applicable','enable','dcmanager-orchestrator-worker','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-orchestrator-worker','not-applicable','disable','dcmanager-orchestrator','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-orchestrator-worker','not-applicable','enable','dcmanager-manager','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dcmanager-orchestrator-worker','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-sysinv-api-proxy','not-applicable','enable','sysinv-inv','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-sysinv-api-proxy','not-applicable','enable','dcorch-engine','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-sysinv-api-proxy','not-applicable','enable','dcorch-engine-worker','enabled-active');
@@ -361,12 +363,11 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-dc-vault','not-applicable
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dc-vault-fs','not-applicable','enable','drbd-dc-vault','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-dc-vault','not-applicable','go-standby','dc-vault-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-dc-vault','not-applicable','disable','dc-vault-fs','disabled');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcorch-patch-api-proxy','not-applicable','enable','dcmanager-manager','enabled-active');
-INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','dcmanager-manager','not-applicable','disable','dcorch-patch-api-proxy','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-etcd','not-applicable','go-active','management-ipv4','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-etcd','not-applicable','go-active','management-ipv6','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd-fs','not-applicable','enable','drbd-etcd','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-etcd','not-applicable','go-standby','etcd-fs','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-etcd','not-applicable','disable','etcd-fs','disabled');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','barbican-api','not-applicable','enable','postgres','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','barbican-api','not-applicable','enable','rabbit','enabled-active');
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','barbican-api','not-applicable','enable','dnsmasq','enabled-active');
@@ -499,8 +500,8 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-inv','audit-enabled','ocf-script','
 INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-inv','audit-disabled','ocf-script','platform','sysinv-api','monitor','',0,0,0,160,90);
 INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-conductor','enable','ocf-script','platform','sysinv-conductor','start','',2,2,2,30,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-conductor','disable','ocf-script','platform','sysinv-conductor','stop','',1,1,1,20,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-conductor','audit-enabled','ocf-script','platform','sysinv-conductor','monitor','',2,2,2,15,40);
-INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-conductor','audit-disabled','ocf-script','platform','sysinv-conductor','monitor','',0,0,0,15,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-conductor','audit-enabled','ocf-script','platform','sysinv-conductor','monitor','',2,2,2,30,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('sysinv-conductor','audit-disabled','ocf-script','platform','sysinv-conductor','monitor','',0,0,0,30,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('mtc-agent','enable','ocf-script','platform','mtcAgent','start','',2,2,2,30,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('mtc-agent','disable','ocf-script','platform','mtcAgent','stop','',1,1,1,15,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('mtc-agent','audit-enabled','ocf-script','platform','mtcAgent','monitor','',2,2,2,15,40);
@@ -603,6 +604,10 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator','enable','ocf-scri
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator','disable','ocf-script','openstack','dcmanager-orchestrator','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator','audit-enabled','ocf-script','openstack','dcmanager-orchestrator','monitor','',2,2,2,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator','audit-disabled','ocf-script','openstack','dcmanager-orchestrator','monitor','',0,0,0,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator-worker','enable','ocf-script','openstack','dcmanager-orchestrator-worker','start','',2,2,2,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator-worker','disable','ocf-script','openstack','dcmanager-orchestrator-worker','stop','',1,1,1,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator-worker','audit-enabled','ocf-script','openstack','dcmanager-orchestrator-worker','monitor','',2,2,2,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-orchestrator-worker','audit-disabled','ocf-script','openstack','dcmanager-orchestrator-worker','monitor','',0,0,0,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-api','enable','ocf-script','openstack','dcmanager-api','start','',2,2,2,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-api','disable','ocf-script','openstack','dcmanager-api','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-api','audit-enabled','ocf-script','openstack','dcmanager-api','monitor','',2,2,2,20,5);
@@ -637,10 +642,6 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('dc-vault-fs','enable','ocf-script','heartb
 INSERT INTO "SERVICE_ACTIONS" VALUES('dc-vault-fs','disable','ocf-script','heartbeat','Filesystem','stop','',1,1,1,180,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dc-vault-fs','audit-enabled','ocf-script','heartbeat','Filesystem','monitor','',2,2,2,60,40);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dc-vault-fs','audit-disabled','ocf-script','heartbeat','Filesystem','monitor','',0,0,0,60,40);
-INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-patch-api-proxy','enable','ocf-script','openstack','dcorch-patch-api-proxy','start','',2,2,2,20,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-patch-api-proxy','disable','ocf-script','openstack','dcorch-patch-api-proxy','stop','',1,1,1,20,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-patch-api-proxy','audit-enabled','ocf-script','openstack','dcorch-patch-api-proxy','monitor','',2,2,2,20,5);
-INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-patch-api-proxy','audit-disabled','ocf-script','openstack','dcorch-patch-api-proxy','monitor','',0,0,0,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcdbsync-api','enable','ocf-script','openstack','dcdbsync-api','start','',2,2,2,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcdbsync-api','disable','ocf-script','openstack','dcdbsync-api','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcdbsync-api','audit-enabled','ocf-script','openstack','dcdbsync-api','monitor','',2,2,2,20,5);
