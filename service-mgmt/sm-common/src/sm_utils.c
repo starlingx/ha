@@ -79,6 +79,15 @@ bool sm_utils_boot_complete( void )
 }
 // ****************************************************************************
 
+bool sm_utils_no_trap_conn_loss_exit( void )
+{
+    if( 0 > access( SM_NO_TRAP_CONN_LOSS_EXIT_FILENAME, F_OK ) )
+    {
+        return( false );
+    }
+
+    return( true );
+}
 // ****************************************************************************
 // Utils - Set Boot Complete
 // =========================

@@ -87,6 +87,7 @@ extern "C" {
 #define SM_BOOT_COMPLETE_FILENAME                    "/var/run/sm_boot_complete"
 
 #define SM_INDICATE_DEGRADED_FILENAME                "/var/run/.sm_degraded"
+#define SM_NO_TRAP_CONN_LOSS_EXIT_FILENAME           "/var/run/.sm_no_trap_conn_loss_exit"
 
 #define SM_DUMP_DATA_FILE                            "/tmp/sm_data_dump.txt"
 

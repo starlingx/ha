@@ -47,23 +47,31 @@ static void sm_trap_thread_signal_handler( int signum )
     switch( signum )
     {
         case SIGINT:
+            DPRINTFI( "Received SIGINT signal (%i) ; exiting.", signum );
+            _stay_on = 0;
+        break ;
+
         case SIGTERM:
+            DPRINTFI( "Received SIGTERM signal (%i) ; exiting.", signum );
+            _stay_on = 0;
+        break;
+
         case SIGQUIT:
+            DPRINTFI( "Received SIGQUIT signal (%i) ; exiting.", signum );
             _stay_on = 0;
         break;
 
         case SIGCONT:
-            DPRINTFD( "Ignoring signal SIGCONT (%i).", signum );
+            DPRINTFI( "Received SIGCONT signal (%i) ; ignoring.", signum );
         break;
 
         case SIGHUP:
-            DPRINTFD( "Parent process is shutting down or has died, "
-                      "exiting." );
+            DPRINTFI( "Received SIGHUP signal (%i). Parent process may be shutting down or has died ; exiting.", signum );
             _stay_on = 0;
         break;
 
         default:
-            DPRINTFD( "Signal (%i) ignored.", signum );
+            DPRINTFI( "Received Unsupported Signal (%i) ; ignoring.", signum );
         break;
     }
 }
@@ -511,8 +519,17 @@ static void sm_trap_thread_dispatch( int selobj, int64_t user_data )
         } else if( 0 == bytes_read ) {
             // For connection oriented sockets, this indicates that the peer
             // has performed an orderly shutdown.
-            DPRINTFI( "Trap connection has been broken, exiting." );
-            _stay_on = 0;
+            DPRINTFI( "Trap connection has been broken, parent process may have closed connection." );
+            if ( sm_utils_no_trap_conn_loss_exit() == true )
+            {
+                DPRINTFI( "No trap connection loss exit file (%s) detected ; continuing to run.",
+                            SM_NO_TRAP_CONN_LOSS_EXIT_FILENAME );
+                return;
+            } else {
+                DPRINTFI( "Exiting trap thread." );
+                // Exit the trap thread process.
+                _stay_on = 0;
+            }
             break;
 
         } else if(( 0 > bytes_read )&&( EAGAIN == errno )) {
