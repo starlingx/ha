@@ -20,7 +20,6 @@ Build-Depends-Indep:
  python3-prettytable,
  python3-psutil,
  python3-sqlalchemy,
- python3-migrate,
  python3-wsme
 Standards-Version: 4.1.2
 Homepage: https://www.starlingx.io
