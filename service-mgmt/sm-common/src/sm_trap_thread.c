@@ -66,6 +66,13 @@ static void sm_trap_thread_signal_handler( int signum )
         break;
 
         case SIGHUP:
+            if ( sm_utils_no_trap_conn_loss_exit() == true )
+            {
+                DPRINTFI( "SIGHUP: No trap connection loss exit file (%s) detected ; continuing to run.",
+                            SM_NO_TRAP_CONN_LOSS_EXIT_FILENAME );
+                break;
+            }
+
             DPRINTFI( "Received SIGHUP signal (%i). Parent process may be shutting down or has died ; exiting.", signum );
             _stay_on = 0;
         break;

@@ -171,7 +171,7 @@ case "$1" in
         pid=`cat ${SM_PIDFILE} 2>/dev/null`
         if [ -n "${pid}" ]
         then
-           echo "${SM_NAME} reload"
+           logger "${SM_NAME} reload PID=${pid}"
            kill -HUP ${pid}
         fi
         ;;
