@@ -12,7 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
-# Copyright (c) 2013-2014 Wind River Systems, Inc.
+# Copyright (c) 2013-2014,2026 Wind River Systems, Inc.
 #
 
 
@@ -24,7 +24,27 @@ import iso8601
 import netaddr
 import six
 
+from functools import lru_cache
+from sm_api.common import constants
 from sm_api.openstack.common import timeutils
+
+
+@lru_cache(maxsize=None)
+def get_debian_codename():
+    """Returns the Debian codename, e.g., 'bullseye', 'trixie'."""
+    try:
+        with open(constants.OS_RELEASE_FILE) as f:
+            for line in f:
+                if line.startswith("VERSION_CODENAME="):
+                    return line.strip().split("=")[1]
+    except FileNotFoundError:
+        return None
+    return None
+
+
+def is_debian_bullseye():
+    """Returns True if the current OS is Debian Bullseye."""
+    return get_debian_codename() == constants.OS_DEBIAN_BULLSEYE
 
 
 def datetime_or_none(dt):
@@ -103,14 +123,34 @@ def nested_object_or_none(objclass):
     return validator
 
 
+_ISO8601_TIME_FORMAT_SUBSECOND = '%Y-%m-%dT%H:%M:%S.%f'
+_ISO8601_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
+
+
+def isotime(at=None, subsecond=False):
+    """Stringify time in ISO 8601 format."""
+    if not at:
+        at = timeutils.utcnow()
+    st = at.strftime(_ISO8601_TIME_FORMAT
+                     if not subsecond
+                     else _ISO8601_TIME_FORMAT_SUBSECOND)
+    tz = at.tzinfo.tzname(None) if at.tzinfo else 'UTC'
+    st += ('Z' if (tz == 'UTC' or tz == 'UTC+00:00') else tz)
+    return st
+
+
 def dt_serializer(name):
     """Return a datetime serializer for a named attribute."""
 
     def serializer(self, name=name):
-        if getattr(self, name) is not None:
-            return timeutils.isotime(getattr(self, name))
-        else:
+        value = getattr(self, name)
+        if value is None:
             return None
+
+        if is_debian_bullseye():
+            return timeutils.isotime(value)
+        return isotime(at=value, subsecond=True)
+
     return serializer
 
 
