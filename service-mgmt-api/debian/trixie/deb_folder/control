@@ -21,7 +21,6 @@ Build-Depends-Indep:
  python3-prettytable,
  python3-psutil,
  python3-sqlalchemy,
- python3-migrate,
  python3-wsme
 Standards-Version: 4.5.1
 Homepage: https://www.starlingx.io
@@ -44,7 +43,6 @@ Depends: ${python3:Depends}, ${misc:Depends},
  python3-prettytable,
  python3-psutil,
  python3-sqlalchemy,
- python3-migrate,
  python3-wsme
 Description: Service Management API
  This is the python3 version of the package.
