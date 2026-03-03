@@ -17,7 +17,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
-# Copyright (c) 2013-2014 Wind River Systems, Inc.
+# Copyright (c) 2013-2014,2026 Wind River Systems, Inc.
 #
 
 
@@ -28,12 +28,18 @@ from six.moves import zip
 
 
 def getcallargs(function, *args, **kwargs):
-    """This is a simplified inspect.getcallargs (2.7+).
+    """This is a simplified inspect.getcallargs (3.3+).
 
-    It should be replaced when python >= 2.7 is standard.
+    It should be replaced when python >= 3.3 is standard.
     """
     keyed_args = {}
-    argnames, varargs, keywords, defaults = inspect.getargspec(function)
+    try:
+        # trixie
+        argnames, varargs, keywords, defaults = inspect.getfullargspec(function)
+    except AttributeError:
+        # bullseye
+        # TODO(sbhardwa): Remove this except block when migrated to trixie.
+        argnames, varargs, keywords, defaults = inspect.getargspec(function)
 
     keyed_args.update(kwargs)
 

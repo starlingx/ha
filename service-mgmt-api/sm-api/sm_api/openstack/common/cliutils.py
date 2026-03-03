@@ -14,7 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 #
-# Copyright (c) 2013-2014 Wind River Systems, Inc.
+# Copyright (c) 2013-2014,2026 Wind River Systems, Inc.
 #
 
 
@@ -50,7 +50,13 @@ def validate_args(fn, *args, **kwargs):
     :param arg: the positional arguments supplied
     :param kwargs: the keyword arguments supplied
     """
-    argspec = inspect.getargspec(fn)
+    try:
+        # trixie
+        argspec = inspect.getfullargspec(fn)
+    except AttributeError:
+        # bullseye
+        # TODO(sbhardwa): Remove this except block when migrated to trixie.
+        argspec = inspect.getargspec(fn)
 
     num_defaults = len(argspec.defaults or [])
     required_args = argspec.args[:len(argspec.args) - num_defaults]
