@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014 Wind River Systems, Inc.
+# Copyright (c) 2013-2014,2026 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -27,13 +27,23 @@ class RequestContext(context.RequestContext):
         self.is_public_api = is_public_api
         self.domain_id = domain_id
         self.domain_name = domain_name
-
-        super(RequestContext, self).__init__(auth_token=auth_token,
-                                             user=user, tenant=tenant,
-                                             is_admin=is_admin,
-                                             read_only=read_only,
-                                             show_deleted=show_deleted,
-                                             request_id=request_id)
+        try:
+            # trixie
+            super(RequestContext, self).__init__(auth_token=auth_token,
+                                                 user_id=user, project_id=tenant,
+                                                 is_admin=is_admin,
+                                                 read_only=read_only,
+                                                 show_deleted=show_deleted,
+                                                 request_id=request_id)
+        except TypeError:
+            # bullseye
+            # TODO(sbhardwa): Remove this except block when migrated to trixie.
+            super(RequestContext, self).__init__(auth_token=auth_token,
+                                                 user=user, tenant=tenant,
+                                                 is_admin=is_admin,
+                                                 read_only=read_only,
+                                                 show_deleted=show_deleted,
+                                                 request_id=request_id)
 
     def to_dict(self):
         result = {'domain_id': self.domain_id,
