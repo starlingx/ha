@@ -10,7 +10,7 @@
 # Support:      openstack@lists.launchpad.net
 # License:      Apache Software License (ASL) 2.0
 #
-# Copyright (c) 2018-2019,2025 Wind River Systems, Inc.
+# Copyright (c) 2018-2019,2025-2026 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -239,16 +239,27 @@ barbican_api_monitor() {
 
 barbican_api_stop_systemd_managed_instance() {
     local rc
+    local codename=$(lsb_release -cs)
 
     # Check if barbican-api.service initialized during bootstrap is still running
     # This a workaround for https://bugs.launchpad.net/starlingx/+bug/2122366
-    systemctl is-active --quiet barbican-api.service
-    rc=$?
-    if [ $rc -eq 0 ]; then
-      ocf_log info "OpenStack Key Management API (barbican-api) managed by systemd identified. Stopping it..."
-      systemctl stop --quiet barbican-api.service
-      systemctl reset-failed --quiet barbican-api.service
-      systemctl disable --quiet barbican-api.service
+    if [ "$codename" = "bullseye" ]; then
+        systemctl is-active --quiet barbican-api.service
+        rc=$?
+        if [ $rc -eq 0 ]; then
+            ocf_log info "OpenStack Key Management API (barbican-api) managed by systemd identified. Stopping it..."
+            systemctl stop --quiet barbican-api.service
+            systemctl reset-failed --quiet barbican-api.service
+            systemctl disable --quiet barbican-api.service
+        fi
+    else
+        state=$(systemctl is-active barbican-api.service)
+        if [ "$state" != "inactive" ]; then
+            ocf_log info "OpenStack Key Management API (barbican-api) managed by systemd identified. Stopping it..."
+            systemctl stop --quiet barbican-api.service
+            systemctl reset-failed --quiet barbican-api.service
+            systemctl disable --quiet barbican-api.service
+        fi
     fi
 }
 
