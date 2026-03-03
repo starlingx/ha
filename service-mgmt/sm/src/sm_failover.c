@@ -1211,7 +1211,7 @@ SmErrorT sm_exec_mtce_command(const char cmd[], char result_buf[], int result_le
     {
         DPRINTFE("Mtce api not available, will retry in next cycle.");
     }
-    fclose(fp);
+    pclose(fp);
     return result;
 }
 // ****************************************************************************
