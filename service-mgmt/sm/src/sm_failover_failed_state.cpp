@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018-2023 Wind River Systems, Inc.
+// Copyright (c) 2018-2023,2026 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -148,7 +148,8 @@ static bool sm_failover_failed_recovery_criteria_met( void )
 {
     bool criteria_met = false ;
 
-    SmFailoverInterfaceStateT oam_state, mgmt_state, cluster_host_state, admin_state;
+    SmFailoverInterfaceStateT oam_state, mgmt_state, admin_state;
+    SmFailoverInterfaceStateT cluster_host_state = SM_FAILOVER_INTERFACE_UNKNOWN;
     oam_state = sm_failover_get_interface_info(SM_INTERFACE_OAM);
     mgmt_state = sm_failover_get_interface_info(SM_INTERFACE_MGMT);
     admin_state = sm_failover_get_interface_info(SM_INTERFACE_ADMIN);
