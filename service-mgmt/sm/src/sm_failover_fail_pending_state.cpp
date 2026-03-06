@@ -1,11 +1,12 @@
 //
-// Copyright (c) 2018-2023 Wind River Systems, Inc.
+// Copyright (c) 2018-2026 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
 #include "sm_failover_fail_pending_state.h"
 #include <stdlib.h>
 #include <unistd.h>
+#include <limits.h>
 #include "sm_configuration_table.h"
 #include "sm_cluster_hbs_info_msg.h"
 #include "sm_types.h"
@@ -19,26 +20,108 @@
 #include "sm_node_api.h"
 #include "sm_worker_thread.h"
 
-static const int FAIL_PENDING_TIMEOUT_DEFAULT = 2000; // 2 seconds
+
+/****************************************************************************
+ *
+ * Name        : scale_failpending_timeout
+ *
+ * Description : Computes a timeout value based upon the heartbeat_period
+ *    that is passed in as a parameter.
+ *    Values are in milliseconds.
+ *    Input values must be between 100 and 1000, otherwise 0 is returned.
+ *    Return values range from 2000ms for a 100ms input and 4000ms for a
+ *    1000ms input. All other in-between values are computed linearly
+ *    and rounded to the nearest 100ms.
+ *
+ * Parameter  :
+ *
+ *    heartbeat_period - the value of the heartbeat_period in msecs
+ *
+ ***************************************************************************/
+static int scale_failpending_timeout(unsigned int heartbeat_period)
+{
+    if (heartbeat_period < 100 || heartbeat_period > 1000)
+    {
+        return 0;
+    }
+    return (((int)(2000 + (heartbeat_period - 100) * 2.22 + 0.5) + 50) / 100 * 100);
+}
+
+// When entering the Fail-Pending State SM waits for a time period before comparing
+// the state of itself and its peer controller.
+static const int FAIL_PENDING_TIMEOUT_DEFAULT = 4000; // 4 seconds
 static const int FAIL_PENDING_TIMEOUT_MIN = 1200;
+
+/****************************************************************************
+ *
+ * Name        : get_failpending_timeout
+ *
+ * Description : Determines the timeout period in milliseconds to be used by
+ *    the SM Fail-Pending state.
+ *    Reads the value from the SM database. If not found it sets a timeout
+ *    value based upon the heartbeat_period in SM Cluster information.
+ *
+ * Parameters  :
+ *
+ *    None
+ *
+ ***************************************************************************/
 static inline int get_failpending_timeout()
 {
-    int fail_pending_timeout =0;
+    int fail_pending_timeout = 0;
+
     char buf[SM_CONFIGURATION_VALUE_MAX_CHAR + 1];
 
-    if( SM_OKAY == sm_configuration_table_get("FAILPENDING_TIMEOUT_MS", buf, sizeof(buf) - 1) )
+    // Read the SM database. If the value is not present "buf" will be an empty string
+    if (SM_OKAY == sm_configuration_table_get("FAILPENDING_TIMEOUT_MS", buf, sizeof(buf) - 1)
+        && buf[0] != '\0')
     {
-        fail_pending_timeout = atoi(buf);
+        // Convert string to integer with error handling
+        char *endptr;
+        long temp_value = strtol(buf, &endptr, 10);
+
+        // Check for conversion errors
+        if (endptr == buf || *endptr != '\0' || temp_value < 0 || temp_value > INT_MAX)
+        {
+            DPRINTFE("Invalid FAILPENDING_TIMEOUT_MS value in SM database: %s", buf);
+        }
+        else
+        {
+            fail_pending_timeout = (int)temp_value;
+            DPRINTFI("Reading Fail Pending Timeout from SM database: %d ms", fail_pending_timeout);
+        }
     }
-    if(fail_pending_timeout < FAIL_PENDING_TIMEOUT_MIN)
+
+    if (fail_pending_timeout == 0)
     {
+        // Get the heartbeat_period that was extracted from the heartbeat
+        // received from the hbsAgent.
+        unsigned int hb_period = SmClusterHbsInfoMsg::get_current_state().heartbeat_period;
+        int scaled_timeout = scale_failpending_timeout(hb_period);
+        if (scaled_timeout > 0)
+        {
+            // valid heartbeat_period successfully fetched
+            DPRINTFI("heartbeat_period value is %u ms", hb_period);
+            fail_pending_timeout = scaled_timeout;
+        }
+        else
+        {
+            DPRINTFE("Could not compute Fail Pending Timeout. hb_period = %u", hb_period);
+        }
+    }
+
+    if (fail_pending_timeout < FAIL_PENDING_TIMEOUT_MIN)
+    {
+        DPRINTFE("Fail Pending Timeout: %d ms is below minimum. Using default: %d ms",
+            fail_pending_timeout,
+            FAIL_PENDING_TIMEOUT_DEFAULT
+        );
         fail_pending_timeout = FAIL_PENDING_TIMEOUT_DEFAULT;
     }
+    DPRINTFI("Fail Pending Timeout is set to %d ms", fail_pending_timeout);
 
     return fail_pending_timeout;
 }
-
-static const int fail_pending_timeout = 0;
 
 static SmTimerIdT action_timer_id = SM_TIMER_ID_INVALID;
 static const int RESET_TIMEOUT = 10 * 1000; // 10 seconds for a reset command to reboot a node

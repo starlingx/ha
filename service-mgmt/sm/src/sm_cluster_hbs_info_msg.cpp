@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018,2023 Wind River Systems, Inc.
+// Copyright (c) 2018-2026 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -61,6 +61,9 @@ bool operator==(const SmClusterHbsStateT& lhs, const SmClusterHbsStateT& rhs)
     if(lhs.storage0_enabled != rhs.storage0_enabled)
         return false;
 
+    if(lhs.heartbeat_period != rhs.heartbeat_period)
+        return false;
+
     for(unsigned int i = 0; i < max_controllers; i ++)
     {
         if(lhs.controllers[i] != rhs.controllers[i])
@@ -90,14 +93,14 @@ void log_cluster_hbs_state(const SmClusterHbsStateT& state)
 
     if(state.storage0_enabled)
     {
-        DPRINTFI("Cluster hbs last updated %d secs ago, storage-0 is provisioned,\n"
-                 "from controller-0: SM %s, %d nodes enabled, %d nodes reachable, storage-0 %s responding\n"
-                 "from controller-1: SM %s, %d nodes enabled, %d nodes reachable, storage-0 %s responding",
-                 secs_since_update,
+        DPRINTFI("Cluster hbs last updated %d secs ago, storage-0 is provisioned,",
+                secs_since_update);
+        DPRINTFI("...from controller-0: SM HB - %s, %d nodes enabled, %d nodes reachable, storage-0 %s responding",
                  state.controllers[0].sm_heartbeat_fail ? "FAILED": "ok  ",
                  state.controllers[0].number_of_node_enabled,
                  state.controllers[0].number_of_node_reachable,
-                 state.controllers[0].storage0_responding ? "is" : "is not",
+                 state.controllers[0].storage0_responding ? "is" : "is not");
+        DPRINTFI("...from controller-1: SM HB - %s, %d nodes enabled, %d nodes reachable, storage-0 %s responding",
                  state.controllers[1].sm_heartbeat_fail ? "FAILED": "ok  ",
                  state.controllers[1].number_of_node_enabled,
                  state.controllers[1].number_of_node_reachable,
@@ -105,17 +108,18 @@ void log_cluster_hbs_state(const SmClusterHbsStateT& state)
                 );
     }else
     {
-        DPRINTFI("Cluster hbs last updated %d secs ago, storage-0 is not provisioned,\n"
-                 "from controller-0: SM %s, %d nodes enabled, %d nodes reachable,\n"
-                 "from controller-1: SM %s, %d nodes enabled, %d nodes reachable",
-                 secs_since_update,
-                 state.controllers[0].sm_heartbeat_fail ? "FAILED": "ok  ",
+        DPRINTFI("Cluster hbs last updated %d secs ago, storage-0 is not provisioned",
+                 secs_since_update);
+
+        DPRINTFI("...from controller-0: SM HB - %s, %d nodes enabled, %d nodes reachable",
+                 state.controllers[0].sm_heartbeat_fail ? "FAILED" : "ok  ",
                  state.controllers[0].number_of_node_enabled,
-                 state.controllers[0].number_of_node_reachable,
-                 state.controllers[1].sm_heartbeat_fail ? "FAILED": "ok  ",
+                 state.controllers[0].number_of_node_reachable);
+
+        DPRINTFI("...from controller-1: SM HB - %s, %d nodes enabled, %d nodes reachable",
+                 state.controllers[1].sm_heartbeat_fail ? "FAILED" : "ok  ",
                  state.controllers[1].number_of_node_enabled,
-                 state.controllers[1].number_of_node_reachable
-                );
+                 state.controllers[1].number_of_node_reachable);
     }
 }
 
@@ -282,11 +286,14 @@ void SmClusterHbsInfoMsg::_cluster_hbs_info_msg_received( int selobj, int64_t us
         clock_gettime(CLOCK_REALTIME, &ts);
         state.last_update = ts.tv_sec;
         state.storage0_enabled = (bool)msg.storage0_enabled;
+        state.heartbeat_period = (unsigned int)msg.period_msec;
+
         if(state != _cluster_hbs_state_current)
         {
             _cluster_hbs_state_previous = _cluster_hbs_state_current;
             _cluster_hbs_state_current = state;
-            DPRINTFD("cluster hbs state changed");
+            DPRINTFI("cluster hbs state changed");
+            hbs_cluster_dump (msg);
             log_cluster_hbs_state(_cluster_hbs_state_current);
         }
         else
@@ -584,6 +591,7 @@ void SmClusterHbsInfoMsg::dump_hbs_record(FILE* fp)
     }else
     {
         fprintf(fp, "  Current state, last updated %d seconds ago\n", (int)t);
+        fprintf(fp, "  Heartbeat period: %u ms\n", _cluster_hbs_state_current.heartbeat_period);
 
         fprintf(fp, "  storage-0 is %s configured\n", _cluster_hbs_state_current.storage0_enabled ? "" : "not");
         fprintf(fp, "  From controller-0\n");
@@ -604,6 +612,7 @@ void SmClusterHbsInfoMsg::dump_hbs_record(FILE* fp)
     {
         t = ts.tv_sec - _cluster_hbs_state_previous.last_update;
         fprintf(fp, "\n  Previous state, since %d seconds ago\n", (int)t);
+        fprintf(fp, "  Heartbeat period: %u ms\n", _cluster_hbs_state_previous.heartbeat_period);
 
         fprintf(fp, "  storage-0 is %s configured\n", _cluster_hbs_state_previous.storage0_enabled ? "" : "not");
         fprintf(fp, "  From controller-0\n");
@@ -619,4 +628,97 @@ void SmClusterHbsInfoMsg::dump_hbs_record(FILE* fp)
         }
         fprintf(fp, "    %d nodes are responding\n", _cluster_hbs_state_previous.controllers[1].number_of_node_reachable);
     }
+}
+
+/****************************************************************************
+ *
+ * Name        : hbs_cluster_dump
+ *
+ * Description : Formatted dump of the specified history to the log file.
+ *
+ * Parameters  :
+ *
+ *    history is a single history type whose contents will be logged.
+ *    storage0_enabled true suggests the storage state should also be logged.
+ *    period_msec - the value of the heartbeat_period sent by hbsAgent
+ *
+ ***************************************************************************/
+
+void SmClusterHbsInfoMsg::hbs_cluster_dump ( mtce_hbs_cluster_history_type & history,
+                                             bool storage0_enabled,
+                                             unsigned short period_msec)
+{
+    #define MAX_LINE_LEN (500)
+    char str[MAX_LINE_LEN] ;
+    int i = 0 ;
+    for ( int e = 0 ; e < history.entries_max ; e++ )
+    {
+        snprintf ( &str[i], MAX_LINE_LEN, "%c[%d:%d]" ,
+                   history.oldest_entry_index==e ? '>' : ' ',
+                   history.entry[e].hosts_enabled,
+                   history.entry[e].hosts_responding);
+        i = strlen(str) ;
+    }
+    if ( storage0_enabled )
+    {
+        DPRINTFI ( "Cluster Vault : C%d %s S:%s SM:%s HB:%4hu %s",
+                 history.controller,
+                 network_name(history.network),
+                 history.storage0_responding ? "y" : "n",
+                 history.sm_heartbeat_fail ? "miss":" ok ",
+                 period_msec,
+                 str);
+    }
+    else
+    {
+        DPRINTFI ( "Cluster Vault : C%d %s SM:%s HB:%4hu %s",
+                 history.controller,
+                 network_name(history.network),
+                 history.sm_heartbeat_fail ? "miss":" ok ",
+                 period_msec,
+                 str);
+    }
+}
+
+/****************************************************************************
+ *
+ * Name        : hbs_cluster_dump
+ *
+ * Description : Formatted dump of the vault contents to the log file.
+ *
+ * Parameters  :
+ *
+ *    vault is a reference to a cluster type whose contents will be logged.
+ *
+ ***************************************************************************/
+
+void SmClusterHbsInfoMsg::hbs_cluster_dump ( mtce_hbs_cluster_type & vault )
+{
+    if (( vault.version == 0 ) || ( vault.histories == 0 ))
+    {
+        DPRINTFE ("Cluster Vault: has no histories (%d:%d)", vault.version, vault.histories );
+        return ;
+    }
+
+    for ( int h = 0 ; h < vault.histories ; h++ )
+    {
+        hbs_cluster_dump ( vault.history[h], vault.storage0_enabled, vault.period_msec );
+    }
+}
+
+/****************************************************************************
+ *
+ * Name        : cluster_network_name
+ *
+ * Description : converts what is a heartbeat cluster network id to
+ *               network name.
+ *
+ * Parameters  : network id
+ *
+ * Returns     : network name as a const char*
+ *
+ ***************************************************************************/
+const char* SmClusterHbsInfoMsg::network_name(unsigned short network)
+{
+    return network == 0 ? "Mgmnt" : network == 1 ? "Clstr" : "Unknown";
 }
