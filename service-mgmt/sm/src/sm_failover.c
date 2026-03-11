@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2017-2023 Wind River Systems, Inc.
+// Copyright (c) 2017-2023, 2026 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -157,6 +157,8 @@ static int _heartbeat_count = 0;
 
 
 static bool _if_state_changed = false;
+
+static int _bypass_audit_log_counter = 200;
 
 SmErrorT sm_exec_json_command(const char* cmd, char result_buf[], int result_len);
 SmErrorT sm_failover_get_node_oper_state(char* node_name, SmNodeOperationalStateT *state);
@@ -1144,6 +1146,16 @@ void sm_failover_audit()
 static bool sm_failover_audit_timeout(SmTimerIdT timer_id,
     int64_t user_data )
 {
+    if ( sm_utils_no_trap_conn_loss_exit() == true )
+    {
+        if (++_bypass_audit_log_counter >= 200)
+        {
+            DPRINTFI( "Bypassing the sm_failover_audit" );
+            _bypass_audit_log_counter = 0;
+        }
+        return true;
+    }
+
     sm_failover_audit();
     return true;
 }
