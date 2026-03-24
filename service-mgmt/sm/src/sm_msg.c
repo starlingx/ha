@@ -1659,6 +1659,7 @@ static void sm_msg_dispatch_msg( bool is_multicast_msg, SmMsgT* msg,
     SmMsgPeerInterfaceInfoT* peer_interface )
 {
     SmListT* entry = NULL;
+    SmListT* next = NULL;
     SmListEntryDataPtrT entry_data;
     SmMsgCallbacksT* callbacks;
     SmMsgNodeHelloT* node_hello_msg = &(msg->u.node_hello);
@@ -1757,7 +1758,7 @@ static void sm_msg_dispatch_msg( bool is_multicast_msg, SmMsgT* msg,
             node_ready_state
                 = sm_node_ready_state_value(node_hello_msg->ready_state);
 
-            SM_LIST_FOREACH( _callbacks, entry, entry_data )
+            SM_LIST_FOREACH_SAFE( _callbacks, entry, next, entry_data )
             {
                 callbacks = (SmMsgCallbacksT*) entry_data;
 
@@ -1787,7 +1788,7 @@ static void sm_msg_dispatch_msg( bool is_multicast_msg, SmMsgT* msg,
             node_ready_state
                 = sm_node_ready_state_value(node_update_msg->ready_state);
 
-            SM_LIST_FOREACH( _callbacks, entry, entry_data )
+            SM_LIST_FOREACH_SAFE( _callbacks, entry, next, entry_data )
             {
                 callbacks = (SmMsgCallbacksT*) entry_data;
 
@@ -1810,7 +1811,7 @@ static void sm_msg_dispatch_msg( bool is_multicast_msg, SmMsgT* msg,
         case SM_MSG_TYPE_NODE_SWACT:
             ++_rcvd_node_swact_cnt;
             
-            SM_LIST_FOREACH( _callbacks, entry, entry_data )
+            SM_LIST_FOREACH_SAFE( _callbacks, entry, next, entry_data )
             {
                 callbacks = (SmMsgCallbacksT*) entry_data;
 
@@ -1829,7 +1830,7 @@ static void sm_msg_dispatch_msg( bool is_multicast_msg, SmMsgT* msg,
         case SM_MSG_TYPE_NODE_SWACT_ACK:
             ++_rcvd_node_swact_ack_cnt;
             
-            SM_LIST_FOREACH( _callbacks, entry, entry_data )
+            SM_LIST_FOREACH_SAFE( _callbacks, entry, next, entry_data )
             {
                 callbacks = (SmMsgCallbacksT*) entry_data;
 
@@ -1849,7 +1850,7 @@ static void sm_msg_dispatch_msg( bool is_multicast_msg, SmMsgT* msg,
         case SM_MSG_TYPE_SERVICE_DOMAIN_HELLO:
             ++_rcvd_service_domain_hello_cnt;
             
-            SM_LIST_FOREACH( _callbacks, entry, entry_data )
+            SM_LIST_FOREACH_SAFE( _callbacks, entry, next, entry_data )
             {
                 callbacks = (SmMsgCallbacksT*) entry_data;
 
@@ -1876,7 +1877,7 @@ static void sm_msg_dispatch_msg( bool is_multicast_msg, SmMsgT* msg,
         case SM_MSG_TYPE_SERVICE_DOMAIN_PAUSE:
             ++_send_service_domain_pause_cnt;
             
-            SM_LIST_FOREACH( _callbacks, entry, entry_data )
+            SM_LIST_FOREACH_SAFE( _callbacks, entry, next, entry_data )
             {
                 callbacks = (SmMsgCallbacksT*) entry_data;
 
@@ -1902,7 +1903,7 @@ static void sm_msg_dispatch_msg( bool is_multicast_msg, SmMsgT* msg,
 
             ++_rcvd_service_domain_exchange_start_cnt;
             
-            SM_LIST_FOREACH( _callbacks, entry, entry_data )
+            SM_LIST_FOREACH_SAFE( _callbacks, entry, next, entry_data )
             {
                 callbacks = (SmMsgCallbacksT*) entry_data;
 
@@ -1937,7 +1938,7 @@ static void sm_msg_dispatch_msg( bool is_multicast_msg, SmMsgT* msg,
             member_condition = sm_service_group_condition_value(
                                     exchange_msg->member_condition );
 
-            SM_LIST_FOREACH( _callbacks, entry, entry_data )
+            SM_LIST_FOREACH_SAFE( _callbacks, entry, next, entry_data )
             {
                 callbacks = (SmMsgCallbacksT*) entry_data;
 
@@ -1974,7 +1975,7 @@ static void sm_msg_dispatch_msg( bool is_multicast_msg, SmMsgT* msg,
             member_action = sm_service_group_action_value( 
                                         request_msg->member_action );
 
-            SM_LIST_FOREACH( _callbacks, entry, entry_data )
+            SM_LIST_FOREACH_SAFE( _callbacks, entry, next, entry_data )
             {
                 callbacks = (SmMsgCallbacksT*) entry_data;
 
@@ -2006,7 +2007,7 @@ static void sm_msg_dispatch_msg( bool is_multicast_msg, SmMsgT* msg,
             member_condition = sm_service_group_condition_value(
                                     update_msg->member_condition );
 
-            SM_LIST_FOREACH( _callbacks, entry, entry_data )
+            SM_LIST_FOREACH_SAFE( _callbacks, entry, next, entry_data )
             {
                 callbacks = (SmMsgCallbacksT*) entry_data;
 
