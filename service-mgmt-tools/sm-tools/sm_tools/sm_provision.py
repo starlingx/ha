@@ -135,7 +135,7 @@ def main():
             sqls = [sql_update]
             update_db(database_name, sqls)
 
-            if args.apply and os.path.isfile(runtime_db_name):
+            if args.apply and os.path.isfile(runtime_db_name) and os.path.getsize(runtime_db_name) > 0:
                 # update runtime configuration
                 update_db(runtime_db_name, sqls)
 
@@ -172,7 +172,7 @@ def main():
             sqls = [sql_update_sgm, sql_update_svc]
             update_db(database_name, sqls)
 
-            if args.apply and os.path.isfile(runtime_db_name):
+            if args.apply and os.path.isfile(runtime_db_name) and os.path.getsize(runtime_db_name) > 0:
                 # update runtime configuration
                 update_db(runtime_db_name, sqls)
 
