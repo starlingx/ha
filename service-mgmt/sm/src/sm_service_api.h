@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014, 2026 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -63,6 +63,18 @@ extern SmErrorT sm_service_api_recover( char service_name[],
 // Service API - Restart 
 // =====================
 extern SmErrorT sm_service_api_restart( char service_name[], int flag );
+// ****************************************************************************
+
+// ****************************************************************************
+// Service API - Stop
+// ==================
+extern SmErrorT sm_service_api_stop( char service_name[], int flag );
+// ****************************************************************************
+
+// ****************************************************************************
+// Service API - Start
+// ===================
+extern SmErrorT sm_service_api_start( char service_name[], int flag );
 // ****************************************************************************
 
 // ****************************************************************************

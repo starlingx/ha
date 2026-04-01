@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2016-2023 Wind River Systems, Inc.
+# Copyright (c) 2016-2023, 2026 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -19,6 +19,8 @@ SM_API_MSG_VERSION = "1"
 SM_API_MSG_REVISION = "1"
 
 SM_API_MSG_TYPE_RESTART_SERVICE = "RESTART_SERVICE"
+SM_API_MSG_TYPE_STOP_SERVICE = "STOP_SERVICE"
+SM_API_MSG_TYPE_START_SERVICE = "START_SERVICE"
 SM_API_MSG_SKIP_DEP_CHECK = "skip-dep"
 
 SM_API_MSG_TYPE_PROVISION_SERVICE = "PROVISION_SERVICE"
@@ -137,4 +139,32 @@ def deprovision_service_domain_interface(service_domain,
                      SM_API_MSG_TYPE_DEPROVISION_SERVICE_DOMAIN_INTERFACE,
                      "sm-action", service_domain,
                      service_domain_interface_name))
+    _send_msg_to_sm(sm_api_msg)
+
+
+def stop_service(service_name):
+    """
+    Message SM to stop a service.
+    The service must be SM managed and the service will become
+    unmanaged after stop.
+    """
+    sm_api_msg = ("%s,%s,%i,%s,%s,%s"
+                  % (SM_API_MSG_VERSION, SM_API_MSG_REVISION, 1,
+                     SM_API_MSG_TYPE_STOP_SERVICE, "sm-action",
+                     service_name))
+
+    _send_msg_to_sm(sm_api_msg)
+
+
+def start_service(service_name):
+    """
+    Message SM to start a service.
+    The service does not need to be SM managed prior to calling.
+    The service will become SM managed after start.
+    """
+    sm_api_msg = ("%s,%s,%i,%s,%s,%s"
+                  % (SM_API_MSG_VERSION, SM_API_MSG_REVISION, 1,
+                     SM_API_MSG_TYPE_START_SERVICE, "sm-action",
+                     service_name))
+
     _send_msg_to_sm(sm_api_msg)

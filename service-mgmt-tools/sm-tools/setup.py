@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014, 2016 Wind River Systems, Inc.
+# Copyright (c) 2013-2014, 2016, 2026 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -23,6 +23,8 @@ setuptools.setup(
             'sm-unmanage = sm_tools.sm_action:main ',
             'sm-restart-safe = sm_tools.sm_action:main ',
             'sm-restart = sm_tools.sm_action:main ',
-            'sm-iface-state = sm_tools.sm_domain_interface_set_state:main '
+            'sm-iface-state = sm_tools.sm_domain_interface_set_state:main ',
+            'sm-stop = sm_tools.sm_action:main',
+            'sm-start = sm_tools.sm_action:main'
         ]}
 )

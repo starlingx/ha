@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014, 2026 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -7,8 +7,11 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 #include "sm_types.h"
+#include "sm_limits.h"
 #include "sm_debug.h"
 #include "sm_list.h"
 #include "sm_timer.h"
@@ -352,6 +355,94 @@ SmErrorT sm_service_api_restart( char service_name[], int flag )
 }
 // ****************************************************************************
 
+
+// ****************************************************************************
+// Service API - Stop
+// ==================
+SmErrorT sm_service_api_stop( char service_name[], int flag )
+{
+    SmServiceT* service;
+    SmServiceEventT event = SM_SERVICE_EVENT_DISABLE;
+    char reason_text[SM_LOG_REASON_TEXT_MAX_CHAR];
+    char unmanage_filepath[SM_SERVICE_ACTION_PLUGIN_EXEC_MAX_CHAR];
+    SmErrorT error;
+    FILE* fp;
+
+    service = sm_service_table_read( service_name );
+    if( NULL == service )
+    {
+        DPRINTFE( "Failed to read service (%s), error=%s.",
+                  service_name, sm_error_str(SM_NOT_FOUND) );
+        return( SM_NOT_FOUND );
+    }
+
+    snprintf( reason_text, sizeof(reason_text), "stop requested" );
+
+    error = sm_service_fsm_event_handler( service->name, event, NULL,
+                                          reason_text );
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Event (%s) not handled for service (%s).",
+                  sm_service_event_str( event ), service->name );
+        return( error );
+    }
+
+    // Ensure services directory exists
+    mkdir(SM_RUN_SERVICES_DIRECTORY, 0700);
+
+    // Mark service as unmanaged after stop to prevent SM from restarting it
+    snprintf( unmanage_filepath, sizeof(unmanage_filepath),
+              "%s/%s.unmanaged", SM_RUN_SERVICES_DIRECTORY, service_name );
+    fp = fopen( unmanage_filepath, "w" );
+    if( NULL != fp )
+    {
+        fclose( fp );
+        DPRINTFI( "Service (%s) marked as unmanaged.", service_name );
+    }
+
+    return( SM_OKAY );
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Service API - Start
+// ===================
+SmErrorT sm_service_api_start( char service_name[], int flag )
+{
+    SmServiceT* service;
+    SmServiceEventT event = SM_SERVICE_EVENT_ENABLE;
+    char reason_text[SM_LOG_REASON_TEXT_MAX_CHAR];
+    char unmanage_filepath[SM_SERVICE_ACTION_PLUGIN_EXEC_MAX_CHAR];
+    SmErrorT error;
+
+    service = sm_service_table_read( service_name );
+    if( NULL == service )
+    {
+        DPRINTFE( "Failed to read service (%s), error=%s.",
+                  service_name, sm_error_str(SM_NOT_FOUND) );
+        return( SM_NOT_FOUND );
+    }
+
+    // Remove unmanaged flag before starting so SM can manage the service
+    snprintf( unmanage_filepath, sizeof(unmanage_filepath),
+              "%s/%s.unmanaged", SM_RUN_SERVICES_DIRECTORY, service_name );
+    unlink( unmanage_filepath );
+    DPRINTFI( "Service (%s) unmanaged flag removed.", service_name );
+
+    snprintf( reason_text, sizeof(reason_text), "start requested" );
+
+    error = sm_service_fsm_event_handler( service->name, event, NULL,
+                                          reason_text );
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Event (%s) not handled for service (%s).",
+                  sm_service_event_str( event ), service->name );
+        return( error );
+    }
+
+    return( SM_OKAY );
+}
+// ****************************************************************************
 
 // ****************************************************************************
 // Service API - Audit
