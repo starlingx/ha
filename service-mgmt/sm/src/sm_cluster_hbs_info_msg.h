@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2018,2023 Wind River Systems, Inc.
+// Copyright (c) 2018-2026 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -49,6 +49,7 @@ typedef struct
     SmClusterHbsInfoT controllers[max_controllers];
     bool storage0_enabled;
     time_t last_update;
+    unsigned int heartbeat_period;
 }SmClusterHbsStateT;
 
 bool operator==(const SmClusterHbsStateT& lhs, const SmClusterHbsStateT& rhs);
@@ -99,6 +100,11 @@ class SmClusterHbsInfoMsg
         static void _cluster_hbs_info_msg_received( int selobj, int64_t user_data );
         static bool _process_cluster_hbs_history(mtce_hbs_cluster_history_type history,
                                                  SmClusterHbsStateT& state);
+        static void hbs_cluster_dump ( mtce_hbs_cluster_history_type & history,
+                                                 bool storage0_enabled,
+                                                 unsigned short period_msec );
+        static void hbs_cluster_dump ( mtce_hbs_cluster_type & vault );
+        static const char* network_name(unsigned short network);
 
         static char server_port[SM_CONFIGURATION_VALUE_MAX_CHAR + 1];
         static char client_port[SM_CONFIGURATION_VALUE_MAX_CHAR + 1];
