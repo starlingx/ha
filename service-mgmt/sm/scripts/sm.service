@@ -12,8 +12,10 @@ ExecStop=/etc/init.d/sm stop
 ExecReload=/etc/init.d/sm reload
 PIDFile=/var/run/sm.pid
 KillMode=process
-RestartSec=10
-Restart=on-failure
+
+# process recovery is handled by pmond
+Restart=no
+
 LimitNOFILE=1024
 
 # cgroup engineering
