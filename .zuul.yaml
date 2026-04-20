@@ -10,11 +10,29 @@
         - starlingx-common-tox-pep8
         - starlingx-common-tox-linters
         - ha-tox-pylint
+        - ha-tox-coverage
+        - ha-tox-coverage-c
+        - ha-tox-security
+        - ha-tox-linters-trixie
+        - ha-tox-pep8-trixie
+        - ha-tox-pylint-trixie
+        - ha-tox-coverage-trixie
+        - ha-tox-coverage-c-trixie
+        - ha-tox-bandit-trixie
     gate:
       jobs:
         - starlingx-common-tox-pep8
         - starlingx-common-tox-linters
         - ha-tox-pylint
+        - ha-tox-coverage
+        - ha-tox-coverage-c
+        - ha-tox-security
+        - ha-tox-linters-trixie
+        - ha-tox-pep8-trixie
+        - ha-tox-pylint-trixie
+        - ha-tox-coverage-trixie
+        - ha-tox-coverage-c-trixie
+        - ha-tox-bandit-trixie
     post:
       jobs:
         - stx-ha-upload-git-mirror
@@ -27,6 +45,85 @@
     nodeset: debian-bullseye
     vars:
       tox_envlist: pylint
+- job:
+    name: ha-tox-coverage
+    parent: tox
+    description: |
+      Run all tests with coverage analysis for ha
+    nodeset: debian-bullseye
+    vars:
+      tox_envlist: coverage
+    post-run: tests/playbooks/upload-coverage-reports.yaml
+- job:
+    name: ha-tox-coverage-c
+    parent: tox
+    description: |
+      Run C/C++ coverage analysis via gcov/lcov for ha
+    nodeset: debian-bullseye
+    vars:
+      tox_envlist: coverage-c
+    post-run: tests/playbooks/upload-coverage-reports.yaml
+- job:
+    name: ha-tox-security
+    parent: tox
+    description: |
+      Run security analysis for ha
+    nodeset: debian-bullseye
+    vars:
+      tox_envlist: security
+    post-run: tests/playbooks/upload-security-reports.yaml
+- job:
+    name: ha-tox-pylint-trixie
+    parent: openstack-tox-py313
+    description: |
+      Run pylint for ha (Trixie)
+    nodeset: debian-trixie-8GB
+    vars:
+      tox_envlist: pylint-trixie
+- job:
+    name: ha-tox-coverage-trixie
+    parent: openstack-tox-py313
+    description: |
+      Run all tests with coverage analysis for ha (Trixie)
+    nodeset: debian-trixie-8GB
+    vars:
+      tox_envlist: coverage-trixie
+    post-run: tests/playbooks/upload-coverage-reports.yaml
+- job:
+    name: ha-tox-bandit-trixie
+    parent: openstack-tox-py313
+    description: |
+      Run security analysis with bandit for ha (Trixie)
+    nodeset: debian-trixie-8GB
+    vars:
+      tox_envlist: bandit-trixie
+    post-run: tests/playbooks/upload-security-reports.yaml
+- job:
+    name: ha-tox-linters-trixie
+    parent: openstack-tox-py313
+    description: |
+      Run linters for ha (Trixie)
+    nodeset: debian-trixie-8GB
+    vars:
+      tox_envlist: linters-trixie
+      tox_inline_comments: false
+- job:
+    name: ha-tox-pep8-trixie
+    parent: openstack-tox-py313
+    description: |
+      Run pep8 for ha (Trixie)
+    nodeset: debian-trixie-8GB
+    vars:
+      tox_envlist: pep8-trixie
+- job:
+    name: ha-tox-coverage-c-trixie
+    parent: openstack-tox-py313
+    description: |
+      Run C/C++ coverage analysis for ha (Trixie)
+    nodeset: debian-trixie-8GB
+    vars:
+      tox_envlist: coverage-c-trixie
+    post-run: tests/playbooks/upload-coverage-reports.yaml
 - job:
     name: stx-ha-upload-git-mirror
     parent: upload-git-mirror
