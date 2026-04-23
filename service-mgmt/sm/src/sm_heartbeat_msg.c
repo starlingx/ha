@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2023 Wind River Systems, Inc.
+// Copyright (c) 2014-2026 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -97,10 +97,47 @@ SmErrorT sm_heartbeat_msg_deregister_callbacks(
 // ****************************************************************************
 
 // ****************************************************************************
-// Heartbeat Messaging - Send message from source
-// ==============================================
+// Heartbeat Messaging - Send message from source IPv4
+// ===================================================
+static int sm_heartbeat_msg_sendmsg_src_ipv4(int socket, void* msg, size_t msg_len,
+    int flags, struct sockaddr_in* dst_addr, struct in_addr* src_Addr,
+    const char* interface_name)
+{
+    struct msghdr msg_hdr = {};
+    struct cmsghdr *cmsg;
+    struct in_pktinfo *pktinfo;
+    struct iovec iov = {msg, msg_len};
+
+    memset( &_tx_control_buffer, 0, sizeof(_tx_control_buffer) );
+    msg_hdr.msg_iov = &iov;
+    msg_hdr.msg_iovlen = 1;
+    msg_hdr.msg_name = dst_addr;
+    msg_hdr.msg_namelen = sizeof(struct sockaddr_in);
+    msg_hdr.msg_control = _tx_control_buffer;
+    msg_hdr.msg_controllen = CMSG_LEN(sizeof(struct in_pktinfo));
+    cmsg = CMSG_FIRSTHDR(&msg_hdr);
+    cmsg->cmsg_level = IPPROTO_IP;
+    cmsg->cmsg_type = IP_PKTINFO;
+    cmsg->cmsg_len = CMSG_LEN(sizeof(struct in_pktinfo));
+    pktinfo = (struct in_pktinfo*) CMSG_DATA(cmsg);
+    pktinfo->ipi_ifindex = (int) if_nametoindex(interface_name);
+    pktinfo->ipi_spec_dst = *src_Addr;
+
+    char src_str[INET_ADDRSTRLEN];
+    char dst_str[INET_ADDRSTRLEN];
+    inet_ntop( AF_INET, src_Addr, src_str, sizeof(src_str) );
+    inet_ntop( AF_INET, &dst_addr->sin_addr, dst_str, sizeof(dst_str) );
+
+    return sendmsg( socket, &msg_hdr, flags );
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Heartbeat Messaging - Send message from source IPv6
+// ===================================================
 static int sm_heartbeat_msg_sendmsg_src_ipv6(int socket, void* msg, size_t msg_len,
-    int flags, struct sockaddr_in6* dst_addr, struct in6_addr* src_Addr)
+    int flags, struct sockaddr_in6* dst_addr, struct in6_addr* src_Addr,
+    const char* interface_name)
 {
     struct msghdr msg_hdr = {};
     struct cmsghdr *cmsg;
@@ -120,7 +157,7 @@ static int sm_heartbeat_msg_sendmsg_src_ipv6(int socket, void* msg, size_t msg_l
     cmsg->cmsg_type = IPV6_PKTINFO;
     cmsg->cmsg_len = CMSG_LEN(sizeof(struct in6_pktinfo));
     pktinfo = (struct in6_pktinfo*) CMSG_DATA(cmsg);
-    pktinfo->ipi6_ifindex = 0;
+    pktinfo->ipi6_ifindex = if_nametoindex(interface_name);
     pktinfo->ipi6_addr = *src_Addr;
 
     return sendmsg( socket, &msg_hdr, flags );
@@ -232,8 +269,10 @@ SmErrorT sm_heartbeat_msg_send_alive( SmNetworkTypeT network_type, char node_nam
         dst_addr4.sin_port = htons(network_port);
         dst_addr4.sin_addr.s_addr = ipv4_address->sin.s_addr;
 
-        result = sendto( sender_socket, &heartbeat_msg, sizeof(SmHeartbeatMsgT),
-                         0, (struct sockaddr *) &dst_addr4, sizeof(dst_addr4) );
+        result = sm_heartbeat_msg_sendmsg_src_ipv4( sender_socket, (void*) &heartbeat_msg,
+                                                    sizeof(SmHeartbeatMsgT), 0, &dst_addr4,
+                                                    &network_address->u.ipv4.sin,
+                                                    interface_name );
         if( 0 > result )
         {
             DPRINTFE( "Failed to send message on socket for interface (%s), "
@@ -251,7 +290,8 @@ SmErrorT sm_heartbeat_msg_send_alive( SmNetworkTypeT network_type, char node_nam
 
         result = sm_heartbeat_msg_sendmsg_src_ipv6( sender_socket, (void*) &heartbeat_msg,
         	                                    sizeof(SmHeartbeatMsgT),0, &dst_addr6,
-        	                                    &network_address->u.ipv6.sin6 );
+        	                                    &network_address->u.ipv6.sin6,
+        	                                    interface_name );
 
         if( 0 > result )
         {
