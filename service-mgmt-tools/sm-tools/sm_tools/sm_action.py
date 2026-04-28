@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2016 Wind River Systems, Inc.
+# Copyright (c) 2016, 2026 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -12,6 +12,8 @@ import sqlite3
 
 from sm_tools.sm_api_msg_utils import restart_service as restart_service
 from sm_tools.sm_api_msg_utils import restart_service_safe as restart_service_safe
+from sm_tools.sm_api_msg_utils import stop_service as stop_service
+from sm_tools.sm_api_msg_utils import start_service as start_service
 from sm_tools.sm_api_msg_utils import database_running_name as database_name
 
 
@@ -23,6 +25,10 @@ def main():
         action = "unmanage"
     elif "sm-restart-safe" == filename:
         action = "restart-safe"
+    elif "sm-stop" == filename:
+        action = "stop"
+    elif "sm-start" == filename:
+        action = "start"
     else:
         action = "restart"
 
@@ -70,6 +76,20 @@ def main():
                     open(unmanage_filepath + unmanage_filename, 'w').close()
 
                 print("Service (%s) is no longer being managed." % args.service)
+
+            elif 'stop' == action:
+                # Check if already unmanaged
+                if os.path.isfile(unmanage_filepath + unmanage_filename):
+                    print("Service (%s) is already unmanaged. "
+                          "sm-stop requires a managed service." % args.service)
+                    sys.exit(-1)
+                stop_service(args.service)
+                print("Service (%s) is stopped and unmanaged. "
+                      "Use 'sudo sm-start service %s' to start and manage again."
+                      % (args.service, args.service))
+            elif 'start' == action:
+                start_service(args.service)
+                print("Service (%s) is started and managed." % args.service)
 
             elif 'restart-safe' == action:
                 restart_service_safe(args.service)

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2023 Wind River Systems, Inc.
+// Copyright (c) 2014-2023, 2026 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -29,6 +29,8 @@
 #define SM_API_MSG_TYPE_SET_NODE                    "SET_NODE"
 #define SM_API_MSG_TYPE_SET_NODE_ACK                "SET_NODE_ACK"
 #define SM_API_MSG_TYPE_RESTART_SERVICE             "RESTART_SERVICE"
+#define SM_API_MSG_TYPE_STOP_SERVICE                "STOP_SERVICE"
+#define SM_API_MSG_TYPE_START_SERVICE               "START_SERVICE"
 #define SM_API_MSG_SKIP_DEP_CHECK                   "skip-dep"
 #define SM_API_MSG_TYPE_PROVISION_SERVICE           "PROVISION_SERVICE"
 #define SM_API_MSG_TYPE_DEPROVISION_SERVICE         "DEPROVISION_SERVICE"
@@ -539,6 +541,52 @@ static void sm_api_dispatch( int selobj, int64_t user_data )
         if( NULL != _callbacks.service_restart )
         {
             _callbacks.service_restart( service_name, seqno, action_flag);
+        }
+    }
+    else if( 0 == strcmp( SM_API_MSG_TYPE_STOP_SERVICE,
+                          params[SM_API_MSG_TYPE_FIELD] ) )
+    {
+        if( params[SM_API_MSG_ORIGIN_FIELD] == NULL )
+        {
+            DPRINTFE( "Missing origin field in received message." );
+            goto ERROR;
+        }
+
+        if( params[SM_API_MSG_SERVICE_NAME_FIELD] == NULL )
+        {
+            DPRINTFE( "Missing service-name field in received message." );
+            goto ERROR;
+        }
+
+        service_name = (char*) params[SM_API_MSG_SERVICE_NAME_FIELD];
+        action_flag = 0;
+
+        if( NULL != _callbacks.service_stop )
+        {
+            _callbacks.service_stop( service_name, seqno, action_flag );
+        }
+    }
+    else if( 0 == strcmp( SM_API_MSG_TYPE_START_SERVICE,
+                          params[SM_API_MSG_TYPE_FIELD] ) )
+    {
+        if( params[SM_API_MSG_ORIGIN_FIELD] == NULL )
+        {
+            DPRINTFE( "Missing origin field in received message." );
+            goto ERROR;
+        }
+
+        if( params[SM_API_MSG_SERVICE_NAME_FIELD] == NULL )
+        {
+            DPRINTFE( "Missing service-name field in received message." );
+            goto ERROR;
+        }
+
+        service_name = (char*) params[SM_API_MSG_SERVICE_NAME_FIELD];
+        action_flag = 0;
+
+        if( NULL != _callbacks.service_start )
+        {
+            _callbacks.service_start( service_name, seqno, action_flag );
         }
     }
     else if( 0 == strcmp( SM_API_MSG_TYPE_PROVISION_SERVICE,

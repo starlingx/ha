@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2023 Wind River Systems, Inc.
+// Copyright (c) 2014-2023, 2026 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -238,6 +238,24 @@ static void sm_main_event_handler_api_service_restart_callback(
 
     sm_service_api_restart( service_name, flag );
 }
+
+static void sm_main_event_handler_api_service_stop_callback(
+    char service_name[], int seqno, int flag )
+{
+    DPRINTFI( "Service (%s) stop requested, seqno=%i, flag=%i.",
+              service_name, seqno, flag );
+
+    sm_service_api_stop( service_name, flag );
+}
+
+static void sm_main_event_handler_api_service_start_callback(
+    char service_name[], int seqno, int flag )
+{
+    DPRINTFI( "Service (%s) start requested, seqno=%i, flag=%i.",
+              service_name, seqno, flag );
+
+    sm_service_api_start( service_name, flag );
+}
 // ****************************************************************************
 
 static void sm_main_event_handler_api_provision_service_callback(
@@ -398,6 +416,10 @@ SmErrorT sm_main_event_handler_initialize( void )
         = sm_main_event_handler_api_node_set_callback;
     _api_callbacks.service_restart 
         = sm_main_event_handler_api_service_restart_callback;
+    _api_callbacks.service_stop
+        = sm_main_event_handler_api_service_stop_callback;
+    _api_callbacks.service_start
+        = sm_main_event_handler_api_service_start_callback;
     _api_callbacks.provision_service
         = sm_main_event_handler_api_provision_service_callback;
     _api_callbacks.deprovision_service
