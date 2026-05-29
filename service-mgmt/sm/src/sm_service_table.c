@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2018 Wind River Systems, Inc.
+// Copyright (c) 2014-2018, 2026 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
+#include <errno.h>
 
 #include "sm_limits.h"
 #include "sm_types.h"
@@ -24,9 +26,13 @@
 #include "sm_service_audit.h"
 #include "sm_service_group_table.h"
 #include "sm_service_group_member_table.h"
+#include "sm_util_types.h"
 
 static SmListT* _services = NULL;
 static SmDbHandleT* _sm_db_handle = NULL;
+// Mutex protecting the in-memory service list from concurrent access
+// between the main event loop and the API dispatch thread.
+static pthread_mutex_t _service_table_mutex;
 
 static SmErrorT sm_service_table_add( void* user_data[], void* record );
 
@@ -70,9 +76,9 @@ bool sm_service_clear_failure_state(SmServiceT* service)
 }
 
 // ****************************************************************************
-// Service Table - Read
-// ====================
-SmServiceT* sm_service_table_read( char service_name[] )
+// Service Table - Read (internal, caller must hold _service_table_mutex)
+// =====================================================================
+static SmServiceT* sm_service_table_read_unlocked( char service_name[] )
 {
     SmListT* entry = NULL;
     SmListEntryDataPtrT entry_data;
@@ -93,6 +99,45 @@ SmServiceT* sm_service_table_read( char service_name[] )
 // ****************************************************************************
 
 // ****************************************************************************
+// Service Table - Read
+// ====================
+SmServiceT* sm_service_table_read( char service_name[] )
+{
+    SmServiceT* service;
+    int trylock_result;
+
+    // trylock+log pattern: detect mutex contention without blocking on
+    // the fast path. If contention is detected, log it then block.
+    trylock_result = pthread_mutex_trylock( &_service_table_mutex );
+    if( EBUSY == trylock_result )
+    {
+        DPRINTFI( "Mutex contention: sm_service_table_read(%s) "
+                  "waiting for lock.", service_name );
+        if( 0 != pthread_mutex_lock( &_service_table_mutex ) )
+        {
+            DPRINTFE( "Failed to capture service table mutex." );
+            abort();
+        }
+    }
+    else if( 0 != trylock_result )
+    {
+        DPRINTFE( "Failed to capture service table mutex." );
+        abort();
+    }
+
+    service = sm_service_table_read_unlocked( service_name );
+
+    if( 0 != pthread_mutex_unlock( &_service_table_mutex ) )
+    {
+        DPRINTFE( "Failed to release service table mutex." );
+        abort();
+    }
+
+    return( service );
+}
+// ****************************************************************************
+
+// ****************************************************************************
 // Service Table - Read By Identifier
 // ==================================
 SmServiceT* sm_service_table_read_by_id( int64_t service_id )
@@ -100,6 +145,13 @@ SmServiceT* sm_service_table_read_by_id( int64_t service_id )
     SmListT* entry = NULL;
     SmListEntryDataPtrT entry_data;
     SmServiceT* service;
+    SmServiceT* result = NULL;
+
+    if( 0 != pthread_mutex_lock( &_service_table_mutex ) )
+    {
+        DPRINTFE( "Failed to capture service table mutex." );
+        abort();
+    }
 
     SM_LIST_FOREACH( _services, entry, entry_data )
     {
@@ -107,11 +159,18 @@ SmServiceT* sm_service_table_read_by_id( int64_t service_id )
 
         if( service_id == service->id )
         {
-            return( service );
+            result = service;
+            break;
         }
     }
 
-    return( NULL );
+    if( 0 != pthread_mutex_unlock( &_service_table_mutex ) )
+    {
+        DPRINTFE( "Failed to release service table mutex." );
+        abort();
+    }
+
+    return( result );
 }
 // ****************************************************************************
 
@@ -123,6 +182,13 @@ SmServiceT* sm_service_table_read_by_pid( int pid )
     SmListT* entry = NULL;
     SmListEntryDataPtrT entry_data;
     SmServiceT* service;
+    SmServiceT* result = NULL;
+
+    if( 0 != pthread_mutex_lock( &_service_table_mutex ) )
+    {
+        DPRINTFE( "Failed to capture service table mutex." );
+        abort();
+    }
 
     SM_LIST_FOREACH( _services, entry, entry_data )
     {
@@ -130,11 +196,18 @@ SmServiceT* sm_service_table_read_by_pid( int pid )
 
         if( pid == service->pid )
         {
-            return( service );
+            result = service;
+            break;
         }
     }
 
-    return( NULL );
+    if( 0 != pthread_mutex_unlock( &_service_table_mutex ) )
+    {
+        DPRINTFE( "Failed to release service table mutex." );
+        abort();
+    }
+
+    return( result );
 }
 // ****************************************************************************
 
@@ -146,6 +219,13 @@ SmServiceT* sm_service_table_read_by_action_pid( int pid )
     SmListT* entry = NULL;
     SmListEntryDataPtrT entry_data;
     SmServiceT* service;
+    SmServiceT* result = NULL;
+
+    if( 0 != pthread_mutex_lock( &_service_table_mutex ) )
+    {
+        DPRINTFE( "Failed to capture service table mutex." );
+        abort();
+    }
 
     SM_LIST_FOREACH( _services, entry, entry_data )
     {
@@ -153,11 +233,18 @@ SmServiceT* sm_service_table_read_by_action_pid( int pid )
 
         if( pid == service->action_pid )
         {
-            return( service );
+            result = service;
+            break;
         }
     }
 
-    return( NULL );
+    if( 0 != pthread_mutex_unlock( &_service_table_mutex ) )
+    {
+        DPRINTFE( "Failed to release service table mutex." );
+        abort();
+    }
+
+    return( result );
 }
 // ****************************************************************************
 
@@ -169,10 +256,33 @@ void sm_service_table_foreach( void* user_data[],
 {
     SmListT* entry = NULL;
     SmListEntryDataPtrT entry_data;
+    int trylock_result;
+
+    trylock_result = pthread_mutex_trylock( &_service_table_mutex );
+    if( EBUSY == trylock_result )
+    {
+        DPRINTFI( "Mutex contention: sm_service_table_foreach waiting for lock." );
+        if( 0 != pthread_mutex_lock( &_service_table_mutex ) )
+        {
+            DPRINTFE( "Failed to capture service table mutex." );
+            abort();
+        }
+    }
+    else if( 0 != trylock_result )
+    {
+        DPRINTFE( "Failed to capture service table mutex." );
+        abort();
+    }
 
     SM_LIST_FOREACH( _services, entry, entry_data )
     {
         callback( user_data, (SmServiceT*) entry_data );
+    }
+
+    if( 0 != pthread_mutex_unlock( &_service_table_mutex ) )
+    {
+        DPRINTFE( "Failed to release service table mutex." );
+        abort();
     }
 }
 // ****************************************************************************
@@ -202,7 +312,7 @@ static SmErrorT sm_service_table_add( void* user_data[], void* record )
         return( error );
     }
 
-    service = sm_service_table_read( db_service->name );
+    service = sm_service_table_read_unlocked( db_service->name );
     if( NULL == service )
     {
         service = (SmServiceT*) malloc( sizeof(SmServiceT) );
@@ -341,17 +451,49 @@ static SmErrorT sm_service_table_add( void* user_data[], void* record )
 
 SmErrorT sm_service_provision(char service_name[])
 {
-    SmServiceT* service = sm_service_table_read(service_name);
+    SmErrorT error;
+    SmDbServiceT db_service;
+    SmServiceT* service;
+    int trylock_result;
+
+    // Mutex-protected provision: read + add must be atomic to prevent
+    // duplicate entries from concurrent provision requests.
+    trylock_result = pthread_mutex_trylock( &_service_table_mutex );
+    if( EBUSY == trylock_result )
+    {
+        DPRINTFI( "Mutex contention: sm_service_provision(%s) "
+                  "waiting for lock.", service_name );
+        if( 0 != pthread_mutex_lock( &_service_table_mutex ) )
+        {
+            DPRINTFE( "Failed to capture service table mutex." );
+            abort();
+        }
+    }
+    else if( 0 != trylock_result )
+    {
+        DPRINTFE( "Failed to capture service table mutex." );
+        abort();
+    }
+
+    service = sm_service_table_read_unlocked(service_name);
     if(NULL != service)
     {
+        if( 0 != pthread_mutex_unlock( &_service_table_mutex ) )
+        {
+            DPRINTFE( "Failed to release service table mutex." );
+            abort();
+        }
         return SM_OKAY;
     }
 
-    SmErrorT error;
-    SmDbServiceT db_service;
     error = sm_db_services_read( _sm_db_handle, service_name, &db_service );
     if(SM_OKAY != error)
     {
+        if( 0 != pthread_mutex_unlock( &_service_table_mutex ) )
+        {
+            DPRINTFE( "Failed to release service table mutex." );
+            abort();
+        }
         return error;
     }
 
@@ -359,14 +501,30 @@ SmErrorT sm_service_provision(char service_name[])
     if(SM_OKAY != error)
     {
         DPRINTFE("Failed to provision service %s, error %s", service_name, sm_error_str(error));
+        if( 0 != pthread_mutex_unlock( &_service_table_mutex ) )
+        {
+            DPRINTFE( "Failed to release service table mutex." );
+            abort();
+        }
         return SM_FAILED;
     }
 
-    service = sm_service_table_read(service_name);
+    service = sm_service_table_read_unlocked(service_name);
     if(NULL == service)
     {
         DPRINTFE("Service %s not found.", service_name);
+        if( 0 != pthread_mutex_unlock( &_service_table_mutex ) )
+        {
+            DPRINTFE( "Failed to release service table mutex." );
+            abort();
+        }
         return SM_FAILED;
+    }
+
+    if( 0 != pthread_mutex_unlock( &_service_table_mutex ) )
+    {
+        DPRINTFE( "Failed to release service table mutex." );
+        abort();
     }
 
     return SM_OKAY;
@@ -375,15 +533,49 @@ SmErrorT sm_service_provision(char service_name[])
 
 SmErrorT sm_service_deprovision(char service_name[])
 {
-    SmServiceT* service = sm_service_table_read(service_name);
+    SmServiceT* service;
+    int trylock_result;
+
+    // Mutex-protected deprovision: read + remove + free must be atomic
+    // to prevent use-after-free from concurrent readers.
+    trylock_result = pthread_mutex_trylock( &_service_table_mutex );
+    if( EBUSY == trylock_result )
+    {
+        DPRINTFI( "Mutex contention: sm_service_deprovision(%s) "
+                  "waiting for lock.", service_name );
+        if( 0 != pthread_mutex_lock( &_service_table_mutex ) )
+        {
+            DPRINTFE( "Failed to capture service table mutex." );
+            abort();
+        }
+    }
+    else if( 0 != trylock_result )
+    {
+        DPRINTFE( "Failed to capture service table mutex." );
+        abort();
+    }
+
+    service = sm_service_table_read_unlocked(service_name);
     if(NULL == service)
     {
         DPRINTFI("Service %s not found in provisioned list. Already deprovisioned?", service_name);
+        if( 0 != pthread_mutex_unlock( &_service_table_mutex ) )
+        {
+            DPRINTFE( "Failed to release service table mutex." );
+            abort();
+        }
         return SM_OKAY;
     }
 
     SM_LIST_REMOVE( _services, (SmListEntryDataPtrT) service );
     free(service);
+
+    if( 0 != pthread_mutex_unlock( &_service_table_mutex ) )
+    {
+        DPRINTFE( "Failed to release service table mutex." );
+        abort();
+    }
+
     return SM_OKAY;
 }
 
@@ -468,7 +660,7 @@ static void _sm_loop_service_group_members( void* user_data[],
     SmServiceGroupMemberT* service_group_member )
 {
     SmServiceT* service;
-    service = sm_service_table_read( service_group_member->service_name );
+    service = sm_service_table_read_unlocked( service_group_member->service_name );
     if( NULL == service )
     {
         DPRINTFE( "Could not find service (%s) of "
@@ -501,6 +693,14 @@ SmErrorT sm_service_table_initialize( void )
     SmErrorT error;
 
     _services = NULL;
+
+    error = sm_mutex_initialize(&_service_table_mutex, true);
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to initialize service table mutex, error=%s.",
+                  sm_error_str( error ) );
+        return( error );
+    }
 
     error = sm_db_connect( SM_DATABASE_NAME, &_sm_db_handle );
     if( SM_OKAY != error )
@@ -543,6 +743,13 @@ SmErrorT sm_service_table_finalize( void )
         }
 
         _sm_db_handle = NULL;
+    }
+
+    error = sm_mutex_finalize(&_service_table_mutex);
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to finalize service table mutex, error=%s.",
+                  sm_error_str( error ) );
     }
 
     return( SM_OKAY );

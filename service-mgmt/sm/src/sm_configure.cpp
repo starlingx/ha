@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2019-2023 Wind River Systems, Inc.
+// Copyright (c) 2019-2023, 2026 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -154,6 +154,15 @@ SmErrorT sm_deprovision_service( char service_group_name[], char service_name[] 
 
     stop_all_service_timers(*service);
 
+    // Deregister process failure monitor BEFORE freeing the service struct
+    // to avoid use-after-free.
+    error = sm_service_fsm_process_failure_deregister(service);
+    if(SM_OKAY != error)
+    {
+        DPRINTFE("Failed to deregister process failure monitor for service %s, error=%s",
+                  service_name, sm_error_str(error));
+    }
+
     error = sm_service_deprovision(service_name);
     if(SM_OKAY != error)
     {
@@ -173,14 +182,6 @@ SmErrorT sm_deprovision_service( char service_group_name[], char service_name[] 
     {
         DPRINTFE("Failed to reload service dependency");
         return error;
-    }
-
-    error = sm_service_fsm_process_failure_deregister(service);
-    if(SM_OKAY != error)
-    {
-        // By not able to deregister the process monitor routine, there will be an error log
-        // nothing will go wrong. So log and continue as success
-        DPRINTFE("Failed to deregister process failure monitor for service %s", service_name);
     }
 
     DPRINTFI("%s:%s is deprovisioned successfully", service_group_name, service_name);

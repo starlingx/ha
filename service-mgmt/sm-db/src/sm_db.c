@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014, 2026 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -11,6 +11,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sqlite3.h>
@@ -32,6 +33,36 @@
 #include "sm_db_service_instances.h"
 #include "sm_db_service_actions.h"
 #include "sm_db_service_action_results.h"
+
+// SQLite busy handler: retry on SQLITE_BUSY (writer-writer collision in WAL
+// mode) up to SM_DB_BUSY_MAX_RETRIES times with SM_DB_BUSY_RETRY_US between
+// retries, giving a 200ms ceiling before giving up.
+#define SM_DB_BUSY_MAX_RETRIES  200
+#define SM_DB_BUSY_RETRY_US     1000
+
+static int sm_db_busy_handler( void* data, int retry_count )
+{
+    (void)data;
+    struct timespec now;
+    clock_gettime( CLOCK_MONOTONIC, &now );
+
+    if( retry_count >= SM_DB_BUSY_MAX_RETRIES )
+    {
+        DPRINTFE( "Database has been 'Busy' for %d msecs : gave up after %d retries "
+                  "(%d us/retry, %d ms max)",
+                  SM_DB_BUSY_MAX_RETRIES, retry_count, SM_DB_BUSY_RETRY_US,
+                  SM_DB_BUSY_MAX_RETRIES * SM_DB_BUSY_RETRY_US / 1000 );
+        return 0;
+    }
+
+    DPRINTFI( "Database 'Busy': retry %d/%d (%d us/retry) at %ld.%03ld",
+              retry_count + 1, SM_DB_BUSY_MAX_RETRIES,
+              SM_DB_BUSY_RETRY_US,
+              (long)now.tv_sec, now.tv_nsec / 1000000L );
+
+    usleep( SM_DB_BUSY_RETRY_US );
+    return 1;
+}
 
 SmErrorT sm_db_patch(const char* sm_db_name);
 // ****************************************************************************
@@ -181,6 +212,11 @@ SmErrorT sm_db_connect( const char* sm_db_name, SmDbHandleT** sm_db_handle, bool
         DPRINTFE( "Failed to connect to database (%s), rc=%i.", sm_db_name, rc );
         return( SM_FAILED );
     }
+
+    // Register busy handler to retry on writer-writer collisions instead
+    // of returning SQLITE_BUSY immediately and aborting.
+    sqlite3_busy_handler( (sqlite3*) *sm_db_handle,
+                           sm_db_busy_handler, NULL );
 
     return( SM_OKAY );
 }

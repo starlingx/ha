@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014, 2026 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
+#include <errno.h>
 
 #include "sm_limits.h"
 #include "sm_types.h"
@@ -17,14 +19,19 @@
 #include "sm_db_foreach.h"
 #include "sm_db_services.h"
 #include "sm_db_service_dependency.h"
+#include "sm_util_types.h"
 
 static SmListT* _service_dependency = NULL;
 static SmDbHandleT* _sm_db_handle = NULL;
+// Mutex protecting the in-memory dependency list from concurrent access
+// between the main event loop and the API dispatch thread.
+static pthread_mutex_t _dependency_table_mutex;
 
 // ****************************************************************************
-// Service Dependency Table - Read
-// ===============================
-SmServiceDependencyT* sm_service_dependency_table_read( 
+// Service Dependency Table - Read (internal, caller must hold
+//                                  _dependency_table_mutex)
+// ============================================================
+static SmServiceDependencyT* sm_service_dependency_table_read_unlocked(
     SmServiceDependencyTypeT type, char service_name[], SmServiceStateT state,
     SmServiceActionT action, char dependent[] )
 {
@@ -46,7 +53,35 @@ SmServiceDependencyT* sm_service_dependency_table_read(
         }
     }
 
-    return( NULL );    
+    return( NULL );
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Service Dependency Table - Read
+// ===============================
+SmServiceDependencyT* sm_service_dependency_table_read(
+    SmServiceDependencyTypeT type, char service_name[], SmServiceStateT state,
+    SmServiceActionT action, char dependent[] )
+{
+    SmServiceDependencyT* service_dependency;
+
+    if( 0 != pthread_mutex_lock( &_dependency_table_mutex ) )
+    {
+        DPRINTFE( "Failed to capture dependency table mutex." );
+        abort();
+    }
+
+    service_dependency = sm_service_dependency_table_read_unlocked(
+                            type, service_name, state, action, dependent );
+
+    if( 0 != pthread_mutex_unlock( &_dependency_table_mutex ) )
+    {
+        DPRINTFE( "Failed to release dependency table mutex." );
+        abort();
+    }
+
+    return( service_dependency );
 }
 // ****************************************************************************
 
@@ -60,6 +95,26 @@ void sm_service_dependency_table_foreach( SmServiceDependencyTypeT type,
     SmListT* entry = NULL;
     SmListEntryDataPtrT entry_data;
     SmServiceDependencyT* service_dependency;
+    int trylock_result;
+
+    trylock_result = pthread_mutex_trylock( &_dependency_table_mutex );
+    if( EBUSY == trylock_result )
+    {
+        DPRINTFI( "Mutex contention: "
+                  "sm_service_dependency_table_foreach(%s) "
+                  "waiting for lock.",
+                  service_name );
+        if( 0 != pthread_mutex_lock( &_dependency_table_mutex ) )
+        {
+            DPRINTFE( "Failed to capture dependency table mutex." );
+            abort();
+        }
+    }
+    else if( 0 != trylock_result )
+    {
+        DPRINTFE( "Failed to capture dependency table mutex." );
+        abort();
+    }
 
     SM_LIST_FOREACH( _service_dependency, entry, entry_data )
     {
@@ -72,6 +127,12 @@ void sm_service_dependency_table_foreach( SmServiceDependencyTypeT type,
         {
             callback( user_data, service_dependency );
         }
+    }
+
+    if( 0 != pthread_mutex_unlock( &_dependency_table_mutex ) )
+    {
+        DPRINTFE( "Failed to release dependency table mutex." );
+        abort();
     }
 }
 // ****************************************************************************
@@ -87,6 +148,26 @@ void sm_service_dependency_table_foreach_dependent(
     SmListT* entry = NULL;
     SmListEntryDataPtrT entry_data;
     SmServiceDependencyT* service_dependency;
+    int trylock_result;
+
+    trylock_result = pthread_mutex_trylock( &_dependency_table_mutex );
+    if( EBUSY == trylock_result )
+    {
+        DPRINTFI( "Mutex contention: "
+                  "sm_service_dependency_table_foreach_dependent(%s) "
+                  "waiting for lock.",
+                  dependent );
+        if( 0 != pthread_mutex_lock( &_dependency_table_mutex ) )
+        {
+            DPRINTFE( "Failed to capture dependency table mutex." );
+            abort();
+        }
+    }
+    else if( 0 != trylock_result )
+    {
+        DPRINTFE( "Failed to capture dependency table mutex." );
+        abort();
+    }
 
     SM_LIST_FOREACH( _service_dependency, entry, entry_data )
     {
@@ -98,6 +179,12 @@ void sm_service_dependency_table_foreach_dependent(
         {
             callback( user_data, service_dependency );
         }
+    }
+
+    if( 0 != pthread_mutex_unlock( &_dependency_table_mutex ) )
+    {
+        DPRINTFE( "Failed to release dependency table mutex." );
+        abort();
     }
 }
 // ****************************************************************************
@@ -141,7 +228,7 @@ static SmErrorT sm_service_dependency_table_add( void* user_data[],
         return( SM_OKAY );
     }
 
-    service_dependency = sm_service_dependency_table_read( 
+    service_dependency = sm_service_dependency_table_read_unlocked(
                             db_service_dependency->type,
                             db_service_dependency->service_name,
                             db_service_dependency->state,
@@ -191,6 +278,27 @@ SmErrorT sm_service_dependency_table_load( void )
 {
     SmDbServiceDependencyT service_dependency;
     SmErrorT error;
+    int trylock_result;
+
+    // Mutex-protected reload: clear + rebuild must be atomic to prevent
+    // readers from seeing a partially loaded dependency list.
+    trylock_result = pthread_mutex_trylock( &_dependency_table_mutex );
+    if( EBUSY == trylock_result )
+    {
+        DPRINTFI( "Mutex contention: "
+                  "sm_service_dependency_table_load "
+                  "waiting for lock." );
+        if( 0 != pthread_mutex_lock( &_dependency_table_mutex ) )
+        {
+            DPRINTFE( "Failed to capture dependency table mutex." );
+            abort();
+        }
+    }
+    else if( 0 != trylock_result )
+    {
+        DPRINTFE( "Failed to capture dependency table mutex." );
+        abort();
+    }
 
     if( NULL != _service_dependency )
     {
@@ -206,7 +314,18 @@ SmErrorT sm_service_dependency_table_load( void )
     {
         DPRINTFE( "Failed to loop over service dependencies in database, "
                   "error=%s.", sm_error_str( error ) );
+        if( 0 != pthread_mutex_unlock( &_dependency_table_mutex ) )
+        {
+            DPRINTFE( "Failed to release dependency table mutex." );
+            abort();
+        }
         return( error );
+    }
+
+    if( 0 != pthread_mutex_unlock( &_dependency_table_mutex ) )
+    {
+        DPRINTFE( "Failed to release dependency table mutex." );
+        abort();
     }
 
     return( SM_OKAY );
@@ -219,6 +338,14 @@ SmErrorT sm_service_dependency_table_load( void )
 SmErrorT sm_service_dependency_table_initialize( void )
 {
     SmErrorT error;
+
+    error = sm_mutex_initialize(&_dependency_table_mutex, true);
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to initialize dependency table mutex, error=%s.",
+                  sm_error_str( error ) );
+        return( error );
+    }
 
     error = sm_db_connect( SM_DATABASE_NAME, &_sm_db_handle, true );
     if( SM_OKAY != error )
@@ -259,6 +386,13 @@ SmErrorT sm_service_dependency_table_finalize( void )
         }
 
         _sm_db_handle = NULL;
+    }
+
+    error = sm_mutex_finalize(&_dependency_table_mutex);
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to finalize dependency table mutex, error=%s.",
+                  sm_error_str( error ) );
     }
 
     return( SM_OKAY );
