@@ -815,7 +815,7 @@ INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rook-mon-exit','not-applicable
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','etcd','not-applicable','disable','rook-mon-exit','disabled');
 INSERT INTO "SERVICE_ACTIONS" VALUES('rook-mon-exit','enable','lsb-script','','rook-mon-exit','start','',2,2,2,30,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('rook-mon-exit','disable','lsb-script','','rook-mon-exit','stop','',0,0,0,360,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('rook-mon-exit','audit-enabled','lsb-script','','rook-mon-exit','status','',2,2,2,15,40);
+INSERT INTO "SERVICE_ACTIONS" VALUES('rook-mon-exit','audit-enabled','lsb-script','','rook-mon-exit','status','',2,4,4,15,60);
 INSERT INTO "SERVICE_ACTIONS" VALUES('rook-mon-exit','audit-disabled','lsb-script','','rook-mon-exit','status','',0,0,0,15,40);
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','rook-fs','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','rook-fs','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
