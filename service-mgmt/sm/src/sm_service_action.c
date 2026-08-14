@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014, 2026 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -341,16 +341,33 @@ SmErrorT sm_service_action_abort( char service_name[], int process_id )
     DPRINTFI( "Aborting service (%s) with kill signal, pid=%i.",
               service_name, process_id );
 
-    if( 0 > kill( process_id, SIGKILL ) )
+    // Kill the entire process group to ensure child processes (sleep,
+    // drbdadm) are also terminated.  The child calls setpgid(0,0) so
+    // its PGID equals its PID.
+    if( 0 > kill( -process_id, SIGKILL ) )
     {
         if( ESRCH == errno )
         {
-            DPRINTFD( "Service (%s) action not running.", service_name );
-            return( SM_OKAY );
-
+            DPRINTFD( "Service (%s) action process group not running, "
+                      "trying single pid.", service_name );
+            // Fallback: try killing just the leader process in case the
+            // process group no longer exists but the process does.
+            if( 0 > kill( process_id, SIGKILL ) )
+            {
+                if( ESRCH == errno )
+                {
+                    DPRINTFD( "Service (%s) action not running.",
+                              service_name );
+                    return( SM_OKAY );
+                } else {
+                    DPRINTFE( "Failed to send kill signal to service (%s), "
+                              "error=%s.", service_name, strerror( errno ) );
+                    return( SM_FAILED );
+                }
+            }
         } else {
-            DPRINTFE( "Failed to send kill signal to service (%s), "
-                      "error=%s.", service_name, strerror( errno ) );
+            DPRINTFE( "Failed to send kill signal to service (%s) process "
+                      "group, error=%s.", service_name, strerror( errno ) );
             return( SM_FAILED );
         }
     }

@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014 Wind River Systems, Inc.
+// Copyright (c) 2014, 2026 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -305,6 +305,17 @@ SmErrorT sm_service_go_standby( SmServiceT* service )
     bool dependency_met;
     SmTimerIdT timer_id = SM_TIMER_ID_INVALID;
     SmErrorT error;
+
+    // If a go-standby action is still running (orphaned from a previous
+    // cycle), abort it before starting a new one to prevent process leaks
+    // that hold /dev/drbdX open indefinitely.
+    if(( SM_SERVICE_ACTION_GO_STANDBY == service->action_running )&&
+       ( -1 != service->action_pid ))
+    {
+        DPRINTFI( "Aborting stale go-standby action for service (%s), "
+                  "pid=%i.", service->name, service->action_pid );
+        sm_service_go_standby_abort( service );
+    }
 
     // Are go-standby dependencies met?
     error =  sm_service_dependency_go_standby_met( service, &dependency_met );
