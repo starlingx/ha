@@ -819,6 +819,27 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('rook-mon-exit','enable','lsb-script','','r
 INSERT INTO "SERVICE_ACTIONS" VALUES('rook-mon-exit','disable','lsb-script','','rook-mon-exit','stop','',0,0,0,360,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('rook-mon-exit','audit-enabled','lsb-script','','rook-mon-exit','status','',2,4,4,15,60);
 INSERT INTO "SERVICE_ACTIONS" VALUES('rook-mon-exit','audit-disabled','lsb-script','','rook-mon-exit','status','',0,0,0,15,40);
+-- SCST iSCSI gateway active-role follow service. stx-puppet provisions the
+-- service-group-member on AIO-DX and Standard, but without these rows Service
+-- Manager has no such service: the provision is a no-op, the active node is
+-- never labelled, and the gateway Deployment's required nodeAffinity can never
+-- be satisfied. Modelled on rook-mon-exit, and chained behind the DRBD platform
+-- filesystem that carries the gateway's APTPL reservation state. The same rows
+-- are in sm-patch.sql for systems whose database predates the service.
+INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','scst-gw-exit','critical' FROM "SERVICE_GROUP_MEMBERS";
+INSERT INTO "SERVICES" SELECT MAX(id) + 1, 'no','scst-gw-exit','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','scst-gw-exit','not-applicable','enable','drbd-platform','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','drbd-platform','not-applicable','disable','scst-gw-exit','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','scst-gw-exit','not-applicable','enable','platform-fs','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','platform-fs','not-applicable','disable','scst-gw-exit','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','scst-gw-exit','not-applicable','enable','cluster-host-ipv4','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cluster-host-ipv4','not-applicable','disable','scst-gw-exit','disabled');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','scst-gw-exit','not-applicable','enable','cluster-host-ipv6','enabled-active');
+INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','cluster-host-ipv6','not-applicable','disable','scst-gw-exit','disabled');
+INSERT INTO "SERVICE_ACTIONS" VALUES('scst-gw-exit','enable','lsb-script','','scst-gw-exit','start','',2,2,2,30,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('scst-gw-exit','disable','lsb-script','','scst-gw-exit','stop','',0,0,0,120,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('scst-gw-exit','audit-enabled','lsb-script','','scst-gw-exit','status','',2,4,4,15,60);
+INSERT INTO "SERVICE_ACTIONS" VALUES('scst-gw-exit','audit-disabled','lsb-script','','scst-gw-exit','status','',0,0,0,15,40);
 INSERT INTO "SERVICE_GROUP_MEMBERS" SELECT MAX(id) + 1,'no','controller-services','rook-fs','critical' FROM "SERVICE_GROUP_MEMBERS";
 INSERT INTO "SERVICES" SELECT MAX(id) + 1,'no','rook-fs','initial','initial','none','none',2,1,90000,4,16,'' FROM "SERVICES";
 INSERT INTO "SERVICE_DEPENDENCY" VALUES('action','rook-fs','not-applicable','enable','drbd-rook','enabled-active');
