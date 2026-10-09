@@ -568,6 +568,77 @@ SmErrorT _clean_failed_db( const char* sm_db_name )
 // ****************************************************************************
 
 // ****************************************************************************
+// Database - Is Populated Callback
+// ================================
+static int sm_db_is_populated_callback( void* user_data, int num_cols,
+    char **col_data, char **col_name )
+{
+    bool* is_populated = (bool*) user_data;
+
+    // A row with a non-empty value means sm_server_port is present.
+    if(( 0 < num_cols ) && ( NULL != col_data[0] ) &&
+       ( '\0' != col_data[0][0] ))
+    {
+        *is_populated = true;
+    }
+    return( 0 );
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Database - Is Populated
+// =======================
+// Returns check_passed=true only if the (main) runtime database contains a
+// non-empty 'sm_server_port' in CONFIGURATION. An empty/0-byte or table-less
+// sqlite file is "present" and passes PRAGMA integrity_check, so this content
+// probe is what distinguishes a usable runtime database from one that must be
+// re-seeded from the master.
+static SmErrorT sm_db_is_populated( const char* sm_db_name,
+    bool* check_passed )
+{
+    int rc;
+    char* sqlite3_error = NULL;
+    SmDbHandleT* sm_db_handle;
+    SmErrorT error;
+
+    *check_passed = false;
+
+    error = sm_db_connect( sm_db_name, &sm_db_handle, true );
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to open database (%s), error=%s.", sm_db_name,
+                  sm_error_str( error ) );
+        return( error );
+    }
+
+    // If the CONFIGURATION table is missing (empty/table-less db), sqlite3_exec
+    // returns an error ("no such table"); treat that as "sm_server_port absent".
+    rc = sqlite3_exec( (sqlite3*) sm_db_handle,
+                       "SELECT VALUE FROM CONFIGURATION "
+                       "WHERE KEY = 'sm_server_port';",
+                       sm_db_is_populated_callback, check_passed,
+                       &sqlite3_error );
+    if( SQLITE_OK != rc )
+    {
+        DPRINTFI( "Database (%s) sm_server_port query failed (rc=%i, "
+                  "error=%s); treating as absent.", sm_db_name, rc,
+                  sqlite3_error ? sqlite3_error : "n/a" );
+        sqlite3_free( sqlite3_error );
+        *check_passed = false;
+    }
+
+    error = sm_db_disconnect( sm_db_handle );
+    if( SM_OKAY != error )
+    {
+        DPRINTFE( "Failed to close database (%s), error=%s.", sm_db_name,
+                  sm_error_str( error ) );
+    }
+
+    return( SM_OKAY );
+}
+// ****************************************************************************
+
+// ****************************************************************************
 // Database - Configure
 // ====================
 SmErrorT sm_db_configure( const char* sm_db_name, SmDbTypeT sm_db_type )
@@ -603,6 +674,25 @@ SmErrorT sm_db_configure( const char* sm_db_name, SmDbTypeT sm_db_type )
         }
 
         copy_master_db = !check_passed;
+    }
+
+    // An empty/table-less db passes the integrity check above but has no
+    // usable config; re-seed the main db from master in that case too.
+    if(( !copy_master_db ) &&
+       ( 0 == strcmp( SM_DATABASE_NAME, sm_db_name )))
+    {
+        bool is_populated = false;
+        error = sm_db_is_populated( sm_db_name, &is_populated );
+        if(( SM_OKAY != error ) || ( !is_populated ))
+        {
+            struct stat db_stat;
+            long long db_size = ( 0 == stat( sm_db_name, &db_stat ))
+                                ? (long long) db_stat.st_size : -1;
+            DPRINTFI( "Runtime database (%s) has no usable config "
+                      "(sm_server_port missing, file size=%lld); re-seeding "
+                      "from master.", sm_db_name, db_size );
+            copy_master_db = true;
+        }
     }
 
     if( copy_master_db )
