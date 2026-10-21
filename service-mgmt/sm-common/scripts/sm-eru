@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# Copyright (c) 2014 Wind River Systems, Inc.
+# Copyright (c) 2014, 2026 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -20,7 +20,7 @@
 # Default-Stop: 0 6
 ### END INIT INFO
 
-. /etc/init.d/functions
+. /lib/lsb/init-functions
 
 RETVAL=0
 
