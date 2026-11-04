@@ -26,9 +26,33 @@
 
 #define SM_SERVICE_ACTION_VALIDATE_TIMER_IN_MS              60000
 
+// A composed systemd template instance unit name ("<base>@<instance>.service")
+// can be longer than PLUGIN_NAME alone, since the instance token comes from
+// the much larger PLUGIN_PARAMETERS field. Size the composition buffer with
+// headroom for the '@', ".service" suffix, and a reasonable instance token.
+#define SM_SERVICE_ACTION_SYSD_UNIT_NAME_MAX_CHAR \
+    (SM_SERVICE_ACTION_PLUGIN_NAME_MAX_CHAR + 40)
+
+// Forward declarations
+static bool sm_service_action_get_systemd_unit_path( char unit_file[],
+    char path[], size_t path_size );
+
+static bool sm_service_action_systemd_template_instance(
+    const char plugin_name[], const char instance[], char unit[],
+    size_t unit_size );
+
 // ****************************************************************************
 // Service Action - Validate
 // =========================
+/**
+ * @brief Recompute the plugin file hash and detect if the plugin changed on
+ *        disk since the last validation. Best-effort and rate-limited by
+ *        SM_SERVICE_ACTION_VALIDATE_TIMER_IN_MS; does nothing if too little
+ *        time has elapsed or the plugin file cannot be read.
+ *
+ * @param[in,out] action_data  Action whose plugin is validated; its stored
+ *                             hash and last-validate timestamp are updated.
+ */
 static void sm_service_action_validate( SmServiceActionDataT* action_data )
 {
     int bytes;
@@ -61,6 +85,15 @@ static void sm_service_action_validate( SmServiceActionDataT* action_data )
         snprintf( plugin_exec, sizeof(plugin_exec), "%s/%s/%s",
                   SM_SERVICE_ACTION_PLUGIN_TYPE_OCF_PLUGIN_DIR,
                   action_data->plugin_class, action_data->plugin_name );
+    } else if( ( 0 == strcmp( SM_SERVICE_ACTION_PLUGIN_TYPE_SYSD_SCRIPT,
+                     action_data->plugin_type ) ) ||
+               ( 0 == strcmp( SM_SERVICE_ACTION_PLUGIN_TYPE_SYSD_TEMPLATE,
+                     action_data->plugin_type ) ) )
+    {
+        // Gets the on-disk unit file pathname
+        (void) sm_service_action_get_systemd_unit_path(
+                   action_data->plugin_name, plugin_exec,
+                   sizeof(plugin_exec) );
     } else {
         snprintf( plugin_exec, sizeof(plugin_exec), "%s",
                   action_data->plugin_name );
@@ -104,6 +137,14 @@ static void sm_service_action_validate( SmServiceActionDataT* action_data )
 // ****************************************************************************
 // Service Action - Exist
 // ======================
+/**
+ * @brief Check whether the given action is defined for the service.
+ *
+ * @param[in] service_name  Service name.
+ * @param[in] action        Action to look up.
+ *
+ * @return SM_OKAY if the action exists; SM_NOT_FOUND otherwise.
+ */
 SmErrorT sm_service_action_exist( char service_name[], SmServiceActionT action )
 {
     SmServiceActionDataT* action_data;
@@ -123,6 +164,15 @@ SmErrorT sm_service_action_exist( char service_name[], SmServiceActionT action )
 // ****************************************************************************
 // Service Action - Interval
 // =========================
+/**
+ * @brief Get the audit interval for the given action, in milliseconds.
+ *
+ * @param[in]  service_name    Service name.
+ * @param[in]  action          Action to look up.
+ * @param[out] interval_in_ms  Interval in milliseconds (0 if not found).
+ *
+ * @return SM_OKAY if the action exists; SM_NOT_FOUND otherwise.
+ */
 SmErrorT sm_service_action_interval( char service_name[],
     SmServiceActionT action, int* interval_in_ms )
 {
@@ -147,6 +197,17 @@ SmErrorT sm_service_action_interval( char service_name[],
 // ****************************************************************************
 // Service Action - Maximum Retries
 // ================================
+/**
+ * @brief Get the configured retry limits for the given action.
+ *
+ * @param[in]  service_name         Service name.
+ * @param[in]  action               Action to look up.
+ * @param[out] max_failure_retries  Max retries on failure (0 if not found).
+ * @param[out] max_timeout_retries  Max retries on timeout (0 if not found).
+ * @param[out] max_total_retries    Max total retries (0 if not found).
+ *
+ * @return SM_OKAY if the action exists; SM_NOT_FOUND otherwise.
+ */
 SmErrorT sm_service_action_max_retries( char service_name[],
     SmServiceActionT action, int* max_failure_retries,
     int* max_timeout_retries, int* max_total_retries )
@@ -176,6 +237,22 @@ SmErrorT sm_service_action_max_retries( char service_name[],
 // ****************************************************************************
 // Service Action - Plugin Result
 // ==============================
+/**
+ * @brief Map a plugin result to an action result via the result table,
+ *        trying progressively broader keys: exact exit code, then "other"
+ *        exit code, then "default" plugin command, then "default" command with
+ *        "other" exit code.
+ *
+ * @param[in]  service_name      Service name (for logging).
+ * @param[in]  action            Action (for logging).
+ * @param[in]  plugin_type       Plugin type key.
+ * @param[in]  plugin_name       Plugin name key.
+ * @param[in]  plugin_command    Plugin command key.
+ * @param[in]  plugin_exit_code  Plugin exit code key.
+ * @param[out] action_result     Matched result-table entry, if found.
+ *
+ * @return SM_OKAY if a matching entry was found; SM_NOT_FOUND otherwise.
+ */
 static SmErrorT sm_service_action_plugin_result( char service_name[],
     SmServiceActionT action, char plugin_type[], char plugin_name[],
     char plugin_command[], char plugin_exit_code[],
@@ -239,6 +316,24 @@ static SmErrorT sm_service_action_plugin_result( char service_name[],
 // ****************************************************************************
 // Service Action - Result
 // =======================
+/**
+ * @brief Translate a plugin exit code into the action result and resulting
+ *        service state/status/condition, using the result table (with a
+ *        fallback to the "default" plugin name). Special exit codes map to
+ *        "plugin-failure"/"plugin-timeout" keys.
+ *
+ * @param[in]  exit_code          Plugin exit code (or a special SM code).
+ * @param[in]  service_name       Service name.
+ * @param[in]  action             Action that was run.
+ * @param[out] action_result      Resulting action result.
+ * @param[out] service_state      Resulting service state.
+ * @param[out] service_status     Resulting service status.
+ * @param[out] service_condition  Resulting service condition.
+ * @param[out] reason_text        Reason text (currently cleared to empty).
+ *
+ * @return SM_OKAY on success; SM_NOT_FOUND if the action is unknown; an error
+ *         code on lookup failure.
+ */
 SmErrorT sm_service_action_result( int exit_code, char service_name[],
     SmServiceActionT action, SmServiceActionResultT* action_result,
     SmServiceStateT* service_state, SmServiceStatusT* service_status,
@@ -319,6 +414,17 @@ SmErrorT sm_service_action_result( int exit_code, char service_name[],
 // ****************************************************************************
 // Service Action - Abort
 // ======================
+/**
+ * @brief Abort a running action by killing its process group (falling back to
+ *        the single pid). A process group is used so child processes (sleep,
+ *        drbdadm) are also terminated.
+ *
+ * @param[in] service_name  Service name (for logging).
+ * @param[in] process_id    Pid of the action process to abort.
+ *
+ * @return SM_OKAY if the process was killed or already gone; SM_FAILED on an
+ *         invalid pid or kill error.
+ */
 SmErrorT sm_service_action_abort( char service_name[], int process_id )
 {
 //
@@ -381,6 +487,18 @@ SmErrorT sm_service_action_abort( char service_name[], int process_id )
 // ****************************************************************************
 // Service Action - Setup Instance Environment Variables
 // =====================================================
+/**
+ * @brief Set the per-instance environment variables for the plugin, including
+ *        the OCF_RA_VERSION_* variables and OCF_RESKEY_* parameters parsed
+ *        from the instance parameters (key=value list).
+ *
+ * @param[in] instance_name    Instance name.
+ * @param[in] instance_params  Instance parameters ("key=value" list).
+ * @param[in] action_data      Action being run (plugin type/params).
+ *
+ * @return SM_OKAY on success; SM_FAILED if an environment variable could not
+ *         be set.
+ */
 static SmErrorT sm_service_action_setup_instance_env_vars( char instance_name[],
     char instance_params[], SmServiceActionDataT* action_data )
 {
@@ -514,6 +632,15 @@ ERROR:
 // ****************************************************************************
 // Service Action - Setup Plugin Environment Variables
 // ===================================================
+/**
+ * @brief Set the plugin-level environment variables derived from the action's
+ *        plugin parameters.
+ *
+ * @param[in] action_data  Action being run (plugin parameters).
+ *
+ * @return SM_OKAY on success; SM_FAILED if an environment variable could not
+ *         be set.
+ */
 static SmErrorT sm_service_action_setup_plugin_env_vars(
     SmServiceActionDataT* action_data )
 {
@@ -624,6 +751,16 @@ ERROR:
 // ****************************************************************************
 // Service Action - Setup Environment
 // ==================================
+/**
+ * @brief Set up the full plugin environment before exec: both the per-instance
+ *        and plugin-level environment variables.
+ *
+ * @param[in] instance_name    Instance name.
+ * @param[in] instance_params  Instance parameters ("key=value" list).
+ * @param[in] action_data      Action being run.
+ *
+ * @return SM_OKAY on success; an error code otherwise.
+ */
 static SmErrorT sm_service_action_setup_env( char instance_name[],
     char instance_params[], SmServiceActionDataT* action_data )
 {
@@ -655,17 +792,511 @@ static SmErrorT sm_service_action_setup_env( char instance_name[],
 // ****************************************************************************
 
 // ****************************************************************************
+// Service Action - Is Systemd Template
+// =====================================
+/**
+ * @brief Test whether the service is managed as a systemd template-instance
+ *        unit (sysd-template).
+ *
+ * @param[in] action_data  Action to test.
+ *
+ * @return true if the plugin type is a systemd template; false otherwise.
+ */
+static bool is_systemd_template( SmServiceActionDataT* action_data )
+{
+    return( 0 == strncmp( SM_SERVICE_ACTION_PLUGIN_TYPE_SYSD_TEMPLATE,
+                          action_data->plugin_type,
+                          strlen( SM_SERVICE_ACTION_PLUGIN_TYPE_SYSD_TEMPLATE ) ) );
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Service Action - Is Systemd
+// ===========================
+/**
+ * @brief Test whether the service is driven via "systemctl". True for both
+ *        plain systemd units (sysd-service) and template-instance units
+ *        (sysd-template).
+ *
+ * @param[in] action_data  Action to test.
+ *
+ * @return true if the plugin type is a systemd unit or template; false
+ *         otherwise.
+ */
+static bool is_systemd( SmServiceActionDataT* action_data )
+{
+    return( ( 0 == strncmp( SM_SERVICE_ACTION_PLUGIN_TYPE_SYSD_SCRIPT,
+                            action_data->plugin_type,
+                            strlen( SM_SERVICE_ACTION_PLUGIN_TYPE_SYSD_SCRIPT ) ) ) ||
+            ( 0 == strncmp( SM_SERVICE_ACTION_PLUGIN_TYPE_SYSD_TEMPLATE,
+                            action_data->plugin_type,
+                            strlen( SM_SERVICE_ACTION_PLUGIN_TYPE_SYSD_TEMPLATE ) ) ) );
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Service Action - Compose Systemd Template Instance Unit Name
+// ============================================================
+/**
+ * @brief Compose the instance unit name to be passed to "systemctl"
+ *        (e.g. "systemctl status paramdemo@one.service").
+ *
+ * @param[in]  plugin_name  Template unit file name (e.g. "paramdemo@.service").
+ * @param[in]  instance     Bare instance token (e.g. "one").
+ * @param[out] unit         Composed instance unit name
+ *                          (e.g. "paramdemo@one.service").
+ * @param[in]  unit_size    Size in bytes of the "unit" buffer
+ *                          (e.g. sizeof(unit)).
+ *
+ * @return true on success; false if the composed name does not fit in "unit"
+ *         (truncated). On truncation "unit" holds the truncated string.
+ */
+static bool sm_service_action_systemd_template_instance(
+    const char plugin_name[], const char instance[], char unit[],
+    size_t unit_size )
+{
+    char base[SM_SERVICE_ACTION_PLUGIN_NAME_MAX_CHAR];
+    snprintf( base, sizeof(base), "%s", plugin_name );
+
+    // Truncate at the '@' to get the template base ("foo@.service" -> "foo").
+    char* at = strchr( base, '@' );
+    if( NULL != at )
+    {
+        *at = '\0';
+    }
+
+    int needed = snprintf( unit, unit_size, "%s@%s.service", base, instance );
+    if( ( needed < 0 ) || ( (size_t) needed >= unit_size ) )
+    {
+        return( false );
+    }
+    return( true );
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Service Action - Existence Check For Systemd Service File
+// ====================================================
+/**
+ * @brief Locate a systemd unit file, checking the writable override directory
+ *        (/etc/systemd/system) first, then the packaged location
+ *        (/usr/lib/systemd/system). Supports template unit files.
+ *
+ * @param[in]  unit_file  Unit file name to look for.
+ * @param[out] path       Resolved path (set to the packaged location if not
+ *                        found in either directory).
+ * @param[in]  path_size  Size in bytes of the "path" buffer.
+ *
+ * @return true if the unit file exists in one of the two directories; false
+ *         otherwise (both locations are logged).
+ */
+static bool sm_service_action_get_systemd_unit_path( char unit_file[],
+    char path[], size_t path_size )
+{
+    snprintf( path, path_size, "%s/%s",
+              SM_SERVICE_ACTION_PLUGIN_TYPE_SYSD_ETC_DIR, unit_file );
+    if( 0 == access( path, F_OK ) )
+    {
+        return( true );
+    }
+
+    snprintf( path, path_size, "%s/%s",
+              SM_SERVICE_ACTION_PLUGIN_TYPE_SYSD_DIR, unit_file );
+    if( 0 == access( path, F_OK ) )
+    {
+        return( true );
+    }
+
+    DPRINTFE( "Systemd unit file (%s) not found in %s or %s.",
+              unit_file,
+              SM_SERVICE_ACTION_PLUGIN_TYPE_SYSD_ETC_DIR,
+              SM_SERVICE_ACTION_PLUGIN_TYPE_SYSD_DIR );
+    return( false );
+}
+// ****************************************************************************
+
+// This table maps the plug-in command specified in the SM
+// database table SM_SERVICE_ACTIONS for the service
+// with the external  call to the "systemctl" command.
+static const char* sm_systemd_cmd_map[][2] =
+{
+    { "start",   "start"  },
+    { "standby", "start"  },
+    { "active",  "start"  },
+    { "stop",    "stop"   },
+    { "status",  "status" },
+ };
+
+// ****************************************************************************
+// Service Action - Get service action from plugin command
+// =================================================
+/**
+ * @brief Map an SM plugin command (e.g. "start"/"stop"/"status") to its
+ *        "systemctl" verb using sm_systemd_cmd_map.
+ *
+ * @param[in]  service_name    Service name (for logging).
+ * @param[in]  plugin_command  SM plugin command to map.
+ * @param[out] systemctl_cmd   Mapped systemctl verb (empty if unmapped).
+ *
+ * @return SM_OKAY if the command was mapped; SM_FAILED otherwise.
+ */
+static SmErrorT sm_service_action_get_systemd_cmd( char service_name[],
+    char plugin_command[], char systemctl_cmd[] )
+{
+    unsigned int i;
+
+    systemctl_cmd[0] = '\0';
+
+    for( i = 0; i < sizeof(sm_systemd_cmd_map) / sizeof(sm_systemd_cmd_map[0]); ++i )
+    {
+        if( 0 == strcmp( plugin_command, sm_systemd_cmd_map[i][0] ) )
+        {
+            snprintf( systemctl_cmd, SM_SERVICE_ACTION_PLUGIN_COMMAND_MAX_CHAR,
+                      "%s", sm_systemd_cmd_map[i][1] );
+            break;
+        }
+    }
+
+    if( '\0' == systemctl_cmd[0] )
+    {
+        DPRINTFE( "Unrecognized plugin_command (%s) for service (%s).",
+                  plugin_command, service_name );
+        return( SM_FAILED );
+    }
+
+    return( SM_OKAY );
+}
+// ****************************************************************************
+
+
+// ****************************************************************************
+// Service Action - Resolve Plugin Exec Path
+// =========================================
+/**
+ * @brief Resolve the on-disk path/target used to run the action, based on
+ *        plugin type, and apply any type-specific pre-exec gates:
+ *          - LSB:    "<lsb_dir>/<plugin_name>"
+ *          - OCF:    "<ocf_plugin_dir>/<plugin_class>/<plugin_name>"
+ *          - systemd (plain or template): the unit file must exist in one of
+ *            the two unit directories; a template additionally requires a
+ *            non-empty instance token (PLUGIN_PARAMETERS).
+ *          - anything else: invalid plugin type.
+ *
+ * @param[in]  action_data  Action to resolve (plugin type/name/class/params).
+ * @param[out] plugin_exec  Resolved exec path or systemd unit file path.
+ * @param[in]  exec_size    Size in bytes of the "plugin_exec" buffer.
+ *
+ * @return SM_OKAY on success (with "plugin_exec" set to the resolved path);
+ *         an error code otherwise.
+ */
+static SmErrorT sm_service_action_resolve_exec(
+    SmServiceActionDataT* action_data, char plugin_exec[], size_t exec_size )
+{
+    if( 0 == strcmp( SM_SERVICE_ACTION_PLUGIN_TYPE_LSB_SCRIPT,
+                     action_data->plugin_type ) )
+    {
+        snprintf( plugin_exec, exec_size, "%s/%s",
+                  SM_SERVICE_ACTION_PLUGIN_TYPE_LSB_DIR,
+                  action_data->plugin_name );
+        return( SM_OKAY );
+    }
+
+    if( 0 == strcmp( SM_SERVICE_ACTION_PLUGIN_TYPE_OCF_SCRIPT,
+                     action_data->plugin_type ) )
+    {
+        snprintf( plugin_exec, exec_size, "%s/%s/%s",
+                  SM_SERVICE_ACTION_PLUGIN_TYPE_OCF_PLUGIN_DIR,
+                  action_data->plugin_class, action_data->plugin_name );
+        return( SM_OKAY );
+    }
+
+    if( is_systemd( action_data ) )
+    {
+        // Existence check for Systemd service file
+        if( !sm_service_action_get_systemd_unit_path(
+                action_data->plugin_name, plugin_exec, exec_size ) )
+        {
+            DPRINTFE( "Service (%s) systemd unit (%s) not found.",
+                      action_data->service_name, action_data->plugin_name );
+            return( SM_FAILED );
+        }
+
+        // A template unit needs an instance token (from PLUGIN_PARAMETERS)
+        // to form "<base>@<instance>.service". Reject an empty value here
+        // rather than exec an invalid unit name.
+        if( is_systemd_template( action_data ) &&
+            ( '\0' == action_data->plugin_params[0] ) )
+        {
+            DPRINTFE( "Service (%s) systemd template unit (%s) has no "
+                      "instance (PLUGIN_PARAMETERS is empty).",
+                      action_data->service_name, action_data->plugin_name );
+            return( SM_FAILED );
+        }
+        return( SM_OKAY );
+    }
+
+    snprintf( plugin_exec, exec_size, "%s", action_data->plugin_name );
+    DPRINTFE( "Invalid Plug In Type. Plug In Name = %s Plug In Type = %s "
+              "Svc Name = %s", action_data->plugin_name,
+              action_data->plugin_type, action_data->service_name );
+    return( SM_FAILED );
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Service Action - Validate Plugin File
+// ======================================
+/**
+ * @brief Validate the resolved plugin file prior to exec. LSB and OCF scripts
+ *        are exec'd directly, so they must exist and be executable
+ *        (F_OK | X_OK). Systemd units are passed to "systemctl" (not exec'd)
+ *        and do not require the executable bit. In all cases the file must
+ *        exist and be non-empty.
+ *
+ * @param[in] action_data  Action being validated (used for type and logging).
+ * @param[in] plugin_exec  Resolved plugin path to validate.
+ *
+ * @return SM_OKAY if the plugin file is valid; an error code otherwise.
+ */
+static SmErrorT sm_service_action_validate_plugin_file(
+    SmServiceActionDataT* action_data, const char plugin_exec[] )
+{
+    struct stat stat_data;
+
+    if( !is_systemd( action_data ) )
+    {
+        if( 0 > access( plugin_exec, F_OK | X_OK ) )
+        {
+            DPRINTFE( "Service (%s) plugin (%s) access failed, error=%s.",
+                      action_data->service_name, plugin_exec,
+                      strerror( errno ) );
+            return( SM_FAILED );
+        }
+    }
+
+    if( 0 > stat( plugin_exec, &stat_data ) )
+    {
+        DPRINTFE( "Service (%s) plugin (%s) stat failed, error=%s.",
+                  action_data->service_name, plugin_exec, strerror( errno ) );
+        return( SM_FAILED );
+    }
+
+    if( 0 >= stat_data.st_size )
+    {
+        DPRINTFE( "Service (%s) plugin (%s) has zero size.",
+                  action_data->service_name, action_data->plugin_name );
+        return( SM_FAILED );
+    }
+
+    return( SM_OKAY );
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Service Action - Child Prepare
+// ==============================
+/**
+ * @brief Set up the forked child process before exec: new process group, close
+ *        all inherited file descriptors, reopen stdin/stdout/stderr to
+ *        /dev/null, and raise scheduling priority. On any hard failure the
+ *        child exits directly with SM_SERVICE_ACTION_PLUGIN_FAILURE (this
+ *        function runs only in the child).
+ *
+ * @param[in] action_data  Action being run (used for logging only).
+ */
+static void sm_service_action_child_prepare(
+    SmServiceActionDataT* action_data )
+{
+    struct rlimit file_limits;
+    unsigned int fd_i;
+    int result;
+
+    if( 0 > setpgid( 0, 0 ) )
+    {
+        DPRINTFE( "Failed to set process group id for service (%s), "
+                  "error=%s.", action_data->service_name, strerror( errno ) );
+        exit( SM_SERVICE_ACTION_PLUGIN_FAILURE );
+    }
+
+    if( 0 > getrlimit( RLIMIT_NOFILE, &file_limits ) )
+    {
+        DPRINTFE( "Failed to get file limits for service (%s), error=%s.",
+                  action_data->service_name, strerror( errno ) );
+        exit( SM_SERVICE_ACTION_PLUGIN_FAILURE );
+    }
+
+    for( fd_i = 0; fd_i < file_limits.rlim_cur; ++fd_i )
+    {
+        close( fd_i );
+    }
+
+    if( 0 > open( "/dev/null", O_RDONLY ) )
+    {
+        DPRINTFE( "Failed to open stdin to /dev/null for service (%s), "
+                  "error=%s.", action_data->service_name, strerror( errno ) );
+    }
+
+    if( 0 > open( "/dev/null", O_WRONLY ) )
+    {
+        DPRINTFE( "Failed to open stdout to /dev/null for service (%s), "
+                  "error=%s.", action_data->service_name, strerror( errno ) );
+    }
+
+    if( 0 > open( "/dev/null", O_WRONLY ) )
+    {
+        DPRINTFE( "Failed to open stderr to /dev/null for service (%s), "
+                  "error=%s.", action_data->service_name, strerror( errno ) );
+    }
+
+    result = setpriority( PRIO_PROCESS, getpid(), -1 );
+    if( 0 > result )
+    {
+        DPRINTFE( "Failed to set priority of process, error=%s.",
+                  strerror( errno ) );
+        exit( SM_SERVICE_ACTION_PLUGIN_FAILURE );
+    }
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Service Action - Child Exec Systemd
+// ===================================
+/**
+ * @brief Exec "systemctl <cmd> <unit>" in the child. Composes the unit name: a
+ *        plain unit (sysd-service) uses PLUGIN_NAME as-is
+ *        (e.g. "mtcAgent.service"); a template (sysd-template) composes
+ *        "<base>@<instance>.service" from PLUGIN_NAME and the PLUGIN_PARAMETERS
+ *        instance token (e.g. "paramdemo@one.service"). Returns only on exec
+ *        failure; on any hard error the child exits with
+ *        SM_SERVICE_ACTION_PLUGIN_FAILURE.
+ *
+ * @param[in] action_data  Systemd action to run.
+ */
+static void sm_service_action_child_exec_systemd(
+    SmServiceActionDataT* action_data )
+{
+    char systemctl_cmd[SM_SERVICE_ACTION_PLUGIN_COMMAND_MAX_CHAR];
+    char unit_name[SM_SERVICE_ACTION_SYSD_UNIT_NAME_MAX_CHAR];
+
+    if( SM_OKAY != sm_service_action_get_systemd_cmd(
+            action_data->service_name, action_data->plugin_command,
+            systemctl_cmd ) )
+    {
+        DPRINTFE( "Service (%s) has no systemctl mapping for plugin "
+                  "command (%s).", action_data->service_name,
+                  action_data->plugin_command );
+        exit( SM_SERVICE_ACTION_PLUGIN_FAILURE );
+    }
+
+    if( is_systemd_template( action_data ) )
+    {
+        if( !sm_service_action_systemd_template_instance(
+                action_data->plugin_name, action_data->plugin_params,
+                unit_name, sizeof(unit_name) ) )
+        {
+            DPRINTFE( "Service (%s) systemd template unit name "
+                      "(%s@%s.service) too long for buffer (%zu).",
+                      action_data->service_name, action_data->plugin_name,
+                      action_data->plugin_params, sizeof(unit_name) );
+            exit( SM_SERVICE_ACTION_PLUGIN_FAILURE );
+        }
+    } else {
+        snprintf( unit_name, sizeof(unit_name), "%s",
+                  action_data->plugin_name );
+    }
+
+    // e.g. systemctl start mtcAgent.service
+    //      systemctl start ip-addr@oam-ipv4.service
+    char* argv[] = { (char*)"systemctl", systemctl_cmd, unit_name, NULL };
+    if( 0 > execv( "/usr/bin/systemctl", argv ) )
+    {
+        DPRINTFE( "Failed to exec systemd command for service (%s), "
+                  "error=%s.", action_data->service_name, strerror( errno ) );
+        exit( SM_SERVICE_ACTION_PLUGIN_FAILURE );
+    }
+}
+// ****************************************************************************
+
+// ****************************************************************************
+// Service Action - Child Exec
+// ===========================
+/**
+ * @brief Exec the action in the child process. Systemd units are dispatched via
+ *        "systemctl"; LSB and OCF scripts are exec'd directly as
+ *        "<plugin_exec> <plugin_command>". When SM_SERVICE_ACTION_TIME_PLUGIN
+ *        is defined, the direct-exec path is wrapped with "/usr/bin/time" for
+ *        profiling. Returns only on exec failure (caller then exits with the
+ *        failure code).
+ *
+ * @param[in] action_data  Action to exec.
+ * @param[in] plugin_exec  Resolved exec path (LSB/OCF only).
+ */
+static void sm_service_action_child_exec(
+    SmServiceActionDataT* action_data, char plugin_exec[] )
+{
+    if( is_systemd( action_data ) )
+    {
+        sm_service_action_child_exec_systemd( action_data );
+        return;
+    }
+
+#ifdef SM_SERVICE_ACTION_TIME_PLUGIN
+    char time_exec[] = "/usr/bin/time";
+    char time_append[] = "-a";
+    char time_output[] = "-o";
+    char time_file[80];
+    char* argv[] = { time_exec, time_append, time_output, time_file,
+                     plugin_exec, action_data->plugin_command, NULL };
+
+    snprintf( time_file, sizeof(time_file), "/tmp/%s_%s-timing.txt",
+              action_data->service_name, action_data->plugin_command );
+
+    if( 0 > execv( time_exec, argv ) )
+    {
+        DPRINTFE( "Failed to exec command for service (%s), error=%s.",
+                  action_data->service_name, strerror( errno ) );
+        exit( SM_SERVICE_ACTION_PLUGIN_FAILURE );
+    }
+#else
+    char* argv[] = { plugin_exec, action_data->plugin_command, NULL };
+    if( 0 > execv( plugin_exec, argv ) )
+    {
+        DPRINTFE( "Failed to exec command for service (%s), error=%s.",
+                  action_data->service_name, strerror( errno ) );
+        exit( SM_SERVICE_ACTION_PLUGIN_FAILURE );
+    }
+#endif // SM_SERVICE_ACTION_TIME_PLUGIN
+}
+// ****************************************************************************
+
+// ****************************************************************************
 // Service Action - Run
 // ====================
+/**
+ * @brief Run an action for a service: resolve and validate the plugin, then
+ *        fork a child that sets up its environment and exec's the plugin
+ *        (systemctl for systemd units, the script directly for LSB/OCF). An
+ *        unmanaged service (a "<name>.unmanaged" marker) force-passes the
+ *        action. The parent returns immediately with the child pid; the
+ *        caller is expected to reap it and interpret the exit code.
+ *
+ * @param[in]  service_name    Service name.
+ * @param[in]  instance_name   Instance name (for environment setup).
+ * @param[in]  instance_params Instance parameters (for environment setup).
+ * @param[in]  action          Action to run.
+ * @param[out] process_id      Pid of the forked child (-1 on failure).
+ * @param[out] timeout_in_ms   Action timeout in milliseconds (0 on failure).
+ *
+ * @return SM_OKAY if the child was forked; SM_NOT_FOUND if the action is
+ *         unknown; an error code on resolve/validate/fork failure.
+ */
 SmErrorT sm_service_action_run( char service_name[], char instance_name[],
     char instance_params[], SmServiceActionT action, int* process_id,
     int* timeout_in_ms )
 {
     pid_t pid;
     bool service_managed = true;
-    struct stat stat_data;
     char plugin_exec[SM_SERVICE_ACTION_PLUGIN_EXEC_MAX_CHAR];
-    int result;
     SmServiceActionDataT* action_data;
     SmErrorT error;
 
@@ -693,48 +1324,21 @@ SmErrorT sm_service_action_run( char service_name[], char instance_name[],
     {
         sm_service_action_validate( action_data );
 
-        if( 0 == strcmp( SM_SERVICE_ACTION_PLUGIN_TYPE_LSB_SCRIPT,
-                         action_data->plugin_type ) )
+        error = sm_service_action_resolve_exec( action_data, plugin_exec,
+                                                sizeof(plugin_exec) );
+        if( SM_OKAY != error )
         {
-            snprintf( plugin_exec, sizeof(plugin_exec), "%s/%s",
-                      SM_SERVICE_ACTION_PLUGIN_TYPE_LSB_DIR,
-                      action_data->plugin_name );
-
-        } else if( 0 == strcmp( SM_SERVICE_ACTION_PLUGIN_TYPE_OCF_SCRIPT,
-                                action_data->plugin_type ) )
-        {
-            snprintf( plugin_exec, sizeof(plugin_exec), "%s/%s/%s",
-                      SM_SERVICE_ACTION_PLUGIN_TYPE_OCF_PLUGIN_DIR,
-                      action_data->plugin_class, action_data->plugin_name );
-        } else {
-            snprintf( plugin_exec, sizeof(plugin_exec), "%s",
-                      action_data->plugin_name );
+            return( error );
         }
 
         DPRINTFD( "Plugin executable (%s) for service (%s).", plugin_exec,
                   action_data->service_name );
 
-        if( 0 > access( plugin_exec,  F_OK | X_OK ) )
+        error = sm_service_action_validate_plugin_file( action_data,
+                                                        plugin_exec );
+        if( SM_OKAY != error )
         {
-            DPRINTFE( "Service (%s) plugin (%s) access failed, error=%s.",
-                      action_data->service_name, plugin_exec, 
-                      strerror( errno ) );
-            return( SM_FAILED );
-        }
-
-        if( 0 > stat( plugin_exec, &stat_data ) )
-        {
-            DPRINTFE( "Service (%s) plugin (%s) stat failed, error=%s.",
-                      action_data->service_name, plugin_exec, 
-                      strerror( errno ) );
-            return( SM_FAILED );
-        }
-
-        if( 0 >= stat_data.st_size )
-        {
-            DPRINTFE( "Service (%s) plugin (%s) has zero size.",
-                      action_data->service_name, action_data->plugin_name );
-            return( SM_FAILED );
+            return( error );
         }
     }
 
@@ -747,61 +1351,10 @@ SmErrorT sm_service_action_run( char service_name[], char instance_name[],
 
     } else if( 0 == pid ) {
         // Child process.
-        struct rlimit file_limits;
-
         DPRINTFD( "Child process created for service (%s).",
                   action_data->service_name );
 
-        if( 0 > setpgid( 0, 0 ) )
-        {
-            DPRINTFE( "Failed to set process group id for service (%s), "
-                      "error=%s.", action_data->service_name,
-                      strerror( errno ) );
-            exit( SM_SERVICE_ACTION_PLUGIN_FAILURE );
-        }
-
-        if( 0 > getrlimit( RLIMIT_NOFILE, &file_limits ) )
-        {
-            DPRINTFE( "Failed to get file limits for service (%s), "
-                      "error=%s.", action_data->service_name,
-                      strerror( errno ) );
-            exit( SM_SERVICE_ACTION_PLUGIN_FAILURE );
-        }
-
-        unsigned int fd_i;
-        for( fd_i=0; fd_i < file_limits.rlim_cur; ++fd_i )
-        {
-            close( fd_i );
-        }
-
-        if( 0 > open( "/dev/null", O_RDONLY ) )
-        {
-            DPRINTFE( "Failed to open stdin to /dev/null for service (%s), "
-                      "error=%s.", action_data->service_name,
-                      strerror( errno ) );
-        }
-
-        if( 0 > open( "/dev/null", O_WRONLY ) )
-        {
-            DPRINTFE( "Failed to open stdout to /dev/null for service (%s), "
-                      "error=%s.", action_data->service_name, 
-                      strerror( errno ) );
-        }
-
-        if( 0 > open( "/dev/null", O_WRONLY ) )
-        {
-            DPRINTFE( "Failed to open stderr to /dev/null for service (%s), "
-                      "error=%s.", action_data->service_name,
-                      strerror( errno ) );
-        }
-
-        result = setpriority( PRIO_PROCESS, getpid(), -1 );
-        if( 0 > result )
-        {
-            DPRINTFE( "Failed to set priority of process, error=%s.",
-                      strerror( errno ) );
-            exit( SM_SERVICE_ACTION_PLUGIN_FAILURE );
-        }
+        sm_service_action_child_prepare( action_data );
 
         if( !service_managed )
         {
@@ -818,33 +1371,7 @@ SmErrorT sm_service_action_run( char service_name[], char instance_name[],
             exit( SM_SERVICE_ACTION_PLUGIN_FAILURE );
         }
 
-#ifdef SM_SERVICE_ACTION_TIME_PLUGIN
-        char time_exec[] = "/usr/bin/time";
-        char time_append[] = "-a";
-        char time_output[] = "-o";
-        char time_file[80];
-        char* argv[] = {time_exec, time_append, time_output, time_file,
-                        plugin_exec, action_data->plugin_command, NULL};
-
-        snprintf( time_file, sizeof(time_file), "/tmp/%s_%s-timing.txt",
-                  action_data->service_name, action_data->plugin_command );
-
-        if( 0 > execv( time_exec, argv ) )
-        {
-            DPRINTFE( "Failed to exec command for service (%s), "
-                      "error=%s.", action_data->service_name,
-                      strerror( errno ) );
-        }
-#else
-        char* argv[] = {plugin_exec, action_data->plugin_command, NULL};
-
-        if( 0 > execv( plugin_exec, argv ) )
-        {
-            DPRINTFE( "Failed to exec command for service (%s), "
-                      "error=%s.", action_data->service_name,
-                      strerror( errno ) );
-        }
-#endif // SM_SERVICE_ACTION_TIME_PLUGIN
+        sm_service_action_child_exec( action_data, plugin_exec );
 
         exit( SM_SERVICE_ACTION_PLUGIN_FAILURE );
 
@@ -864,6 +1391,13 @@ SmErrorT sm_service_action_run( char service_name[], char instance_name[],
 // ****************************************************************************
 // Service Action - Initialize
 // ===========================
+/**
+ * @brief Initialize the service action module: the action table and the action
+ *        result table.
+ *
+ * @return SM_OKAY on success; an error code if either table fails to
+ *         initialize.
+ */
 SmErrorT sm_service_action_initialize( void )
 {
     SmErrorT error;
@@ -891,6 +1425,12 @@ SmErrorT sm_service_action_initialize( void )
 // ****************************************************************************
 // Service Action - Finalize
 // =========================
+/**
+ * @brief Finalize the service action module: the action result table and the
+ *        action table.
+ *
+ * @return SM_OKAY (table finalize errors are logged but not propagated).
+ */
 SmErrorT sm_service_action_finalize( void )
 {
     SmErrorT error;

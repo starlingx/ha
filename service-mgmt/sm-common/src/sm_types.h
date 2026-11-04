@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2014-2023 Wind River Systems, Inc.
+// Copyright (c) 2014-2026 Wind River Systems, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -68,6 +68,16 @@ extern "C" {
 #else
 #define SM_SERVICE_ACTION_PLUGIN_TYPE_OCF_PLUGIN_DIR64 "/usr/lib64/ocf/resource.d"
 #endif
+
+// Plugin type for plain Systemd unit
+#define SM_SERVICE_ACTION_PLUGIN_TYPE_SYSD_SCRIPT     "sysd-service"
+// Plugin type for Systemd template
+#define SM_SERVICE_ACTION_PLUGIN_TYPE_SYSD_TEMPLATE   "sysd-template"
+// Packaged Systemd unit files location
+#define SM_SERVICE_ACTION_PLUGIN_TYPE_SYSD_DIR        "/usr/lib/systemd/system"
+// Vendor Systemd unit file location
+#define SM_SERVICE_ACTION_PLUGIN_TYPE_SYSD_ETC_DIR    "/etc/systemd/system"
+
 
 #define SM_SERVICE_ACTION_PLUGIN_TYPE_PYTHON_SCRIPT  "python-script"
 #define SM_SERVICE_ACTION_PLUGIN_TYPE_CUSTOM_SCRIPT  "custom-script"
