@@ -764,6 +764,28 @@ INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('ocf-script','Filesystem','stop','pl
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('lsb-script','openldap','status','0','success','enabled-active','','');
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('lsb-script','openldap','status','160','success','enabled-active','','');
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('lsb-script','openldap','status','161','success','enabled-active','degraded','FD-limit-reached');
+
+-- These database rows support the mapping of plug-in commands with Systemd return codes for plain Systemd units
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-service','default','status','0','success','enabled-active','unknown','unknown');
+-- Return code of 3 is when "systemctl status" queries a service that is down.
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-service','default','status','3','success','disabled','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-service','default','status','plugin-failure','failed','unknown','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-service','default','status','other','failed','unknown','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-service','default','default','plugin-failure','failed','unknown','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-service','default','default','plugin-timeout','failed','unknown','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-service','default','default','other','failed','unknown','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-service','default','default','0','success','unknown','unknown','unknown');
+
+-- These database rows support the mapping of plug-in commands with Systemd return codes for template Systemd units
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-template','default','status','0','success','enabled-active','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-template','default','status','3','success','disabled','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-template','default','status','plugin-failure','failed','unknown','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-template','default','status','other','failed','unknown','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-template','default','default','plugin-failure','failed','unknown','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-template','default','default','plugin-timeout','failed','unknown','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-template','default','default','other','failed','unknown','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-template','default','default','0','success','unknown','unknown','unknown');
+
 CREATE TABLE SCHEMA_VERSION (ID INTEGER PRIMARY KEY AUTOINCREMENT, MAJOR INTEGER, MINOR INTEGER);
 INSERT INTO "SCHEMA_VERSION" VALUES(2,0,0);
 CREATE TABLE CONFIGURATION ( ID INTEGER PRIMARY KEY AUTOINCREMENT, "KEY" CHAR(32), "VALUE" CHAR(32) );
