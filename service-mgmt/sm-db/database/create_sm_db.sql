@@ -771,6 +771,15 @@ INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-service','default','status','0
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-service','default','status','3','success','disabled','unknown','unknown');
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-service','default','status','plugin-failure','failed','unknown','unknown','unknown');
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-service','default','status','other','failed','unknown','unknown','unknown');
+-- "monitor" runs "systemctl restart" on a oneshot service unit which is
+-- intended to then call "monitor" or "status" action in a wrapped script.
+-- Return code of 0 is when the monitor succeeds; success if service is enabled
+-- Return code of 1 is when the monitor fails ; success if the service is disabled.
+-- Individual services can override the default behavior
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-service','default','monitor','0','success','enabled-active','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-service','default','monitor','1','success','disabled','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-service','default','monitor','plugin-failure','failed','unknown','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-service','default','monitor','other','failed','unknown','unknown','unknown');
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-service','default','default','plugin-failure','failed','unknown','unknown','unknown');
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-service','default','default','plugin-timeout','failed','unknown','unknown','unknown');
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-service','default','default','other','failed','unknown','unknown','unknown');
@@ -781,6 +790,10 @@ INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-template','default','status','
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-template','default','status','3','success','disabled','unknown','unknown');
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-template','default','status','plugin-failure','failed','unknown','unknown','unknown');
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-template','default','status','other','failed','unknown','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-template','default','monitor','0','success','enabled-active','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-template','default','monitor','1','success','disabled','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-template','default','monitor','plugin-failure','failed','unknown','unknown','unknown');
+INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-template','default','monitor','other','failed','unknown','unknown','unknown');
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-template','default','default','plugin-failure','failed','unknown','unknown','unknown');
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-template','default','default','plugin-timeout','failed','unknown','unknown','unknown');
 INSERT INTO "SERVICE_ACTION_RESULTS" VALUES('sysd-template','default','default','other','failed','unknown','unknown','unknown');
