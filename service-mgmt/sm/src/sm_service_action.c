@@ -918,13 +918,18 @@ static bool sm_service_action_get_systemd_unit_path( char unit_file[],
 // This table maps the plug-in command specified in the SM
 // database table SM_SERVICE_ACTIONS for the service
 // with the external  call to the "systemctl" command.
+//
+// "monitor" maps to "systemctl restart" so a oneshot systemd unit
+// that wraps a script's monitor/status action, can run on
+// every audit, even if the unit is still active from a previous run.
 static const char* sm_systemd_cmd_map[][2] =
 {
-    { "start",   "start"  },
-    { "standby", "start"  },
-    { "active",  "start"  },
-    { "stop",    "stop"   },
-    { "status",  "status" },
+    { "start",   "start"   },
+    { "standby", "start"   },
+    { "active",  "start"   },
+    { "stop",    "stop"    },
+    { "status",  "status"  },
+    { "monitor", "restart" },
  };
 
 // ****************************************************************************
