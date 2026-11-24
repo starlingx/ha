@@ -594,10 +594,10 @@ INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-engine','enable','ocf-script','open
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-engine','disable','ocf-script','openstack','dcorch-engine','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-engine','audit-enabled','ocf-script','openstack','dcorch-engine','monitor','',2,2,2,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcorch-engine','audit-disabled','ocf-script','openstack','dcorch-engine','monitor','',0,0,0,20,5);
-INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-manager','enable','ocf-script','openstack','dcmanager-manager','start','',2,2,2,20,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-manager','disable','ocf-script','openstack','dcmanager-manager','stop','',1,1,1,20,'');
-INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-manager','audit-enabled','ocf-script','openstack','dcmanager-manager','monitor','',2,2,2,20,5);
-INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-manager','audit-disabled','ocf-script','openstack','dcmanager-manager','monitor','',0,0,0,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-manager','enable','sysd-service','','dcmanager-manager.service','start','',2,2,2,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-manager','disable','sysd-service','','dcmanager-manager.service','stop','',1,1,1,20,'');
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-manager','audit-enabled','sysd-service','','dcmanager-manager.service','status','',2,2,2,20,5);
+INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-manager','audit-disabled','sysd-service','','dcmanager-manager.service','status','',0,0,0,20,5);
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-audit','enable','ocf-script','openstack','dcmanager-audit','start','',2,2,2,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-audit','disable','ocf-script','openstack','dcmanager-audit','stop','',1,1,1,20,'');
 INSERT INTO "SERVICE_ACTIONS" VALUES('dcmanager-audit','audit-enabled','ocf-script','openstack','dcmanager-audit','monitor','',2,2,2,20,5);
